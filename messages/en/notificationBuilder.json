@@ -1,0 +1,91 @@
+{
+  "table": {
+    "header": {
+      "name": "Name",
+      "description": "Description",
+      "channel": "Channel",
+      "active": "Active",
+      "system": "System",
+      "actions": "Actions"
+    }
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "activate": "Activate",
+    "deactivate": "Deactivate"
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "toast": {
+    "infoTitle": "Information",
+    "success": "Success",
+    "error": "Error",
+    "templateNotFound": "Template not found",
+    "templateDeleted": "Template deleted successfully",
+    "errorDeletingTemplate": "Error deleting template",
+    "templateActivated": "Template activated successfully",
+    "templateDeactivated": "Template deactivated successfully",
+    "errorChangingStatus": "Error changing template status",
+    "templateCreated": "Template created successfully",
+    "templateUpdated": "Template updated successfully",
+    "errorSavingTemplate": "Error saving template"
+  },
+  "modal": {
+    "createTitle": "Create Notification Template",
+    "editTitle": "Edit Notification Template"
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "channelRequired": "Channel is required",
+    "subjectRequired": "Subject is required for email notifications",
+    "bodyRequired": "Content is required"
+  },
+  "confirmDelete": {
+    "message": "Are you sure you want to delete this template?"
+  },
+  "retry": "Retry",
+  "channels": {
+    "email": "Email",
+    "sms": "SMS",
+    "push": "Push notification",
+    "internal": "Internal notification",
+    "webhook": "Webhook"
+  },
+  "form": {
+    "title": {
+      "create": "Create New Notification",
+      "edit": "Edit Notification"
+    },
+    "general": "General Information",
+    "content": "Content",
+    "name": "Template Name",
+    "namePlaceholder": "Enter template name",
+    "description": "Description",
+    "descriptionPlaceholder": "Brief description of this notification's purpose",
+    "channel": "Notification Channel",
+    "channelPlaceholder": "Select a channel",
+    "subject": "Subject",
+    "subjectPlaceholder": "Message subject (email only)",
+    "body": "Content",
+    "bodyPlaceholder": "Message content",
+    "bodyPlaceholderWebhook": "JSON content for webhook",
+    "variablesLabel": "Available Variables",
+    "variablesHelp": "Variables that can be used in the content using {{{variable}}}",
+    "bodyHelp": "Use {variable_name} between double braces to include dynamic variables",
+    "active": "Status",
+    "activeState": "Active",
+    "inactiveState": "Inactive",
+    "isActiveLabel": "Status",
+    "isActive": "Active",
+    "isInactive": "Inactive",
+    "systemTemplateWarning": "This is a system template and its channel cannot be changed",
+    "save": "Save",
+    "cancel": "Cancel",
+    "requiredField": "This field is required",
+    "errorSaving": "Error saving template",
+    "successSaving": "Template saved successfully"
+  }
+}

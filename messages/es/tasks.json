@@ -1,0 +1,36 @@
+{
+    "header": {
+        "title": "Tareas",
+        "addMembers": "Añadir miembros",
+        "searchPlaceholder": "Buscar miembros..."
+    },
+    "taskList": {
+        "status": "Estado",
+        "priority": "Prioridad",
+        "dueDate": "Fecha límite",
+        "assignee": "Asignado",
+        "untitledTask": "Tarea sin título",
+        "addTask": "Añadir Tarea",
+        "enterTaskName": "Introduce el nombre de la tarea",
+        "create": "Crear"
+    },
+    "status": {
+        "pending": "Pendiente",
+        "inProgress": "En Progreso",
+        "completed": "Completado"
+    },
+    "priority": {
+        "low": "Baja",
+        "medium": "Media",
+        "high": "Alta"
+    },
+    "dialog": {
+        "title": "Añadir miembros",
+        "description": "Invita a miembros existentes del equipo a este proyecto.",
+        "membersAvailable_one": "{count} miembro disponible",
+        "membersAvailable_other": "{count} miembros disponibles",
+        "remove": "Eliminar",
+        "add": "Añadir",
+        "done": "Hecho"
+    }
+}

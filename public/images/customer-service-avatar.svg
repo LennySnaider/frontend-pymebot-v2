@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128px" height="128px" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Customer Service Avatar</title>
+    <g id="Avatar" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle id="Background" fill="#4CAF50" cx="64" cy="64" r="64"></circle>
+        <g id="Person" transform="translate(24.000000, 14.000000)">
+            <path d="M40,30 C53.254834,30 64,40.745166 64,54 L64,80 C64,82.209139 62.209139,84 60,84 L20,84 C17.790861,84 16,82.209139 16,80 L16,54 C16,40.745166 26.745166,30 40,30 Z" id="Body" fill="#FFFFFF"></path>
+            <circle id="Head" fill="#FFFFFF" cx="40" cy="20" r="20"></circle>
+            <path d="M40,46 C46.627417,46 52,51.372583 52,58 C52,64.627417 46.627417,70 40,70 C33.372583,70 28,64.627417 28,58 C28,51.372583 33.372583,46 40,46 Z" id="Headset-Circle" fill="#E8F5E9"></path>
+            <path d="M25,52 C26.1045695,52 27,52.8954305 27,54 L27,62 C27,63.1045695 26.1045695,64 25,64 L20,64 C18.8954305,64 18,63.1045695 18,62 L18,54 C18,52.8954305 18.8954305,52 20,52 L25,52 Z M60,52 C61.1045695,52 62,52.8954305 62,54 L62,62 C62,63.1045695 61.1045695,64 60,64 L55,64 C53.8954305,64 53,63.1045695 53,62 L53,54 C53,52.8954305 53.8954305,52 55,52 L60,52 Z" id="Headset-Speakers" fill="#4CAF50"></path>
+            <path d="M30,58 L50,58 C50,64.627417 45.5228475,70 40,70 C34.4771525,70 30,64.627417 30,58 Z" id="Smile" fill="#4CAF50"></path>
+        </g>
+    </g>
+</svg>

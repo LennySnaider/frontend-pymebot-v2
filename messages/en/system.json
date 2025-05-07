@@ -1,0 +1,106 @@
+{
+    "systemVariables": {
+        "toast": {
+            "infoTitle": "Information",
+            "createNotImplemented": "Create functionality not implemented.",
+            "editNotImplemented": "Edit functionality not implemented.",
+            "deleteNotImplemented": "Delete functionality not implemented.",
+            "success": "Success",
+            "error": "Error",
+            "variableCreated": "Variable created successfully.",
+            "variableUpdated": "Variable updated successfully.",
+            "variableDeleted": "Variable deleted successfully.",
+            "errorSavingVariable": "Error saving variable.",
+            "errorDeletingVariable": "Error deleting variable.",
+            "variableNotFound": "Variable not found."
+        },
+        "confirmDelete": {
+            "message": "Are you sure you want to delete this variable? This action cannot be undone."
+        },
+        "table": {
+            "header": {
+                "internalName": "Internal Name",
+                "displayName": "Display Name",
+                "type": "Type",
+                "configurable": "Configurable",
+                "sensitive": "Sensitive",
+                "defaultValue": "Default Value",
+                "actions": "Actions"
+            }
+        },
+        "boolean": {
+            "yes": "Yes",
+            "no": "No"
+        },
+        "sensitive": {
+            "trueTooltip": "Sensitive variable (value hidden)",
+            "falseTooltip": "Non-sensitive variable"
+        },
+        "defaultValue": {
+            "hidden": "(hidden)"
+        },
+        "actions": {
+            "edit": "Edit",
+            "delete": "Delete"
+        },
+        "pageTitle": "Variable Builder",
+        "breadcrumbs": {
+            "dashboard": "Dashboard",
+            "superadminTools": "Admin Tools",
+            "currentPage": "Variable Builder"
+        },
+        "newVariableButton": "New Variable",
+        "cardTitle": "System Variables",
+        "retry": "Retry",
+        "noVariablesFound": "No system variables found.",
+        "createFirstVariable": "Create the first variable"
+    },
+    "business": {
+        "title": "Business Settings",
+        "defaultName": "Realtor Inc",
+        "namePlaceholder": "Business name",
+        "descriptionPlaceholder": "Business description",
+        "noDescription": "No description provided",
+        "basicInfoTitle": "Basic Information",
+        "contactInfoTitle": "Contact Information",
+        "typeLabel": "Business Type",
+        "typePlaceholder": "Select...",
+        "timezoneLabel": "Timezone",
+        "timezonePlaceholder": "Select...",
+        "websiteLabel": "Website",
+        "primaryColorLabel": "Primary Color",
+        "primaryColorExtra": "This color will be used throughout the system",
+        "contactEmailLabel": "Contact Email",
+        "phoneLabel": "Phone",
+        "addressLabel": "Address",
+        "addressPlaceholder": "Main Street #123",
+        "cityLabel": "City",
+        "cityPlaceholder": "New York",
+        "postalCodeLabel": "Postal Code",
+        "notSpecified": "Not specified",
+        "importantInfoTitle": "Important Information",
+        "importantInfoText": "This data will be used throughout the system, including:",
+        "importantInfoItem1": "Chatbot configuration",
+        "importantInfoItem2": "Customer communications",
+        "importantInfoItem3": "Generated documents and reports",
+        "loadError": "Could not load business information",
+        "saveError": "Error saving changes",
+        "saveSuccess": "Business information updated successfully",
+        "logoTypeError": "Only image files are allowed",
+        "logoSizeError": "Maximum allowed size is 5MB",
+        "logoUploadError": "Error uploading logo",
+        "logoProcessError": "Error processing logo",
+        "logoUploadSuccess": "Logo uploaded successfully",
+        "noTenantError": "Tenant information not found",
+        "edit": "Edit information",
+        "aboutPageTitle": "About this page",
+        "aboutPageDescription": "This page allows you to manage your business's basic information. This information will be used throughout the system, including:",
+        "aboutPageChatbots": "Chatbots and Voice Bots",
+        "aboutPageChatbotsDesc": " Data such as name, logo, and primary color will be automatically used in your virtual assistants.",
+        "aboutPageCommunications": "Customer Communications",
+        "aboutPageCommunicationsDesc": " Message templates and emails will display your business information.",
+        "aboutPageUI": "User Interface",
+        "aboutPageUIDesc": " The primary color will be used in visual elements of the platform.",
+        "aboutPageFooter": "Keep this information updated to ensure a consistent experience for your customers across all communication channels."
+    }
+}

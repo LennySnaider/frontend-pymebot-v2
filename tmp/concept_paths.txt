@@ -1,0 +1,20 @@
+src//components/template/Notification/Notification.tsx:        router.push('/concepts/account/activity-log')
+src//components/template/Search.tsx:                path: '/concepts/leads/leads-scrum',
+src//components/template/Search.tsx:                path: '/concepts/properties/property-list',
+src//components/template/Search.tsx:                path: '/concepts/appointments',
+src//components/template/Search.tsx:                path: '/concepts/superadmin/chatbot-builder',
+src//components/template/Search.tsx:                path: '/concepts/settings',
+src//components/template/UserProfileDropdown.tsx:        path: '/concepts/account/settings',
+src//components/template/UserProfileDropdown.tsx:        path: '/concepts/account/settings',
+src//components/template/UserProfileDropdown.tsx:        path: '/concepts/account/activity-log',
+src//components/view/ChatbotBuilder/FixedChatbotEditor.tsx:      router.push('/concepts/chatbot');
+src//components/view/ChatbotBuilder/SharedChatbotTemplatesList.tsx:    basePath?: string // Ruta base para navegación (ej: '/concepts/chatbot' o '/concepts/superadmin/chatbot-builder')
+src//components/view/ChatbotBuilder/SharedChatbotTemplatesList.tsx:    // basePath = '/concepts/chatbot', // Removed unused variable
+src//components/view/ChatbotBuilder/SharedChatbotTemplatesList.tsx:                ? `/concepts/superadmin/chatbot-builder/editor?id=${id}`
+src//components/view/ChatbotBuilder/SharedChatbotTemplatesList.tsx:                : `/concepts/chatbot/template/${id}`
+src//components/view/ChatbotBuilder/SharedChatbotTemplatesList.tsx:                                    ? `/concepts/superadmin/chatbot-builder/editor`
+src//components/view/ChatbotBuilder/SharedChatbotTemplatesList.tsx:                                    : `/concepts/chatbot/template/new`
+src//services/AppointmentService.ts:import type { Appointment } from '@/app/(protected-pages)/concepts/leads/leads-scrum/types'
+src//services/ChatService/apiGetChatTemplates.ts:import { ChatTemplate } from '@/app/(protected-pages)/concepts/marketing/chat/_components/TemplateSelector'
+src//services/ChatService/apiSendChatMessage.ts:import { useChatStore } from '@/app/(protected-pages)/concepts/marketing/chat/_store/chatStore'
+src//services/mappers/PropertyMapper.ts:import type { Property, PropertyMedia } from '@/app/(protected-pages)/concepts/properties/property-list/types';

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Activate Flow</title>
+</head>
+
+<body>
+  <h1>Activate Flow</h1>
+  <label for="flowId">Flow ID:</label>
+  <input type="text" id="flowId" name="flowId"><br><br>
+  <button onclick='activateFlow()'>Activate</button>
+
+  <script>
+    async function activateFlow() {
+      const flowId = document.getElementById('flowId').value;
+      const API_URL = 'http://localhost:3090/api';
+      const SUPER_ADMIN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLXRlc3QtaWQiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRfaWQiOiJ0ZXN0LXRlbmFudCIsImlhdCI6MTc0NTY3Mjk0MSwiZXhwIjoxNzQ1NzU5MzQxLCJpc3MiOiJzdXBhYmFzZSIsImp0aSI6IjZlNzM2YjRlYmY3NjVhNTFlMmRhZjIzYzc4NGNkZTMwIn0.pNuIOIYzrKLL078uir4rsBGcaGCYQvN3ZM5WyRp709Q';
+
+      try {
+        const response = await fetch(API_URL + '/flows/' + flowId + '/activate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + SUPER_ADMIN_TOKEN
+          }
+        });
+
+        if (response.ok) {
+          alert('Flow activated successfully!');
+        } else {
+          const data = await response.json();
+          alert('Error activating flow: Status ' + response.status + ', Response: ' + JSON.stringify(data));
+        }
+      } catch (error) {
+        alert('Error: ' + error);
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,91 @@
+{
+  "table": {
+    "header": {
+      "name": "Nombre",
+      "description": "Descripción",
+      "channel": "Canal",
+      "active": "Activa",
+      "system": "Sistema",
+      "actions": "Acciones"
+    }
+  },
+  "actions": {
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "activate": "Activar",
+    "deactivate": "Desactivar"
+  },
+  "boolean": {
+    "yes": "Sí",
+    "no": "No"
+  },
+  "toast": {
+    "infoTitle": "Información",
+    "success": "Éxito",
+    "error": "Error",
+    "templateNotFound": "Plantilla no encontrada",
+    "templateDeleted": "Plantilla eliminada correctamente",
+    "errorDeletingTemplate": "Error al eliminar la plantilla",
+    "templateActivated": "Plantilla activada correctamente",
+    "templateDeactivated": "Plantilla desactivada correctamente",
+    "errorChangingStatus": "Error al cambiar el estado de la plantilla",
+    "templateCreated": "Plantilla creada correctamente",
+    "templateUpdated": "Plantilla actualizada correctamente",
+    "errorSavingTemplate": "Error al guardar la plantilla"
+  },
+  "modal": {
+    "createTitle": "Crear Plantilla de Notificación",
+    "editTitle": "Editar Plantilla de Notificación"
+  },
+  "validation": {
+    "nameRequired": "El nombre es obligatorio",
+    "channelRequired": "El canal es obligatorio",
+    "subjectRequired": "El asunto es obligatorio para notificaciones de correo",
+    "bodyRequired": "El contenido es obligatorio"
+  },
+  "confirmDelete": {
+    "message": "¿Está seguro de que desea eliminar esta plantilla?"
+  },
+  "retry": "Reintentar",
+  "channels": {
+    "email": "Correo electrónico",
+    "sms": "SMS",
+    "push": "Notificación push",
+    "internal": "Notificación interna",
+    "webhook": "Webhook"
+  },
+  "form": {
+    "title": {
+      "create": "Crear Nueva Notificación",
+      "edit": "Editar Notificación"
+    },
+    "general": "Información General",
+    "content": "Contenido",
+    "name": "Nombre de la Plantilla",
+    "namePlaceholder": "Ingrese nombre de la plantilla",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Breve descripción del propósito de esta notificación",
+    "channel": "Canal de Notificación",
+    "channelPlaceholder": "Seleccione un canal",
+    "subject": "Asunto",
+    "subjectPlaceholder": "Asunto del mensaje (solo para correo electrónico)",
+    "body": "Contenido",
+    "bodyPlaceholder": "Contenido del mensaje",
+    "bodyPlaceholderWebhook": "Contenido JSON para el webhook",
+    "variablesLabel": "Variables Disponibles",
+    "variablesHelp": "Variables que pueden usarse en el contenido usando {{{variable}}}",
+    "bodyHelp": "Use {variable_name} entre llaves dobles para incluir variables dinámicas",
+    "active": "Estado",
+    "activeState": "Activa",
+    "inactiveState": "Inactiva",
+    "isActiveLabel": "Estado",
+    "isActive": "Activa",
+    "isInactive": "Inactiva",
+    "systemTemplateWarning": "Esta es una plantilla del sistema y no se puede cambiar su canal",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "requiredField": "Este campo es obligatorio",
+    "errorSaving": "Error al guardar la plantilla",
+    "successSaving": "Plantilla guardada correctamente"
+  }
+}

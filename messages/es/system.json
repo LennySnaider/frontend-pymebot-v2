@@ -1,0 +1,106 @@
+{
+    "systemVariables": {
+        "toast": {
+            "infoTitle": "Información",
+            "createNotImplemented": "Funcionalidad de creación no implementada.",
+            "editNotImplemented": "Funcionalidad de edición no implementada.",
+            "deleteNotImplemented": "Funcionalidad de eliminación no implementada.",
+            "success": "Éxito",
+            "error": "Error",
+            "variableCreated": "Variable creada con éxito.",
+            "variableUpdated": "Variable actualizada con éxito.",
+            "variableDeleted": "Variable eliminada con éxito.",
+            "errorSavingVariable": "Error al guardar la variable.",
+            "errorDeletingVariable": "Error al eliminar la variable.",
+            "variableNotFound": "Variable no encontrada."
+        },
+        "confirmDelete": {
+            "message": "¿Estás seguro de que quieres eliminar esta variable? Esta acción no se puede deshacer."
+        },
+        "table": {
+            "header": {
+                "internalName": "Nombre Interno",
+                "displayName": "Nombre de Visualización",
+                "type": "Tipo",
+                "configurable": "Configurable",
+                "sensitive": "Sensible",
+                "defaultValue": "Valor Predeterminado",
+                "actions": "Acciones"
+            }
+        },
+        "boolean": {
+            "yes": "Sí",
+            "no": "No"
+        },
+        "sensitive": {
+            "trueTooltip": "Variable sensible (valor oculto)",
+            "falseTooltip": "Variable no sensible"
+        },
+        "defaultValue": {
+            "hidden": "(oculto)"
+        },
+        "actions": {
+            "edit": "Editar",
+            "delete": "Eliminar"
+        },
+        "pageTitle": "Constructor de Variables",
+        "breadcrumbs": {
+            "dashboard": "Panel",
+            "superadminTools": "Herramientas de Admin",
+            "currentPage": "Constructor de Variables"
+        },
+        "newVariableButton": "Nueva Variable",
+        "cardTitle": "Variables del Sistema",
+        "retry": "Reintentar",
+        "noVariablesFound": "No se encontraron variables del sistema.",
+        "createFirstVariable": "Crear la primera variable"
+    },
+    "business": {
+        "title": "Configuración de Negocio",
+        "defaultName": "Realtor Inc",
+        "namePlaceholder": "Nombre del negocio",
+        "descriptionPlaceholder": "Descripción del negocio",
+        "noDescription": "Sin descripción",
+        "basicInfoTitle": "Información Básica",
+        "contactInfoTitle": "Información de Contacto",
+        "typeLabel": "Tipo de Negocio",
+        "typePlaceholder": "Selecciona...",
+        "timezoneLabel": "Zona Horaria",
+        "timezonePlaceholder": "Selecciona...",
+        "websiteLabel": "Sitio Web",
+        "primaryColorLabel": "Color Principal",
+        "primaryColorExtra": "Este color se usará en todo el sistema",
+        "contactEmailLabel": "Correo de Contacto",
+        "phoneLabel": "Teléfono",
+        "addressLabel": "Dirección",
+        "addressPlaceholder": "Calle Principal #123",
+        "cityLabel": "Ciudad",
+        "cityPlaceholder": "Ciudad de México",
+        "postalCodeLabel": "Código Postal",
+        "notSpecified": "No especificado",
+        "importantInfoTitle": "Información Importante",
+        "importantInfoText": "Estos datos se utilizarán en todo el sistema, incluyendo:",
+        "importantInfoItem1": "Configuración de los chatbots",
+        "importantInfoItem2": "Comunicaciones con clientes",
+        "importantInfoItem3": "Documentos y reportes generados",
+        "loadError": "No se pudo cargar la información del negocio",
+        "saveError": "Error al guardar los cambios",
+        "saveSuccess": "Información del negocio actualizada correctamente",
+        "logoTypeError": "Solo se permiten archivos de imagen",
+        "logoSizeError": "El tamaño máximo permitido es de 5MB",
+        "logoUploadError": "Error al subir el logo",
+        "logoProcessError": "Error al procesar el logo",
+        "logoUploadSuccess": "Logo subido correctamente",
+        "noTenantError": "No se encontró información del tenant",
+        "edit": "Editar información",
+        "aboutPageTitle": "Sobre esta página",
+        "aboutPageDescription": "Esta página te permite gestionar la información básica de tu negocio. Esta información se utilizará en todo el sistema, incluyendo:",
+        "aboutPageChatbots": "Chatbots y Voice Bots",
+        "aboutPageChatbotsDesc": " Los datos como el nombre, logo y color principal se utilizarán automáticamente en tus asistentes virtuales.",
+        "aboutPageCommunications": "Comunicaciones con clientes",
+        "aboutPageCommunicationsDesc": " Las plantillas de mensajes y correos electrónicos mostrarán los datos de tu negocio.",
+        "aboutPageUI": "Interfaz de usuario",
+        "aboutPageUIDesc": " El color principal se utilizará en elementos visuales de la plataforma.",
+        "aboutPageFooter": "Mantén esta información actualizada para asegurar una experiencia consistente para tus clientes en todos los canales de comunicación."
+    }
+}

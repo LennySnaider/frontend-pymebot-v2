@@ -1,0 +1,60 @@
+/**
+ * frontend/src/app/(protected-pages)/concepts/properties/property-details/[id]/_components/styles.css
+ * Estilos para el visor de imágenes con thumbnails en carrusel.
+ *
+ * @version 1.0.0
+ * @updated 2025-04-07
+ */
+
+/* Ocultar la barra de desplazamiento pero mantener la funcionalidad */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Para Chrome, Safari y Opera */
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* Para IE y Edge */
+  scrollbar-width: none;  /* Para Firefox */
+}
+
+/* Estilos para los thumbnails */
+.thumbnail {
+  transition: all 0.2s ease-in-out;
+  margin: 0 2px;
+  position: relative;
+  /* No establecemos ancho fijo, se ajusta por JS según el número de imágenes */
+}
+
+.thumbnail:hover {
+  opacity: 1 !important;
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+/* Grid para miniaturas - ajustado por JS */
+.thumbnails-grid {
+  display: grid;
+  /* La siguiente propiedad se sobreescribe por JS 
+     en base al número real de imágenes */
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
+/* Ajustar los thumbnails para que tengan la misma altura y proporción */
+.thumbnail {
+  aspect-ratio: 16 / 9;
+  height: auto !important;
+  overflow: hidden;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ocultar cualquier miniatura después de la sexta */
+.thumbnail:nth-child(n+7) {
+  display: none;
+}

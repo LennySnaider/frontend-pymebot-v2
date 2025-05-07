@@ -1,0 +1,85 @@
+{
+    "header": {
+        "title": "Embudo de Ventas",
+        "subtitle": "Gestiona tus prospectos eficientemente",
+        "leads": "{count} prospectos",
+        "searchLeads": "Buscar prospectos...",
+        "newLead": "Nuevo Prospecto",
+        "filter": "Filtrar",
+        "hideFilters": "Ocultar filtros",
+        "clearFilters": "Limpiar filtros",
+        "assignedTo": "Asignado a:"
+    },
+    "columns": {
+        "addNewColumn": "Añadir Nueva Columna",
+        "titleLabel": "Título de Columna",
+        "validation": {
+            "titleRequired": "El título de la columna es obligatorio"
+        },
+        "untitledBoard": "Columna sin título",
+        "defaultNames": {
+            "toDo": "Por Hacer",
+            "inProgress": "En Progreso",
+            "toReview": "Por Revisar",
+            "completed": "Completado"
+        },
+        "finalStates": {
+            "confirmed": "Confirmado",
+            "closed": "Cerrado",
+            "dropHere": "Soltar aquí",
+            "dropHereConfirm": "¿Estás seguro de que quieres mover esta tarea a este estado?",
+            "dropHereClose": "La tarea se ha movido correctamente a este estado."
+        },
+        "rename": "Renombrar",
+        "delete": "Eliminar",
+        "deleteConfirm": {
+            "title": "Eliminar columna",
+            "message": "¿Estás seguro de que quieres eliminar esta columna? Todas las tarjetas en esta columna se perderán."
+        }
+    },
+    "tickets": {
+        "types": {
+            "task": "Tarea",
+            "bug": "Error",
+            "liveIssue": "Problema en vivo",
+            "lowPriority": "Baja prioridad"
+        },
+        "validation": {
+            "titleRequired": "El título es obligatorio"
+        },
+        "addTicket": "Añadir Prospecto",
+        "addNewTicket": "Añadir nueva tarjeta",
+        "titleLabel": "Título",
+        "untitledCard": "Tarjeta sin título",
+        "assignedTo": "Asignado a",
+        "label": "Etiqueta",
+        "addLabel": "Añadir etiqueta",
+        "dueDate": "Fecha límite",
+        "description": "Descripción",
+        "addMore": "Añadir más",
+        "tabs": {
+            "comments": "Comentarios",
+            "attachments": "Adjuntos"
+        },
+        "writeComment": "Escribir comentario",
+        "noAttachments": "Sin adjuntos",
+        "change": "Cambiar"
+    },
+    "views": {
+        "kanban": "Vista Kanban",
+        "list": "Vista Lista"
+    },
+    "list": {
+        "columns": {
+            "name": "Nombre",
+            "status": "Estado",
+            "labels": "Etiquetas",
+            "assignedTo": "Asignado a",
+            "interactions": "Interacciones"
+        }
+    },
+    "member": {
+        "add": "Añadir miembro",
+        "manage": "Gestionar miembros"
+    }
+}

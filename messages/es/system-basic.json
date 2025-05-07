@@ -1,0 +1,18 @@
+{
+    "systemVariables": {
+        "toast": {
+            "infoTitle": "Información",
+            "createNotImplemented": "Funcionalidad de creación no implementada.",
+            "editNotImplemented": "Funcionalidad de edición no implementada.",
+            "deleteNotImplemented": "Funcionalidad de eliminación no implementada.",
+            "success": "Éxito",
+            "error": "Error",
+            "variableCreated": "Variable creada con éxito.",
+            "variableUpdated": "Variable actualizada con éxito.",
+            "variableDeleted": "Variable eliminada con éxito.",
+            "errorSavingVariable": "Error al guardar la variable.",
+            "errorDeletingVariable": "Error al eliminar la variable.",
+            "variableNotFound": "Variable no encontrada."
+        }
+    }
+}

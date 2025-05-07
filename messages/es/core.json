@@ -1,0 +1,39 @@
+{
+    "header": {
+        "notifications": "Notificaciones",
+        "markAllAsRead": "Marcar todo como leído",
+        "viewAllActivity": "Ver toda la actividad",
+        "noNotifications": "¡No hay notificaciones!",
+        "tryAgainLater": "Por favor, inténtelo de nuevo más tarde",
+        "profile": "Perfil",
+        "accountSetting": "Configuración de cuenta",
+        "activityLog": "Registro de actividad",
+        "signOut": "Cerrar sesión",
+        "anonymousUser": "Anónimo",
+        "noEmailAvailable": "No hay correo electrónico disponible",
+        "noRoleAvailable": "No hay rol disponible"
+    },
+    "common": {
+        "download": "Descargar",
+        "filter": "Filtrar",
+        "reset": "Restablecer",
+        "apply": "Aplicar",
+        "delete": "Eliminar",
+        "cancel": "Cancelar",
+        "send": "Enviar",
+        "edit": "Editar",
+        "view": "Ver",
+        "save": "Guardar",
+        "search": "Buscar",
+        "create": "Crear",
+        "discard": "Descartar",
+        "back": "Atrás",
+        "add": "Añadir",
+        "done": "Hecho",
+        "remove": "Eliminar",
+        "noData": "No hay datos disponibles"
+    },
+    "edit": "Editar",
+    "error": "Error",
+    "success": "Éxito"
+}

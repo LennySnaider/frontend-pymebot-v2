@@ -1,0 +1,85 @@
+{
+    "header": {
+        "title": "Sales Funnel",
+        "subtitle": "Manage your leads efficiently",
+        "leads": "{count} leads",
+        "searchLeads": "Search leads...",
+        "newLead": "New Lead",
+        "filter": "Filter",
+        "hideFilters": "Hide filters",
+        "clearFilters": "Clear filters",
+        "assignedTo": "Assigned to:"
+    },
+    "columns": {
+        "addNewColumn": "Add New Column",
+        "titleLabel": "Column Title",
+        "validation": {
+            "titleRequired": "Column title is required"
+        },
+        "untitledBoard": "Untitled Column",
+        "defaultNames": {
+            "toDo": "To Do",
+            "inProgress": "In Progress",
+            "toReview": "To Review",
+            "completed": "Completed"
+        },
+        "finalStates": {
+            "confirmed": "Confirmed",
+            "closed": "Closed",
+            "dropHere": "Drop here",
+            "dropHereConfirm": "Are you sure you want to move this task to this state?",
+            "dropHereClose": "The task has been successfully moved to this state."
+        },
+        "rename": "Rename",
+        "delete": "Delete",
+        "deleteConfirm": {
+            "title": "Delete column",
+            "message": "Are you sure you want to delete this column? All cards in this column will be lost."
+        }
+    },
+    "tickets": {
+        "types": {
+            "task": "Task",
+            "bug": "Bug",
+            "liveIssue": "Live Issue",
+            "lowPriority": "Low Priority"
+        },
+        "validation": {
+            "titleRequired": "Title is required"
+        },
+        "addTicket": "Add Lead",
+        "addNewTicket": "Add new ticket",
+        "titleLabel": "Title",
+        "untitledCard": "Untitled card",
+        "assignedTo": "Assigned to",
+        "label": "Label",
+        "addLabel": "Add label",
+        "dueDate": "Due date",
+        "description": "Description",
+        "addMore": "Add more",
+        "tabs": {
+            "comments": "Comments",
+            "attachments": "Attachments"
+        },
+        "writeComment": "Write comment",
+        "noAttachments": "No attachments",
+        "change": "Change"
+    },
+    "views": {
+        "kanban": "Kanban View",
+        "list": "List View"
+    },
+    "list": {
+        "columns": {
+            "name": "Name",
+            "status": "Status",
+            "labels": "Labels",
+            "assignedTo": "Assigned to",
+            "interactions": "Interactions"
+        }
+    },
+    "member": {
+        "add": "Add member",
+        "manage": "Manage members"
+    }
+}

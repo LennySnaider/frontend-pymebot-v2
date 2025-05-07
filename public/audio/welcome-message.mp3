@@ -1,0 +1,4 @@
+// Este es un archivo de audio MP3 dummy.
+// En un entorno real, este sería un archivo de audio válido generado por la API de TTS.
+// Para la demostración, el navegador intentará reproducir este archivo,
+// pero no se reproducirá correctamente ya que no es un MP3 válido.

@@ -1,0 +1,36 @@
+{
+    "header": {
+        "title": "Tasks",
+        "addMembers": "Add members",
+        "searchPlaceholder": "Search members..."
+    },
+    "taskList": {
+        "status": "Status",
+        "priority": "Priority",
+        "dueDate": "Due date",
+        "assignee": "Assignee",
+        "untitledTask": "Untitled task",
+        "addTask": "Add Task",
+        "enterTaskName": "Enter task name",
+        "create": "Create"
+    },
+    "status": {
+        "pending": "Pending",
+        "inProgress": "In Progress",
+        "completed": "Completed"
+    },
+    "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+    },
+    "dialog": {
+        "title": "Add members",
+        "description": "Invite existing team members to this project.",
+        "membersAvailable_one": "{count} member available",
+        "membersAvailable_other": "{count} members available",
+        "remove": "Remove",
+        "add": "Add",
+        "done": "Done"
+    }
+}

@@ -1,0 +1,174 @@
+/* Animaciones para componentes de chat y audio */
+
+/* Ondas de sonido para visualización de audio */
+@keyframes sound-wave-1 {
+  0% { height: 3px; }
+  50% { height: 8px; }
+  100% { height: 3px; }
+}
+
+@keyframes sound-wave-2 {
+  0% { height: 5px; }
+  50% { height: 12px; }
+  100% { height: 5px; }
+}
+
+@keyframes sound-wave-3 {
+  0% { height: 3px; }
+  50% { height: 10px; }
+  100% { height: 3px; }
+}
+
+@keyframes sound-wave-4 {
+  0% { height: 6px; }
+  50% { height: 14px; }
+  100% { height: 6px; }
+}
+
+@keyframes sound-wave-5 {
+  0% { height: 3px; }
+  50% { height: 7px; }
+  100% { height: 3px; }
+}
+
+.animate-sound-wave-1 {
+  animation: sound-wave-1 1.2s ease-in-out infinite;
+}
+
+.animate-sound-wave-2 {
+  animation: sound-wave-2 1.4s ease-in-out infinite;
+}
+
+.animate-sound-wave-3 {
+  animation: sound-wave-3 1s ease-in-out infinite;
+}
+
+.animate-sound-wave-4 {
+  animation: sound-wave-4 1.3s ease-in-out infinite;
+}
+
+.animate-sound-wave-5 {
+  animation: sound-wave-5 1.5s ease-in-out infinite;
+}
+
+/* Animaciones para el asistente de voz moderno */
+@keyframes soundwave-1 {
+  0% { height: 16px; }
+  50% { height: 32px; }
+  100% { height: 16px; }
+}
+
+@keyframes soundwave-2 {
+  0% { height: 24px; }
+  50% { height: 40px; }
+  100% { height: 24px; }
+}
+
+@keyframes soundwave-3 {
+  0% { height: 16px; }
+  50% { height: 28px; }
+  100% { height: 16px; }
+}
+
+@keyframes soundwave-4 {
+  0% { height: 20px; }
+  50% { height: 44px; }
+  100% { height: 20px; }
+}
+
+@keyframes soundwave-5 {
+  0% { height: 12px; }
+  50% { height: 36px; }
+  100% { height: 12px; }
+}
+
+.animate-soundwave-1 {
+  animation: soundwave-1 1.2s ease-in-out infinite;
+}
+
+.animate-soundwave-2 {
+  animation: soundwave-2 1.4s ease-in-out infinite;
+}
+
+.animate-soundwave-3 {
+  animation: soundwave-3 1s ease-in-out infinite;
+}
+
+.animate-soundwave-4 {
+  animation: soundwave-4 1.3s ease-in-out infinite;
+}
+
+.animate-soundwave-5 {
+  animation: soundwave-5 1.5s ease-in-out infinite;
+}
+
+/* Animación para el círculo pulsante */
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Animación para pulso */
+@keyframes pulse-animation {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.animate-pulse-red {
+  animation: pulse-animation 1.5s infinite;
+}
+
+/* Animación para aparecer mensajes */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+/* Animación de typing para mostrar que el bot está escribiendo */
+@keyframes typing {
+  0% { transform: translateY(0px); }
+  28% { transform: translateY(-5px); }
+  44% { transform: translateY(0px); }
+}
+
+.animate-typing > div:nth-child(1) {
+  animation: typing 1.5s infinite;
+  animation-delay: 0s;
+}
+
+.animate-typing > div:nth-child(2) {
+  animation: typing 1.5s infinite;
+  animation-delay: 0.2s;
+}
+
+.animate-typing > div:nth-child(3) {
+  animation: typing 1.5s infinite;
+  animation-delay: 0.4s;
+}

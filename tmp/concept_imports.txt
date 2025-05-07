@@ -1,0 +1,4 @@
+src//services/AppointmentService.ts:import type { Appointment } from '@/app/(protected-pages)/concepts/leads/leads-scrum/types'
+src//services/ChatService/apiGetChatTemplates.ts:import { ChatTemplate } from '@/app/(protected-pages)/concepts/marketing/chat/_components/TemplateSelector'
+src//services/ChatService/apiSendChatMessage.ts:import { useChatStore } from '@/app/(protected-pages)/concepts/marketing/chat/_store/chatStore'
+src//services/mappers/PropertyMapper.ts:import type { Property, PropertyMedia } from '@/app/(protected-pages)/concepts/properties/property-list/types';

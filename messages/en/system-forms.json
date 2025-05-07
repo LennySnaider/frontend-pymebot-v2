@@ -1,0 +1,62 @@
+{
+  "systemVariables": {
+    "infoDrawer": {
+      "title": "Variable Builder",
+      "description": "Manage global system variables that can be used in chatbot flows. Define variables, their types, default values, and whether tenants can configure them.",
+      "whatAreVariablesTitle": "What are System Variables?",
+      "whatAreVariablesPoint1": "Allow centralizing common information (e.g., company name, phone number).",
+      "whatAreVariablesPoint2": "Can be used dynamically in chatbot responses.",
+      "whatAreVariablesPoint3": "Some variables can be configured by each tenant.",
+      "whatAreVariablesPoint4": "Can be marked as sensitive to avoid direct exposure.",
+      "administrationTitle": "Administration",
+      "administrationPoint1": "Create, edit, and delete variables.",
+      "administrationPoint2": "Organize variables by categories and verticals.",
+      "administrationPoint3": "Define data types and validation rules.",
+      "administrationPoint4": "Set whether a tenant can modify the value.",
+      "closeButton": "Got it"
+    },
+    "modal": {
+      "createTitle": "Create New Variable",
+      "editTitle": "Edit Variable"
+    },
+    "form": {
+      "internalName": "Internal Name",
+      "internalNamePlaceholder": "variable_name",
+      "internalNameHelp": "Unique identifier used in code (only letters, numbers, and underscores).",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "Display name",
+      "description": "Description",
+      "descriptionPlaceholder": "Description of this variable and its usage",
+      "type": "Variable Type",
+      "typeEditWarning": "Type cannot be changed once the variable is created.",
+      "defaultValue": "Default Value",
+      "textDefaultPlaceholder": "Default text value",
+      "numberDefaultPlaceholder": "0",
+      "selectDefaultPlaceholder": "Default value to use",
+      "dateDefaultPlaceholder": "YYYY-MM-DD",
+      "selectOptions": "Selection Options",
+      "optionValue": "Value",
+      "optionLabel": "Label",
+      "addOption": "Add Option",
+      "tenantConfigurable": "Configurable by Tenant",
+      "tenantConfigurableHelp": "If enabled, each tenant can customize the value.",
+      "sensitive": "Sensitive Information",
+      "sensitiveHelp": "If enabled, the value will be hidden in the interface.",
+      "numberHelp": "Integer or decimal number",
+      "selectDefaultHelp": "Must match one of the options defined below.",
+      "dateFormatHelp": "Format: YYYY-MM-DD"
+    },
+    "validation": {
+      "nameRequired": "Internal name is required.",
+      "nameFormat": "Only letters, numbers, and underscores are allowed.",
+      "displayNameRequired": "Display name is required.",
+      "typeRequired": "You must select a variable type.",
+      "numberFormat": "Must be a valid number.",
+      "invalidNumber": "Invalid number format.",
+      "invalidDate": "Invalid date format.",
+      "defaultValueNotInOptions": "Default value must be one of the defined options.",
+      "optionsRequired": "You must define at least one option.",
+      "atLeastOneOption": "You must complete at least one option with value and label."
+    }
+  }
+}

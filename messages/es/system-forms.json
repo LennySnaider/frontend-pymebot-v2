@@ -1,0 +1,102 @@
+{
+    "systemVariables": {
+        "confirmDelete": {
+            "message": "¿Estás seguro de que quieres eliminar esta variable? Esta acción no se puede deshacer."
+        },
+        "table": {
+            "header": {
+                "internalName": "Nombre Interno",
+                "displayName": "Nombre de Visualización",
+                "type": "Tipo",
+                "configurable": "Configurable",
+                "sensitive": "Sensible",
+                "defaultValue": "Valor Predeterminado",
+                "actions": "Acciones"
+            }
+        },
+        "boolean": {
+            "yes": "Sí",
+            "no": "No"
+        },
+        "sensitive": {
+            "trueTooltip": "Variable sensible (valor oculto)",
+            "falseTooltip": "Variable no sensible"
+        },
+        "defaultValue": {
+            "hidden": "(oculto)"
+        },
+        "actions": {
+            "edit": "Editar",
+            "delete": "Eliminar"
+        },
+        "pageTitle": "Constructor de Variables",
+        "breadcrumbs": {
+            "dashboard": "Panel",
+            "superadminTools": "Herramientas de Admin",
+            "currentPage": "Constructor de Variables"
+        },
+        "newVariableButton": "Nueva Variable",
+        "cardTitle": "Variables del Sistema",
+        "retry": "Reintentar",
+        "noVariablesFound": "No se encontraron variables del sistema.",
+        "createFirstVariable": "Crear la primera variable",
+        "infoDrawer": {
+            "title": "Constructor de Variables",
+            "description": "Gestiona variables globales del sistema que pueden ser utilizadas en flujos de chatbot. Define variables, sus tipos, valores predeterminados y si los inquilinos pueden configurarlas.",
+            "whatAreVariablesTitle": "¿Qué son las Variables del Sistema?",
+            "whatAreVariablesPoint1": "Permiten centralizar información común (ej., nombre de empresa, número de teléfono).",
+            "whatAreVariablesPoint2": "Pueden ser utilizadas dinámicamente en respuestas de chatbot.",
+            "whatAreVariablesPoint3": "Algunas variables pueden ser configuradas por cada inquilino.",
+            "whatAreVariablesPoint4": "Pueden marcarse como sensibles para evitar exposición directa.",
+            "administrationTitle": "Administración",
+            "administrationPoint1": "Crear, editar y eliminar variables.",
+            "administrationPoint2": "Organizar variables por categorías y verticales.",
+            "administrationPoint3": "Definir tipos de datos y reglas de validación.",
+            "administrationPoint4": "Establecer si un inquilino puede modificar el valor.",
+            "closeButton": "Entendido"
+        },
+        "modal": {
+            "createTitle": "Crear Nueva Variable",
+            "editTitle": "Editar Variable"
+        },
+        "form": {
+            "internalName": "Nombre Interno",
+            "internalNamePlaceholder": "nombre_variable",
+            "internalNameHelp": "Identificador único usado en código (solo letras, números y guiones bajos).",
+            "displayName": "Nombre de Visualización",
+            "displayNamePlaceholder": "Nombre de visualización",
+            "description": "Descripción",
+            "descriptionPlaceholder": "Descripción de esta variable y su uso",
+            "type": "Tipo de Variable",
+            "typeEditWarning": "El tipo no puede cambiarse una vez que la variable es creada.",
+            "defaultValue": "Valor Predeterminado",
+            "textDefaultPlaceholder": "Valor de texto predeterminado",
+            "numberDefaultPlaceholder": "0",
+            "selectDefaultPlaceholder": "Valor predeterminado a usar",
+            "dateDefaultPlaceholder": "AAAA-MM-DD",
+            "selectOptions": "Opciones de Selección",
+            "optionValue": "Valor",
+            "optionLabel": "Etiqueta",
+            "addOption": "Añadir Opción",
+            "tenantConfigurable": "Configurable por Inquilino",
+            "tenantConfigurableHelp": "Si está habilitado, cada inquilino puede personalizar el valor.",
+            "sensitive": "Información Sensible",
+            "sensitiveHelp": "Si está habilitado, el valor se ocultará en la interfaz.",
+            "numberHelp": "Número entero o decimal",
+            "selectDefaultHelp": "Debe coincidir con una de las opciones definidas a continuación.",
+            "dateFormatHelp": "Formato: AAAA-MM-DD"
+        },
+        "validation": {
+            "nameRequired": "El nombre interno es obligatorio.",
+            "nameFormat": "Solo se permiten letras, números y guiones bajos.",
+            "displayNameRequired": "El nombre de visualización es obligatorio.",
+            "typeRequired": "Debes seleccionar un tipo de variable.",
+            "numberFormat": "Debe ser un número válido.",
+            "invalidNumber": "Formato de número inválido.",
+            "invalidDate": "Formato de fecha inválido.",
+            "defaultValueNotInOptions": "El valor predeterminado debe ser una de las opciones definidas.",
+            "optionsRequired": "Debes definir al menos una opción.",
+            "atLeastOneOption": "Debes completar al menos una opción con valor y etiqueta."
+        }
+    }
+}

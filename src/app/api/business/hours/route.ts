@@ -1,0 +1,230 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getTenantFromRequest, verifyAdminOrManager } from './tenant-middleware';
+// Just a comment to force rebuild
+import { supabase } from '@/services/supabase/SupabaseClient';
+import { BusinessHourRequest, BusinessHoursResponse } from './types';
+
+/**
+ * GET /api/business/hours
+ * Obtiene los horarios de negocio regulares y excepciones para un tenant
+ */
+export async function GET(req: NextRequest) {
+  try {
+    // Verificar tenant
+    const tenantResult = await getTenantFromRequest(req);
+    
+    if (tenantResult.error) {
+      return tenantResult.error;
+    }
+    
+    const { tenant_id } = tenantResult;
+    
+    // Obtener parámetros de consulta
+    const searchParams = req.nextUrl.searchParams;
+    const location_id = searchParams.get('location_id');
+    const includeExceptions = searchParams.get('include_exceptions') === 'true';
+    
+    // Usar el cliente Supabase importado
+    
+    // Consultar horarios regulares
+    let query = supabase
+      .from('tenant_business_hours')
+      .select('*')
+      .eq('tenant_id', tenant_id)
+      .order('day_of_week');
+    
+    // Filtrar por ubicación si se especifica
+    if (location_id) {
+      query = query.eq('location_id', location_id);
+    }
+    
+    const { data: regular_hours, error: hoursError } = await query;
+    
+    if (hoursError) {
+      console.error('Error al obtener horarios regulares:', hoursError);
+      return NextResponse.json(
+        { error: 'Error al obtener horarios de negocio' },
+        { status: 500 }
+      );
+    }
+    
+    const response: BusinessHoursResponse = {
+      regular_hours: regular_hours || [],
+    };
+    
+    // Si se solicita incluir excepciones, consultar la tabla de excepciones
+    if (includeExceptions) {
+      let exceptionsQuery = supabase
+        .from('tenant_business_hours_exceptions')
+        .select('*')
+        .eq('tenant_id', tenant_id)
+        .order('exception_date');
+      
+      // Filtrar por ubicación si se especifica
+      if (location_id) {
+        exceptionsQuery = exceptionsQuery.eq('location_id', location_id);
+      }
+      
+      const { data: exceptions, error: exceptionsError } = await exceptionsQuery;
+      
+      if (exceptionsError) {
+        console.error('Error al obtener excepciones de horarios:', exceptionsError);
+        // Continuamos con la respuesta aunque haya un error con las excepciones
+      } else {
+        response.exceptions = exceptions || [];
+      }
+    }
+    
+    return NextResponse.json(response, { status: 200 });
+  } catch (error) {
+    console.error('Error en GET /api/business/hours:', error);
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/business/hours
+ * Actualiza o crea múltiples horarios de negocio para un tenant
+ */
+export async function PUT(req: NextRequest) {
+  try {
+    // Verificar permisos de administrador
+    const adminResult = await verifyAdminOrManager(req);
+    
+    if (adminResult.error) {
+      return adminResult.error;
+    }
+    
+    const { tenant_id } = adminResult;
+    
+    // Parsear cuerpo de la solicitud
+    const data: BusinessHourRequest[] = await req.json();
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      return NextResponse.json(
+        { error: 'Se requiere un arreglo de horarios' },
+        { status: 400 }
+      );
+    }
+    
+    // Usar el cliente Supabase importado
+    
+    // Primero eliminamos los horarios existentes para este tenant
+    // (enfoque de reemplazar todo)
+    const { error: deleteError } = await supabase
+      .from('tenant_business_hours')
+      .delete()
+      .eq('tenant_id', tenant_id);
+    
+    if (deleteError) {
+      console.error('Error al eliminar horarios existentes:', deleteError);
+      return NextResponse.json(
+        { error: 'Error al actualizar horarios de negocio' },
+        { status: 500 }
+      );
+    }
+    
+    // Preparamos los datos para inserción, añadiendo el tenant_id
+    const businessHoursWithTenant = data.map(hour => ({
+      ...hour,
+      tenant_id
+    }));
+    
+    // Insertar los nuevos horarios
+    const { data: insertedData, error: insertError } = await supabase
+      .from('tenant_business_hours')
+      .insert(businessHoursWithTenant)
+      .select();
+    
+    if (insertError) {
+      console.error('Error al insertar nuevos horarios:', insertError);
+      return NextResponse.json(
+        { error: 'Error al actualizar horarios de negocio' },
+        { status: 500 }
+      );
+    }
+    
+    return NextResponse.json(insertedData, { status: 200 });
+  } catch (error) {
+    console.error('Error en PUT /api/business/hours:', error);
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/business/hours
+ * Actualiza parcialmente los horarios de negocio (modifica solo los especificados)
+ */
+export async function PATCH(req: NextRequest) {
+  try {
+    // Verificar permisos de administrador
+    const adminResult = await verifyAdminOrManager(req);
+    
+    if (adminResult.error) {
+      return adminResult.error;
+    }
+    
+    const { tenant_id } = adminResult;
+    
+    // Parsear cuerpo de la solicitud
+    const data: { id: string } & Partial<BusinessHourRequest>[] = await req.json();
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      return NextResponse.json(
+        { error: 'Se requiere un arreglo con los horarios a actualizar' },
+        { status: 400 }
+      );
+    }
+    
+    // Verificar que todos los elementos tienen un ID
+    const missingIds = data.some(item => !item.id);
+    if (missingIds) {
+      return NextResponse.json(
+        { error: 'Todos los elementos deben tener un ID' },
+        { status: 400 }
+      );
+    }
+    
+    // Usar el cliente Supabase importado
+    
+    // Actualizar cada horario individualmente
+    // (más seguro que una actualización masiva en este caso)
+    const updatePromises = data.map(async (item) => {
+      const { id, ...updateData } = item;
+      
+      const { data: result, error } = await supabase
+        .from('tenant_business_hours')
+        .update(updateData)
+        .eq('id', id)
+        .eq('tenant_id', tenant_id) // Verificar que el horario pertenece al tenant
+        .select();
+      
+      if (error) {
+        console.error(`Error al actualizar horario ${id}:`, error);
+        throw error;
+      }
+      
+      return result;
+    });
+    
+    // Esperar a que todas las actualizaciones se completen
+    const results = await Promise.all(updatePromises);
+    
+    // Aplanar los resultados
+    const updatedData = results.flat();
+    
+    return NextResponse.json(updatedData, { status: 200 });
+  } catch (error) {
+    console.error('Error en PATCH /api/business/hours:', error);
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    );
+  }
+}

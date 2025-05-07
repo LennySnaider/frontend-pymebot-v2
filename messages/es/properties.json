@@ -1,0 +1,12 @@
+{
+  "properties": {
+    "types": {
+      "house": "Casa",
+      "apartment": "Apartamento",
+      "land": "Terreno",
+      "commercial": "Comercial",
+      "office": "Oficina"
+    },
+    "propertyType": "Tipo de Propiedad"
+  }
+}

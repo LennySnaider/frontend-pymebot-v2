@@ -1,0 +1,39 @@
+{
+    "header": {
+        "notifications": "Notifications",
+        "markAllAsRead": "Mark all as read",
+        "viewAllActivity": "View All Activity",
+        "noNotifications": "No notifications!",
+        "tryAgainLater": "Please Try again later",
+        "profile": "Profile",
+        "accountSetting": "Account Setting",
+        "activityLog": "Activity Log",
+        "signOut": "Sign Out",
+        "anonymousUser": "Anonymous",
+        "noEmailAvailable": "No email available",
+        "noRoleAvailable": "No role available"
+    },
+    "common": {
+        "download": "Download",
+        "filter": "Filter",
+        "reset": "Reset",
+        "apply": "Apply",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "send": "Send",
+        "edit": "Edit",
+        "view": "View",
+        "save": "Save",
+        "search": "Search",
+        "create": "Create",
+        "discard": "Discard",
+        "back": "Back",
+        "add": "Add",
+        "done": "Done",
+        "remove": "Remove",
+        "noData": "No data available"
+    },
+    "edit": "Edit",
+    "error": "Error",
+    "success": "Success"
+}
