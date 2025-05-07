@@ -9,14 +9,14 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { Card } from '@/components/ui/Card'
 import {
-  Card,
   CardHeader,
   CardContent,
   CardFooter,
   CardTitle,
   CardDescription
-} from '@/components/ui/Card'
+} from '@/components/ui/cards'
 import {
   Form,
   FormContainer,

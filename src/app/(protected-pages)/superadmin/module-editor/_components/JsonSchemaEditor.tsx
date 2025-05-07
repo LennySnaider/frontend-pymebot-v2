@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import CodeEditor from '@/components/shared/CodeEditor';
-import Tabs from '@/components/ui/Tabs';
+import Tabs from '@/components/ui/tabs';
 const { TabNav, TabList, TabContent } = Tabs;
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';

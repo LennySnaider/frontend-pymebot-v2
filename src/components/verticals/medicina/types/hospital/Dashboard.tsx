@@ -11,7 +11,7 @@
 import React, { useState } from 'react';
 import { useVerticalContext } from '@/contexts/VerticalContext';
 import { Card } from '@/components/ui/Card';
-import Tabs from '@/components/ui/Tabs';
+import Tabs from '@/components/ui/tabs';
 
 export default function HospitalDashboard() {
   const { verticalCode, typeCode, typeName } = useVerticalContext();

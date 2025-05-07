@@ -9,7 +9,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Tabs } from '@/components/ui/Tabs'
+import { Tabs } from '@/components/ui/tabs'
 import WhatsAppSettings from './_components/WhatsAppSettings'
 import { PageHeader } from '@/components/shared'
 import { useAuth } from '@/hooks/useAuth'

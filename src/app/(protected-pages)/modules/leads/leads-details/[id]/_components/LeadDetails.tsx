@@ -10,7 +10,7 @@
 
 import { useTranslations } from 'next-intl'
 import Card from '@/components/ui/Card'
-import Tabs from '@/components/ui/Tabs'
+import Tabs from '@/components/ui/tabs'
 import ProfileSection from './ProfileSection'
 import PropertiesSection from './PropertiesSection'
 import ActivitySection from './ActivitySection'

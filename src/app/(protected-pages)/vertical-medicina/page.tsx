@@ -10,7 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/cards';
-import Tabs from '@/components/ui/Tabs';
+import Tabs from '@/components/ui/tabs';
 import { useVerticalContext } from '@/contexts/VerticalContext';
 import VerticalTypeSelector from '@/components/core/vertical/VerticalTypeSelector';
 import { useVerticalModule } from '@/hooks/core/useVerticalModule';

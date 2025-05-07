@@ -1,10 +1,10 @@
 // frontend/src/app/(protected-pages)/modules/leads/leads-scrum/_components/LeadTabs.tsx
-import Tabs from '@/components/ui/Tabs'
+import Tabs from '@/components/ui/tabs'
 import { useTranslations } from 'next-intl'
 import CommentSection from './CommentSection'
 import AttachmentSection from './AttachmentSection'
 import { Lead } from './types'
-import type { TabsProps } from '@/components/ui/Tabs'
+import type { TabsProps } from '@/components/ui/tabs'
 
 interface LeadTabsProps {
     leadData: Lead

@@ -10,7 +10,7 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Tabs } from '@/components/ui/Tabs'
+import { Tabs } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/shared'
 import { useMounted } from '@/hooks/useMounted'
 import Loading from '@/components/shared/Loading'

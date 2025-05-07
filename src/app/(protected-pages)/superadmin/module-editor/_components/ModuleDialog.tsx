@@ -19,7 +19,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Select from '@/components/ui/Select';
-import Tabs from '@/components/ui/Tabs';
+import Tabs from '@/components/ui/tabs';
 const { TabNav, TabList, TabContent } = Tabs;
 import CodeEditor from '@/components/shared/CodeEditor';
 import JsonSchemaEditor from './JsonSchemaEditor';

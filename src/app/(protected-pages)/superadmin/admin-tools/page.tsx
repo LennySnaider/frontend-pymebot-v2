@@ -9,7 +9,7 @@
 
 import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
-import { Tabs } from '@/components/ui/Tabs'
+import { Tabs } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/shared'
 import { Settings, FileJson, Database, Users, BarChart } from 'lucide-react'
 import AdminToolsOverview from './_components/AdminToolsOverview'

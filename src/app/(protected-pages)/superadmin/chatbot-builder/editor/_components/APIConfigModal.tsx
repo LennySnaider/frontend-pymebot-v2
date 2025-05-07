@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/Input'
 import { Form, FormItem } from '@/components/ui/Form'
 import { notifications } from '@/utils/notifications'
 import { supabase } from '@/services/supabase/SupabaseClient'
-import Tabs from '@/components/ui/Tabs'
+import Tabs from '@/components/ui/tabs'
 import { useRouter } from 'next/navigation'
 
 const { TabNav, TabList, TabContent } = Tabs

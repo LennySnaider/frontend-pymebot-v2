@@ -1,7 +1,7 @@
 'use client'
 
 import Card from '@/components/ui/Card'
-import Tabs from '@/components/ui/Tabs'
+import Tabs from '@/components/ui/tabs'
 import ProfileSection from './ProfileSection'
 import BillingSection from './BillingSection'
 import ActivitySection from './ActivitySection'

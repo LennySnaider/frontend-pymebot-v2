@@ -15,7 +15,7 @@ import { Tag } from '@/components/ui/Tag';
 import { Table, Pagination } from '@/components/ui/index';
 import Avatar from '@/components/ui/Avatar';
 import Dialog from '@/components/ui/Dialog';
-import { Tabs } from '@/components/ui/Tabs';
+import { Tabs } from '@/components/ui/tabs';
 import dayjs from 'dayjs';
 
 // Definición de tipos

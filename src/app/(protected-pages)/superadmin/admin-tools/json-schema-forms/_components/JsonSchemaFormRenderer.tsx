@@ -14,7 +14,7 @@ import SimpleCheckbox from '@/components/shared/SimpleCheckbox'
 import { Form, FormItem } from '@/components/ui/Form'
 import { Notification } from '@/components/ui/Notification'
 import { toast } from '@/components/ui/toast'
-import { Tabs } from '@/components/ui/Tabs'
+import { Tabs } from '@/components/ui/tabs'
 import SyntaxHighlighter from '@/components/shared/SyntaxHighlighter'
 import { 
     PiFileDuotone,
