@@ -20,13 +20,13 @@ import type { ReactNode } from 'react'
 const { MenuItem } = Menu
 
 const menuList: { label: string; value: View; icon: ReactNode }[] = [
-    { label: 'Profile', value: 'profile', icon: <TbUserSquare /> },
+    { label: 'Perfil', value: 'profile', icon: <TbUserSquare /> },
     { label: 'Empresa', value: 'business', icon: <TbBuilding /> },
     { label: 'Horarios', value: 'business-hours', icon: <TbClock /> },
-    { label: 'Security', value: 'security', icon: <TbLock /> },
-    { label: 'Notification', value: 'notification', icon: <TbBell /> },
-    { label: 'Billing', value: 'billing', icon: <TbFileDollar /> },
-    { label: 'Integration', value: 'integration', icon: <TbRefreshDot /> },
+    { label: 'Seguridad', value: 'security', icon: <TbLock /> },
+    { label: 'Notificaciones', value: 'notification', icon: <TbBell /> },
+    { label: 'Facturación', value: 'billing', icon: <TbFileDollar /> },
+    { label: 'Integraciones', value: 'integration', icon: <TbRefreshDot /> },
 ]
 
 export const SettingsMenu = ({ onChange }: { onChange?: () => void }) => {

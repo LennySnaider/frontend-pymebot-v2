@@ -25,19 +25,19 @@ const authenticatorList = [
         label: 'Google Authenticator',
         value: 'googleAuthenticator',
         img: '/img/others/google.png',
-        desc: 'Using Google Authenticator app generates time-sensitive codes for secure logins.',
+        desc: 'Usa la app Google Authenticator para generar códigos temporales para inicios de sesión seguros.',
     },
     {
         label: 'Okta Verify',
         value: 'oktaVerify',
         img: '/img/others/okta.png',
-        desc: 'Receive push notifications from Okta Verify app on your phone for quick login approval.',
+        desc: 'Recibe notificaciones push desde la app Okta Verify en tu teléfono para aprobación rápida de inicio de sesión.',
     },
     {
-        label: 'E Mail verification',
+        label: 'Verificación por correo',
         value: 'emailVerification',
         img: '/img/others/email.png',
-        desc: 'Unique codes sent to email for confirming logins.',
+        desc: 'Códigos únicos enviados al correo electrónico para confirmar inicios de sesión.',
     },
 ]
 
@@ -45,16 +45,16 @@ const validationSchema: ZodType<PasswordSchema> = z
     .object({
         currentPassword: z
             .string()
-            .min(1, { message: 'Please enter your current password!' }),
+            .min(1, { message: '¡Por favor ingresa tu contraseña actual!' }),
         newPassword: z
             .string()
-            .min(1, { message: 'Please enter your new password!' }),
+            .min(1, { message: '¡Por favor ingresa tu nueva contraseña!' }),
         confirmNewPassword: z
             .string()
-            .min(1, { message: 'Please confirm your new password!' }),
+            .min(1, { message: '¡Por favor confirma tu nueva contraseña!' }),
     })
     .refine((data) => data.confirmNewPassword === data.newPassword, {
-        message: 'Password not match',
+        message: 'Las contraseñas no coinciden',
         path: ['confirmNewPassword'],
     })
 
@@ -91,10 +91,10 @@ const SettingsSecurity = () => {
     return (
         <div>
             <div className="mb-8">
-                <h4>Password</h4>
+                <h4>Contraseña</h4>
                 <p>
-                    Remember, your password is your digital key to your account.
-                    Keep it safe, keep it secure!
+                    Recuerda, tu contraseña es la llave digital a tu cuenta.
+                    ¡Mantenla segura y protegida!
                 </p>
             </div>
             <Form
@@ -103,7 +103,7 @@ const SettingsSecurity = () => {
                 onSubmit={handleSubmit(onSubmit)}
             >
                 <FormItem
-                    label="Current password"
+                    label="Contraseña actual"
                     invalid={Boolean(errors.currentPassword)}
                     errorMessage={errors.currentPassword?.message}
                 >
@@ -121,7 +121,7 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label="New password"
+                    label="Nueva contraseña"
                     invalid={Boolean(errors.newPassword)}
                     errorMessage={errors.newPassword?.message}
                 >
@@ -139,7 +139,7 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label="Confirm new password"
+                    label="Confirmar nueva contraseña"
                     invalid={Boolean(errors.confirmNewPassword)}
                     errorMessage={errors.confirmNewPassword?.message}
                 >
@@ -158,14 +158,14 @@ const SettingsSecurity = () => {
                 </FormItem>
                 <div className="flex justify-end">
                     <Button variant="solid" type="submit">
-                        Update
+                        Actualizar
                     </Button>
                 </div>
             </Form>
             <ConfirmDialog
                 isOpen={confirmationOpen}
                 type="warning"
-                title="Update password"
+                title="Actualizar contraseña"
                 confirmButtonProps={{
                     loading: isSubmitting,
                     onClick: handlePostSubmit,
@@ -174,13 +174,13 @@ const SettingsSecurity = () => {
                 onRequestClose={() => setConfirmationOpen(false)}
                 onCancel={() => setConfirmationOpen(false)}
             >
-                <p>Are you sure you want to change your password?</p>
+                <p>¿Estás seguro de que deseas cambiar tu contraseña?</p>
             </ConfirmDialog>
             <div className="mb-8">
-                <h4>2-Step verification</h4>
+                <h4>Verificación en dos pasos</h4>
                 <p>
-                    Your account holds great value to hackers. Enable two-step
-                    verification to safeguard your account!
+                    Tu cuenta tiene gran valor para los hackers. ¡Activa la verificación
+                    en dos pasos para proteger tu cuenta!
                 </p>
                 <div className="mt-8">
                     {authenticatorList.map((authOption, index) => (
@@ -215,7 +215,7 @@ const SettingsSecurity = () => {
                                                 setSelected2FaType('')
                                             }
                                         >
-                                            Activated
+                                            Activado
                                         </Button>
                                     ) : (
                                         <Button
@@ -226,7 +226,7 @@ const SettingsSecurity = () => {
                                                 )
                                             }
                                         >
-                                            Enable
+                                            Activar
                                         </Button>
                                     )}
                                 </div>

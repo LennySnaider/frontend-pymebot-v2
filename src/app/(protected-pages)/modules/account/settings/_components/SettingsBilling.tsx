@@ -123,7 +123,7 @@ const SettingsBilling = () => {
 
     return (
         <div>
-            <h4 className="mb-4">Billing</h4>
+            <h4 className="mb-4">Facturación</h4>
             <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-6">
                 {isLoading ? (
                     <div className="flex justify-center items-center py-4">
@@ -142,29 +142,29 @@ const SettingsBilling = () => {
                             <div>
                                 <div className="flex items-center gap-2">
                                     <h6 className="font-bold">
-                                        {data?.currentPlan?.plan || 'Free'}
+                                        {data?.currentPlan?.plan || 'Gratuito'}
                                     </h6>
                                     <Tag className="bg-success-subtle text-success rounded-md border-0">
                                         <span className="capitalize">
-                                            {data?.currentPlan?.status || 'active'}
+                                            {data?.currentPlan?.status === 'active' ? 'activo' : data?.currentPlan?.status || 'activo'}
                                         </span>
                                     </Tag>
                                 </div>
                                 <div className="font-semibold">
                                     <span>
-                                        Billing {data?.currentPlan?.billingCycle || 'monthly'}
+                                        Facturación {data?.currentPlan?.billingCycle === 'monthly' ? 'mensual' : (data?.currentPlan?.billingCycle === 'yearly' ? 'anual' : data?.currentPlan?.billingCycle || 'mensual')}
                                     </span>
                                     <span> | </span>
                                     <span>
-                                        Next payment on{' '}
+                                        Próximo pago el{' '}
                                         {data?.currentPlan?.nextPaymentDate 
                                             ? dayjs
                                                 .unix(data.currentPlan.nextPaymentDate as number)
-                                                .format('MM/DD/YYYY')
+                                                .format('DD/MM/YYYY')
                                             : 'N/A'}
                                     </span>
                                     <span>
-                                        <span className="mx-1">for</span>
+                                        <span className="mx-1">por</span>
                                         <NumericFormat
                                             className="font-bold heading-text"
                                             displayType="text"
@@ -184,14 +184,14 @@ const SettingsBilling = () => {
                                 variant="solid"
                                 onClick={handleChangePlan}
                             >
-                                Change plan
+                                Cambiar plan
                             </Button>
                         </div>
                     </div>
                 )}
             </div>
             <div className="mt-8">
-                <h5>Payment method</h5>
+                <h5>Método de pago</h5>
                 <div>
                     {data?.paymentMethods?.map((card, index) => (
                         <div
@@ -243,7 +243,7 @@ const SettingsBilling = () => {
                                     type="button"
                                     onClick={() => handleEditCreditCard(card)}
                                 >
-                                    Edit
+                                    Editar
                                 </Button>
                             </div>
                         </div>
@@ -259,12 +259,12 @@ const SettingsBilling = () => {
                             })
                         }}
                     >
-                        Add payment method
+                        Agregar método de pago
                     </Button>
                 </div>
             </div>
             <div className="mt-8">
-                <h5>Transaction history</h5>
+                <h5>Historial de transacciones</h5>
                 <BillingHistory
                     className="mt-4"
                     data={data.transactionHistory}
@@ -273,8 +273,8 @@ const SettingsBilling = () => {
             <CreditCardDialog
                 title={
                     selectedCard.type === 'NEW'
-                        ? 'Add credit card'
-                        : 'Edit credit card'
+                        ? 'Agregar tarjeta de crédito'
+                        : 'Editar tarjeta de crédito'
                 }
                 defaultValues={selectedCard.cardInfo as CreditCard}
                 dialogOpen={selectedCard.dialogOpen}

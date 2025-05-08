@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Dialog, Input, Notification, toast, Table, Tag, Badge, Form, FormItem } from '@/components/ui';
+import InputGroup from '@/components/ui/InputGroup';
 import { AppointmentTypeConfig } from '../types';
 import useTranslation from '@/utils/hooks/useTranslation';
 
@@ -384,12 +385,14 @@ const AppointmentTypesSettings = () => {
               invalid={!!errors.duration}
               errorMessage={errors.duration}
             >
-              <Input
-                type="number"
-                value={currentType.duration}
-                onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 0)}
-                addonAfter={t('appointments.types.minutes')}
-              />
+              <InputGroup>
+                <Input
+                  type="number"
+                  value={currentType.duration}
+                  onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 0)}
+                />
+                <InputGroup.Addon>{t('appointments.types.minutes')}</InputGroup.Addon>
+              </InputGroup>
             </FormItem>
             
             <FormItem
@@ -397,12 +400,14 @@ const AppointmentTypesSettings = () => {
               invalid={!!errors.buffer_time}
               errorMessage={errors.buffer_time}
             >
-              <Input
-                type="number"
-                value={currentType.buffer_time}
-                onChange={(e) => handleInputChange('buffer_time', parseInt(e.target.value) || 0)}
-                addonAfter={t('appointments.types.minutes')}
-              />
+              <InputGroup>
+                <Input
+                  type="number"
+                  value={currentType.buffer_time}
+                  onChange={(e) => handleInputChange('buffer_time', parseInt(e.target.value) || 0)}
+                />
+                <InputGroup.Addon>{t('appointments.types.minutes')}</InputGroup.Addon>
+              </InputGroup>
             </FormItem>
             
             <FormItem
@@ -442,6 +447,7 @@ const AppointmentTypesSettings = () => {
             <FormItem
               label={t('appointments.types.fields.booking_url')}
               className="md:col-span-2"
+              extra="Este enlace se usará para crear una URL personalizada para reservar este tipo de cita (ejemplo: https://su-negocio.com/reservar/consulta-inicial)"
             >
               <Input
                 value={currentType.booking_url_suffix || ''}
@@ -469,16 +475,18 @@ const AppointmentTypesSettings = () => {
                   invalid={!!errors.payment_amount}
                   errorMessage={errors.payment_amount}
                 >
-                  <Input
-                    type="number"
-                    value={currentType.payment_amount === null ? '' : currentType.payment_amount}
-                    onChange={(e) => {
-                      const value = e.target.value === '' ? null : parseFloat(e.target.value);
-                      handleInputChange('payment_amount', value);
-                    }}
-                    addonBefore="$"
-                    step="0.01"
-                  />
+                  <InputGroup>
+                    <InputGroup.Addon>$</InputGroup.Addon>
+                    <Input
+                      type="number"
+                      value={currentType.payment_amount === null ? '' : currentType.payment_amount}
+                      onChange={(e) => {
+                        const value = e.target.value === '' ? null : parseFloat(e.target.value);
+                        handleInputChange('payment_amount', value);
+                      }}
+                      step="0.01"
+                    />
+                  </InputGroup>
                 </FormItem>
               )}
             </div>

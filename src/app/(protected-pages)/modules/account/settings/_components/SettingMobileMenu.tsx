@@ -11,7 +11,7 @@ const SettingMobileMenu = () => {
     return (
         <>
             <div>
-                <ToggleDrawer ref={drawerRef} title="Navigation">
+                <ToggleDrawer ref={drawerRef} title="Navegación">
                     <SettingsMenu
                         onChange={() => {
                             drawerRef.current?.handleCloseDrawer()

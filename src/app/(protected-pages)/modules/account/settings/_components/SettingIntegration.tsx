@@ -56,8 +56,8 @@ const SettingIntegration = () => {
 
     return (
         <div>
-            <h4>Integration</h4>
-            <p>Supercharge your workflow using these integration</p>
+            <h4>Integraciones</h4>
+            <p>Mejora tu flujo de trabajo utilizando estas integraciones</p>
             <div className="mt-4">
                 {data.map((app, index) => (
                     <div
@@ -89,7 +89,7 @@ const SettingIntegration = () => {
                                     })
                                 }
                             >
-                                Learn more
+                                Más información
                             </Button>
                             <Switcher
                                 checked={app.active}
@@ -124,45 +124,40 @@ const SettingIntegration = () => {
                     </div>
                 </div>
                 <div className="mt-6">
-                    <span className="font-bold heading-text">Overview</span>
+                    <span className="font-bold heading-text">Descripción General</span>
                     <p className="mt-2">
-                        Wings medium plunger pot, redeye doppio siphon froth
-                        iced. Latte, and, barista cultivar fair trade grinder
-                        caramelization spoon. Whipped, grinder to go brewed est
-                        single shot half and half. Plunger pot blue mountain et
-                        blue mountain grinder carajillo, saucer half and half
-                        milk instant strong.
+                        Esta integración permite optimizar tu flujo de trabajo conectando 
+                        servicios esenciales con nuestra plataforma. Disfruta de una 
+                        experiencia fluida mientras automatizas tareas repetitivas y 
+                        mejoras la productividad de tu equipo.
                     </p>
                     <div className="mt-6">
                         <span className="font-bold heading-text">
-                            Key Features:
+                            Características Principales:
                         </span>
                         <ul className="list-disc mt-4 flex flex-col gap-3">
                             <li className="flex gap-2">
                                 <TbCircleCheckFilled className="text-xl text-emerald-500" />
                                 <span>
-                                    Fair trade, cortado con panna, crema foam
-                                    cinnamon aged.
+                                    Sincronización automática de datos entre plataformas.
                                 </span>
                             </li>
                             <li className="flex gap-2">
                                 <TbCircleCheckFilled className="text-xl text-emerald-500" />
                                 <span>
-                                    Mug saucer acerbic, caffeine organic
-                                    kopi-luwak galão siphon.
+                                    Flujos de trabajo personalizables según tus necesidades.
                                 </span>
                             </li>
                             <li className="flex gap-2">
                                 <TbCircleCheckFilled className="text-xl text-emerald-500" />
                                 <span>
-                                    To go half and half cultivar single origin
-                                    ut, french press.
+                                    Alertas y notificaciones en tiempo real.
                                 </span>
                             </li>
                             <li className="flex gap-2">
                                 <TbCircleCheckFilled className="text-xl text-emerald-500" />
                                 <span>
-                                    Mocha latte flavour cortado cup kopi-luwak.
+                                    Análisis detallado del rendimiento de la integración.
                                 </span>
                             </li>
                         </ul>
@@ -170,7 +165,7 @@ const SettingIntegration = () => {
                 </div>
                 <div className=" mt-6">
                     <Button block onClick={handleDialogClose}>
-                        Acknowledge
+                        Entendido
                     </Button>
                 </div>
             </Dialog>

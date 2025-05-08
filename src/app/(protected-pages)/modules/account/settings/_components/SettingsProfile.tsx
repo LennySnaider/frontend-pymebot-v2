@@ -45,20 +45,20 @@ type CountryOption = {
 const { Control } = components
 
 const validationSchema: ZodType<ProfileSchema> = z.object({
-    firstName: z.string().min(1, { message: 'First name required' }),
-    lastName: z.string().min(1, { message: 'Last name required' }),
+    firstName: z.string().min(1, { message: 'Nombre requerido' }),
+    lastName: z.string().min(1, { message: 'Apellido requerido' }),
     email: z
         .string()
-        .min(1, { message: 'Email required' })
-        .email({ message: 'Invalid email' }),
-    dialCode: z.string().min(1, { message: 'Please select your country code' }),
+        .min(1, { message: 'Email requerido' })
+        .email({ message: 'Email inválido' }),
+    dialCode: z.string().min(1, { message: 'Por favor selecciona un código de país' }),
     phoneNumber: z
         .string()
-        .min(1, { message: 'Please input your mobile number' }),
-    country: z.string().min(1, { message: 'Please select a country' }),
-    address: z.string().min(1, { message: 'Addrress required' }),
-    postcode: z.string().min(1, { message: 'Postcode required' }),
-    city: z.string().min(1, { message: 'City required' }),
+        .min(1, { message: 'Por favor ingresa tu número de teléfono' }),
+    country: z.string().min(1, { message: 'Por favor selecciona un país' }),
+    address: z.string().min(1, { message: 'Dirección requerida' }),
+    postcode: z.string().min(1, { message: 'Código postal requerido' }),
+    city: z.string().min(1, { message: 'Ciudad requerida' }),
     img: z.string(),
 })
 
@@ -163,7 +163,7 @@ const SettingsProfile = () => {
 
     return (
         <>
-            <h4 className="mb-8">Personal information</h4>
+            <h4 className="mb-8">Información Personal</h4>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <div className="mb-8">
                     <Controller
@@ -198,7 +198,7 @@ const SettingsProfile = () => {
                                             type="button"
                                             icon={<TbPlus />}
                                         >
-                                            Upload Image
+                                            Subir Imagen
                                         </Button>
                                     </Upload>
                                     <Button
@@ -208,7 +208,7 @@ const SettingsProfile = () => {
                                             field.onChange('')
                                         }}
                                     >
-                                        Remove
+                                        Eliminar
                                     </Button>
                                 </div>
                             </div>
@@ -217,7 +217,7 @@ const SettingsProfile = () => {
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                     <FormItem
-                        label="First name"
+                        label="Nombre"
                         invalid={Boolean(errors.firstName)}
                         errorMessage={errors.firstName?.message}
                     >
@@ -228,14 +228,14 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="First Name"
+                                    placeholder="Nombre"
                                     {...field}
                                 />
                             )}
                         />
                     </FormItem>
                     <FormItem
-                        label="User name"
+                        label="Apellido"
                         invalid={Boolean(errors.lastName)}
                         errorMessage={errors.lastName?.message}
                     >
@@ -246,7 +246,7 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="Last Name"
+                                    placeholder="Apellido"
                                     {...field}
                                 />
                             )}
@@ -278,7 +278,7 @@ const SettingsProfile = () => {
                             Boolean(errors.dialCode)
                         }
                     >
-                        <label className="form-label mb-2">Phone number</label>
+                        <label className="form-label mb-2">Número de teléfono</label>
                         <Controller
                             name="dialCode"
                             control={control}
@@ -324,7 +324,7 @@ const SettingsProfile = () => {
                             render={({ field }) => (
                                 <NumericInput
                                     autoComplete="off"
-                                    placeholder="Phone Number"
+                                    placeholder="Número de teléfono"
                                     value={field.value}
                                     onChange={field.onChange}
                                     onBlur={field.onBlur}
@@ -333,9 +333,9 @@ const SettingsProfile = () => {
                         />
                     </FormItem>
                 </div>
-                <h4 className="mb-6">Address information</h4>
+                <h4 className="mb-6">Información de dirección</h4>
                 <FormItem
-                    label="Country"
+                    label="País"
                     invalid={Boolean(errors.country)}
                     errorMessage={errors.country?.message}
                 >
@@ -369,7 +369,7 @@ const SettingsProfile = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label="Address"
+                    label="Dirección"
                     invalid={Boolean(errors.address)}
                     errorMessage={errors.address?.message}
                 >
@@ -380,7 +380,7 @@ const SettingsProfile = () => {
                             <Input
                                 type="text"
                                 autoComplete="off"
-                                placeholder="Address"
+                                placeholder="Dirección"
                                 {...field}
                             />
                         )}
@@ -388,7 +388,7 @@ const SettingsProfile = () => {
                 </FormItem>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormItem
-                        label="City"
+                        label="Ciudad"
                         invalid={Boolean(errors.city)}
                         errorMessage={errors.city?.message}
                     >
@@ -399,14 +399,14 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="City"
+                                    placeholder="Ciudad"
                                     {...field}
                                 />
                             )}
                         />
                     </FormItem>
                     <FormItem
-                        label="Postal Code"
+                        label="Código Postal"
                         invalid={Boolean(errors.postcode)}
                         errorMessage={errors.postcode?.message}
                     >
@@ -417,7 +417,7 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="Postal Code"
+                                    placeholder="Código Postal"
                                     {...field}
                                 />
                             )}
@@ -430,7 +430,7 @@ const SettingsProfile = () => {
                         type="submit"
                         loading={isSubmitting}
                     >
-                        Save
+                        Guardar
                     </Button>
                 </div>
             </Form>

@@ -21,24 +21,24 @@ const emailNotificationOption: {
     desc: string
 }[] = [
     {
-        label: 'News & updates',
+        label: 'Noticias y actualizaciones',
         value: 'newsAndUpdate',
-        desc: 'New about product and features update',
+        desc: 'Novedades sobre productos y actualizaciones de características',
     },
     {
-        label: 'Tips & tutorials',
+        label: 'Consejos y tutoriales',
         value: 'tipsAndTutorial',
-        desc: 'Tips & trick in order to increase your performance efficiency',
+        desc: 'Consejos y trucos para aumentar tu eficiencia de rendimiento',
     },
     {
-        label: 'Offer & promotions',
+        label: 'Ofertas y promociones',
         value: 'offerAndPromotion',
-        desc: 'Promotion about product price & lastest discount',
+        desc: 'Promociones sobre precios de productos y descuentos recientes',
     },
     {
-        label: 'Follow up remider',
+        label: 'Recordatorios de seguimiento',
         value: 'followUpReminder',
-        desc: 'Receive notification all the reminder that have been made',
+        desc: 'Recibir notificación de todos los recordatorios que se han creado',
     },
 ]
 
@@ -48,19 +48,19 @@ const notifyMeOption: {
     desc: string
 }[] = [
     {
-        label: 'All new messages',
+        label: 'Todos los mensajes nuevos',
         value: 'allNewMessage',
-        desc: 'Broadcast notifications to the channel for each new message',
+        desc: 'Enviar notificaciones al canal por cada mensaje nuevo',
     },
     {
-        label: 'Mentions only',
+        label: 'Solo menciones',
         value: 'mentionsOnly',
-        desc: 'Only alert me in the channel if someone mentions me in a message',
+        desc: 'Solo alertarme en el canal si alguien me menciona en un mensaje',
     },
     {
-        label: 'Nothing',
+        label: 'Nada',
         value: 'nothing',
-        desc: `Don't notify me anything`,
+        desc: 'No notificarme nada',
     },
 ]
 
@@ -128,14 +128,14 @@ const SettingsNotification = () => {
 
     return (
         <div>
-            <h4>Notification</h4>
+            <h4>Notificaciones</h4>
             <div className="mt-2">
                 <div className="flex items-center justify-between py-6 border-b border-gray-200 dark:border-gray-600">
                     <div>
-                        <h5>Enable desktop notification</h5>
+                        <h5>Habilitar notificaciones de escritorio</h5>
                         <p>
-                            Decide whether you want to be notified of new
-                            message & updates
+                            Decide si deseas recibir notificaciones de nuevos
+                            mensajes y actualizaciones
                         </p>
                     </div>
                     <div>
@@ -147,10 +147,10 @@ const SettingsNotification = () => {
                 </div>
                 <div className="flex items-center justify-between py-6 border-b border-gray-200 dark:border-gray-600">
                     <div>
-                        <h5>Enable unread notification badge</h5>
+                        <h5>Habilitar insignia de notificaciones no leídas</h5>
                         <p>
-                            Display a red indicator on of the notification icon
-                            when you have unread message
+                            Mostrar un indicador rojo en el icono de notificación
+                            cuando tengas mensajes no leídos
                         </p>
                     </div>
                     <div>
@@ -161,7 +161,7 @@ const SettingsNotification = () => {
                     </div>
                 </div>
                 <div className="py-6 border-b border-gray-200 dark:border-gray-600">
-                    <h5>Enable unread notification badge</h5>
+                    <h5>Habilitar insignia de notificaciones no leídas</h5>
                     <div className="mt-4">
                         <Radio.Group
                             vertical
@@ -190,10 +190,10 @@ const SettingsNotification = () => {
                 </div>
                 <div className="flex items-center justify-between py-6">
                     <div>
-                        <h5>Email notification</h5>
+                        <h5>Notificaciones por correo electrónico</h5>
                         <p>
-                            Substance can send you email notification for any
-                            new direct message
+                            La plataforma puede enviarte notificaciones por correo electrónico
+                            para cualquier mensaje directo nuevo
                         </p>
                     </div>
                     <div>
