@@ -1,8 +1,8 @@
 /**
  * frontend/src/components/view/ChatbotBuilder/nodes/index.ts
  * Exportación de todos los tipos de nodos disponibles para el constructor de chatbot
- * @version 1.2.0
- * @updated 2025-06-11 - Añadidos nodos para integración con citas y sales funnel
+ * @version 1.4.0
+ * @updated 2025-07-05 - Añadidos nodos para servicios y productos
  */
 
 import TextNode from './TextNode'
@@ -18,6 +18,9 @@ import AIVoiceAgentNode from './AIVoiceAgentNode'
 import CheckAvailabilityNode from './CheckAvailabilityNode'
 import BookAppointmentNode from './BookAppointmentNode'
 import LeadQualificationNode from './LeadQualificationNode'
+import RescheduleAppointmentNode from './RescheduleAppointmentNode'
+import ServicesNode from './ServicesNode'
+import ProductNode from './ProductNode'
 
 export {
     TextNode,
@@ -32,7 +35,10 @@ export {
     AIVoiceAgentNode,
     CheckAvailabilityNode,
     BookAppointmentNode,
-    LeadQualificationNode
+    LeadQualificationNode,
+    RescheduleAppointmentNode,
+    ServicesNode,
+    ProductNode
 }
 
 // Mapping de tipos de nodos a componentes
@@ -59,7 +65,15 @@ export const nodeTypes = {
     'book-appointment': BookAppointmentNode,
     'book_appointment': BookAppointmentNode,
     'lead-qualification': LeadQualificationNode,
-    'lead_qualification': LeadQualificationNode
+    'lead_qualification': LeadQualificationNode,
+    'reschedule-appointment': RescheduleAppointmentNode,
+    'reschedule_appointment': RescheduleAppointmentNode,
+    'services': ServicesNode,
+    'services-list': ServicesNode,
+    'services_list': ServicesNode,
+    'products': ProductNode,
+    'products-list': ProductNode,
+    'products_list': ProductNode
 }
 
 // Tipos de nodos disponibles para agregar en el editor
@@ -179,6 +193,60 @@ export const availableNodeTypes = [
             medium_score_stage: 'qualification',
             low_score_stage: 'prospecting',
             label: 'Calificar Lead'
+        }
+    },
+    {
+        type: 'reschedule-appointment',
+        label: 'Reprogramar Cita',
+        description: 'Permite reprogramar una cita existente',
+        icon: 'calendar-edit',
+        color: 'orange',
+        initialData: {
+            update_lead_on_reschedule: true,
+            require_reason: true,
+            notify_agent: true,
+            send_confirmation: true,
+            max_reschedule_attempts: 3,
+            success_message: 'Tu cita ha sido reprogramada correctamente. Te hemos enviado los detalles actualizados.',
+            failure_message: 'Lo siento, no pudimos reprogramar tu cita. Por favor, intenta de nuevo más tarde.',
+            label: 'Reprogramar Cita'
+        }
+    },
+    {
+        type: 'services',
+        label: 'Mostrar Servicios',
+        description: 'Muestra una lista de servicios disponibles',
+        icon: 'ruler',
+        color: 'indigo',
+        initialData: {
+            tenant_id: '',
+            category_id: '',
+            limit: 5,
+            filter_by_price: false,
+            sort_by: 'name',
+            sort_direction: 'asc',
+            message_template: 'Estos son nuestros servicios disponibles:\n{{services_list}}',
+            label: 'Mostrar Servicios'
+        }
+    },
+    {
+        type: 'products',
+        label: 'Mostrar Productos',
+        description: 'Muestra un catálogo de productos disponibles',
+        icon: 'package',
+        color: 'blue',
+        initialData: {
+            tenant_id: '',
+            category_id: '',
+            limit: 5,
+            filter_by_price: false,
+            filter_by_stock: false,
+            in_stock_only: true,
+            sort_by: 'name',
+            sort_direction: 'asc',
+            include_images: false,
+            message_template: 'Estos son nuestros productos disponibles:\n{{products_list}}',
+            label: 'Mostrar Productos'
         }
     },
     {

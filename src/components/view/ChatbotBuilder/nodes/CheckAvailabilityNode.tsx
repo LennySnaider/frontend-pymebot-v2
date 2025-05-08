@@ -2,103 +2,151 @@
  * frontend/src/components/view/ChatbotBuilder/nodes/CheckAvailabilityNode.tsx
  * Nodo de chatbot para verificar disponibilidad de citas
  * 
- * @version 1.0.0
- * @updated 2025-06-11
+ * @version 1.0.1
+ * @updated 2025-07-05
  */
 
 import React, { useCallback } from 'react';
-import { Handle, Position } from 'reactflow';
+import { Handle, Position, NodeProps } from 'reactflow';
 import BusinessHoursService from '@/services/BusinessHoursService';
 import Select from '@/components/ui/Select';
 import { PiCalendarBold } from 'react-icons/pi';
 
-interface CheckAvailabilityNodeProps {
-  id: string;
-  data: {
-    tenant_id: string;
-    appointment_type_id?: string;
-    location_id?: string;
-    agent_id?: string;
-    onUpdateNodeData: (nodeId: string, data: any) => void;
-  };
-  selected: boolean;
+export interface CheckAvailabilityNodeData {
+  tenant_id: string;
+  appointment_type_id?: string;
+  location_id?: string;
+  agent_id?: string;
+  label?: string;
+  onUpdateNodeData?: (nodeId: string, data: any) => void;
 }
 
 /**
  * Componente para el nodo de verificación de disponibilidad
  */
-const CheckAvailabilityNode: React.FC<CheckAvailabilityNodeProps> = ({ id, data, selected }) => {
-  const { tenant_id, appointment_type_id, location_id, agent_id, onUpdateNodeData } = data;
+const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({ 
+  id, 
+  data, 
+  selected,
+  isConnectable 
+}) => {
+  const { tenant_id, appointment_type_id, location_id, agent_id, onUpdateNodeData, label } = data;
   
   // Manejadores para actualizar los datos del nodo
   const handleAppointmentTypeChange = useCallback((value: string) => {
-    onUpdateNodeData(id, { ...data, appointment_type_id: value });
+    if (onUpdateNodeData) {
+      onUpdateNodeData(id, { ...data, appointment_type_id: value });
+    }
   }, [id, data, onUpdateNodeData]);
   
   const handleLocationChange = useCallback((value: string) => {
-    onUpdateNodeData(id, { ...data, location_id: value });
+    if (onUpdateNodeData) {
+      onUpdateNodeData(id, { ...data, location_id: value });
+    }
   }, [id, data, onUpdateNodeData]);
   
   const handleAgentChange = useCallback((value: string) => {
-    onUpdateNodeData(id, { ...data, agent_id: value });
+    if (onUpdateNodeData) {
+      onUpdateNodeData(id, { ...data, agent_id: value });
+    }
   }, [id, data, onUpdateNodeData]);
   
   return (
-    <div className={`node-wrapper ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} />
-      
-      <div className="node-container">
-        <div className="node-header bg-blue-500">
-          <PiCalendarBold className="node-icon" />
-          <div className="node-title">Verificar Disponibilidad</div>
-        </div>
-        
-        <div className="node-content">
-          <div className="node-form">
-            <div className="form-group">
-              <label>Tipo de Cita:</label>
-              <Select 
-                onChange={handleAppointmentTypeChange}
-                value={appointment_type_id || ''}
-              >
-                <Select.Option value="">Cualquier tipo</Select.Option>
-                <Select.Option value="1">Consulta Inicial</Select.Option>
-                <Select.Option value="2">Seguimiento</Select.Option>
-                <Select.Option value="3">Tratamiento</Select.Option>
-              </Select>
-            </div>
-            
-            <div className="form-group">
-              <label>Ubicación:</label>
-              <Select 
-                onChange={handleLocationChange}
-                value={location_id || ''}
-              >
-                <Select.Option value="">Cualquier ubicación</Select.Option>
-                <Select.Option value="1">Oficina Central</Select.Option>
-                <Select.Option value="2">Sucursal Norte</Select.Option>
-                <Select.Option value="3">Sucursal Sur</Select.Option>
-              </Select>
-            </div>
-            
-            <div className="form-group">
-              <label>Agente:</label>
-              <Select 
-                onChange={handleAgentChange}
-                value={agent_id || ''}
-              >
-                <Select.Option value="">Cualquier agente</Select.Option>
-                <Select.Option value="1">Carlos Rodríguez</Select.Option>
-                <Select.Option value="2">Ana Martínez</Select.Option>
-                <Select.Option value="3">Miguel Sánchez</Select.Option>
-              </Select>
-            </div>
+    <div className={`rounded-md border-2 ${selected ? 'border-primary' : 'border-gray-200'} bg-white p-3 shadow-md min-w-[250px] max-w-[320px]`}>
+      {/* Título del nodo */}
+      <div className="mb-2 border-b border-gray-200 pb-2">
+        <div className="flex items-center">
+          <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+            <PiCalendarBold className="h-4 w-4 text-blue-500" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-800">
+              {label || 'Verificar Disponibilidad'}
+            </p>
           </div>
         </div>
       </div>
       
-      <Handle type="source" position={Position.Bottom} id="available" />
-      <Handle type="source" position={Position.Bottom} id="unavailable" style={{ left: '75%' }} />
+      {/* Contenido del nodo */}
+      <div className="bg-gray-50 p-2 rounded-md mb-1">
+        <div className="space-y-2">
+          <div className="form-group">
+            <label className="text-xs text-gray-600 mb-1 block">Tipo de Cita:</label>
+            <Select 
+              onChange={handleAppointmentTypeChange}
+              value={appointment_type_id || ''}
+              size="sm"
+            >
+              <Select.Option value="">Cualquier tipo</Select.Option>
+              <Select.Option value="1">Consulta Inicial</Select.Option>
+              <Select.Option value="2">Seguimiento</Select.Option>
+              <Select.Option value="3">Tratamiento</Select.Option>
+            </Select>
+          </div>
+          
+          <div className="form-group">
+            <label className="text-xs text-gray-600 mb-1 block">Ubicación:</label>
+            <Select 
+              onChange={handleLocationChange}
+              value={location_id || ''}
+              size="sm"
+            >
+              <Select.Option value="">Cualquier ubicación</Select.Option>
+              <Select.Option value="1">Oficina Central</Select.Option>
+              <Select.Option value="2">Sucursal Norte</Select.Option>
+              <Select.Option value="3">Sucursal Sur</Select.Option>
+            </Select>
+          </div>
+          
+          <div className="form-group">
+            <label className="text-xs text-gray-600 mb-1 block">Agente:</label>
+            <Select 
+              onChange={handleAgentChange}
+              value={agent_id || ''}
+              size="sm"
+            >
+              <Select.Option value="">Cualquier agente</Select.Option>
+              <Select.Option value="1">Carlos Rodríguez</Select.Option>
+              <Select.Option value="2">Ana Martínez</Select.Option>
+              <Select.Option value="3">Miguel Sánchez</Select.Option>
+            </Select>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex justify-between mt-2 text-xs text-gray-500">
+        <div className="flex items-center">
+          <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
+          <span>Disponible</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
+          <span>No disponible</span>
+        </div>
+      </div>
+      
+      {/* Handles para conexiones horizontales */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="w-3 h-3 bg-blue-500 border-2 border-white"
+        isConnectable={isConnectable}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="available"
+        className="w-3 h-3 bg-green-500 border-2 border-white"
+        isConnectable={isConnectable}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="unavailable"
+        className="w-3 h-3 bg-red-500 border-2 border-white"
+        style={{ top: '70%' }}
+        isConnectable={isConnectable}
+      />
     </div>
   );
 };

@@ -44,7 +44,7 @@ import EndNode from './nodes/EndNode'
 import TTSNode from './nodes/TTSNode'
 import STTNode from './nodes/STTNode'
 import ChatbotPreview from './ChatbotPreview'
-import { Button } from '@/components/ui'
+import { Button, Dialog } from '@/components/ui'
 import { notifications } from '@/utils/notifications'
 import { supabase } from '@/services/supabase/SupabaseClient'
 import { v4 as uuidv4 } from 'uuid'
@@ -52,6 +52,8 @@ import {
     PiEyeDuotone,
     PiSparkleLight,
     PiDownloadSimpleDuotone,
+    PiArrowDownBold,
+    PiUploadSimpleDuotone,
 } from 'react-icons/pi'
 
 // Tipos adicionales
@@ -66,6 +68,15 @@ interface TemplateData {
     updated_at?: string
     version?: number
 }
+
+// Importar todos los nodos de negocio
+import { 
+    CheckAvailabilityNode,
+    BookAppointmentNode,
+    LeadQualificationNode,
+    RescheduleAppointmentNode 
+} from '@/modules/chatbot_business_nodes/components'
+import ActionNode from '@/components/view/ChatbotBuilder/nodes/ActionNode'
 
 // Definición de tipos de nodos personalizados
 const nodeTypes: NodeTypes = {
@@ -84,6 +95,21 @@ const nodeTypes: NodeTypes = {
     ttsNode: TTSNode,
     sttNode: STTNode,
     endNode: EndNode,
+    
+    // Nodos de negocio
+    'check-availability': CheckAvailabilityNode,
+    check_availability: CheckAvailabilityNode,
+    checkAvailability: CheckAvailabilityNode,
+    'book-appointment': BookAppointmentNode,
+    book_appointment: BookAppointmentNode,
+    bookAppointment: BookAppointmentNode,
+    'lead-qualification': LeadQualificationNode,
+    lead_qualification: LeadQualificationNode,
+    leadQualification: LeadQualificationNode,
+    'reschedule-appointment': RescheduleAppointmentNode,
+    reschedule_appointment: RescheduleAppointmentNode,
+    rescheduleAppointment: RescheduleAppointmentNode,
+    action: ActionNode,
 }
 
 // Nodo inicial por defecto
@@ -109,11 +135,14 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
     ({ templateId }, ref) => {
         // Referencias y estados
         const reactFlowWrapper = useRef<HTMLDivElement>(null)
+        const fileInputRef = useRef<HTMLInputElement>(null)
         const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
         const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
         const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
         const [selectedNode, setSelectedNode] = useState<Node | null>(null)
         const [isPreviewMode, setIsPreviewMode] = useState(false)
+        const [importModalOpen, setImportModalOpen] = useState(false)
+        const [jsonContent, setJsonContent] = useState('')
 
         // Obtener el tema actual
         const mode = useTheme((state) => state.mode)
@@ -612,6 +641,99 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
             // TODO: Implementar generación automática con IA
         }
 
+        // Procesar el contenido JSON importado (común para archivo y texto pegado)
+        const processImportedJson = async (jsonString: string) => {
+            if (!reactFlowInstance) {
+                notifications.error('No se puede importar porque la instancia del flujo no está disponible')
+                return false
+            }
+            
+            try {
+                // Parsear el JSON
+                const importedData = JSON.parse(jsonString)
+                
+                // Validar estructura básica
+                if (!importedData.react_flow_json) {
+                    throw new Error('El contenido no contiene un flujo de chatbot válido')
+                }
+                
+                // Actualizar datos de la plantilla
+                const updatedTemplate = {
+                    ...templateData,
+                    name: templateData.name, // Mantener el nombre actual
+                    description: importedData.description || templateData.description,
+                    vertical_id: importedData.vertical_id || templateData.vertical_id,
+                }
+                
+                // Actualizar estado del template
+                setTemplateData(updatedTemplate)
+                
+                // Actualizar nodos y conexiones con los datos importados
+                if (importedData.react_flow_json.nodes) {
+                    setNodes(importedData.react_flow_json.nodes)
+                }
+                
+                if (importedData.react_flow_json.edges) {
+                    setEdges(importedData.react_flow_json.edges)
+                }
+                
+                notifications.success('Flujo de chatbot importado correctamente')
+                
+                // Marcar cambios sin guardar
+                setUnsavedChanges(true)
+                
+                return true
+            } catch (parseError) {
+                console.error('Error al procesar el JSON:', parseError)
+                notifications.error('Error al importar el flujo: formato inválido')
+                return false
+            }
+        }
+        
+        // Manejar importación desde texto pegado
+        const handleJsonImport = async () => {
+            if (!jsonContent.trim()) {
+                notifications.error('Por favor, ingresa el contenido JSON del flujo')
+                return
+            }
+            
+            const success = await processImportedJson(jsonContent)
+            if (success) {
+                setImportModalOpen(false)
+                setJsonContent('')
+            }
+        }
+
+        // Importar una plantilla desde un archivo
+        const handleImportTemplate = async (
+            event: React.ChangeEvent<HTMLInputElement>
+        ) => {
+            const file = event.target.files?.[0]
+            if (!file) {
+                return
+            }
+
+            try {
+                // Leer el archivo como texto
+                const reader = new FileReader()
+                
+                reader.onload = async (e) => {
+                    const jsonString = e.target?.result as string
+                    await processImportedJson(jsonString)
+                    
+                    // Limpiar input
+                    if (fileInputRef.current) {
+                        fileInputRef.current.value = ''
+                    }
+                }
+                
+                reader.readAsText(file)
+            } catch (error) {
+                console.error('Error al importar plantilla:', error)
+                notifications.error('Error al importar el flujo del chatbot')
+            }
+        }
+
         // Exportar la plantilla actual
         const exportTemplate = () => {
             if (!reactFlowInstance || !templateData) {
@@ -751,6 +873,24 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                             >
                                 Exportar
                             </Button>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept=".json"
+                                onChange={handleImportTemplate}
+                            />
+                            <Button
+                                size="sm"
+                                variant="default"
+                                color="blue"
+                                icon={
+                                    <PiArrowDownBold className="mr-1" />
+                                }
+                                onClick={() => setImportModalOpen(true)}
+                            >
+                                Importar
+                            </Button>
                         </div>
                     </Panel>
 
@@ -786,6 +926,54 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                         />
                     )}
                 </ReactFlow>
+                
+                {/* Modal de importación */}
+                <Dialog
+                    isOpen={importModalOpen}
+                    title="Importar Flujo de Chatbot"
+                    onClose={() => setImportModalOpen(false)}
+                    onRequestClose={() => setImportModalOpen(false)}
+                >
+                    <div className="my-4">
+                        <p className="text-gray-600 mb-4">
+                            Pega el contenido JSON del flujo de chatbot o selecciona un archivo para importar.
+                        </p>
+                        <div className="flex flex-col space-y-4">
+                            <textarea 
+                                className="w-full h-60 p-2 border border-gray-300 rounded-md font-mono text-sm"
+                                placeholder="Pega el JSON aquí..."
+                                value={jsonContent}
+                                onChange={(e) => setJsonContent(e.target.value)}
+                            />
+                            <div className="text-center">
+                                <span className="text-gray-500">- o -</span>
+                            </div>
+                            <button
+                                type="button"
+                                className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                Seleccionar archivo JSON
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6">
+                        <Button
+                            variant="default"
+                            onClick={() => setImportModalOpen(false)}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="solid"
+                            color="blue"
+                            onClick={handleJsonImport}
+                            disabled={!jsonContent.trim()}
+                        >
+                            Importar
+                        </Button>
+                    </div>
+                </Dialog>
             </div>
         )
     },

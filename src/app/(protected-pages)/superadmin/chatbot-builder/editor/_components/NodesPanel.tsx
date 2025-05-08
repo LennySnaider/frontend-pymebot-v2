@@ -1,8 +1,8 @@
 /**
  * frontend/src/app/(protected-pages)/modules/superadmin/chatbot-builder/editor/_components/NodesPanel.tsx
  * Panel de nodos disponibles para arrastrar al editor
- * @version 1.0.0
- * @updated 2025-04-08
+ * @version 1.1.0
+ * @updated 2025-05-07 - Añadidos nodos de negocio
  */
 
 'use client'
@@ -17,8 +17,17 @@ import {
     PiSpeakerHighDuotone,
     PiMicrophoneDuotone,
     PiSparkleDuotone,
+    PiGearDuotone,
+    PiCalendarDuotone,
+    PiCalendarCheckDuotone,
+    PiUserGearDuotone,
+    PiCalendarPlusDuotone,
 } from 'react-icons/pi'
 
+// Importamos los tipos de nodos disponibles desde el registro
+import { availableNodeTypes } from '@/components/view/ChatbotBuilder/nodes'
+
+// Lista ampliada de nodos que incluye los nodos de negocio
 const NODE_TYPES = [
     {
         type: 'messageNode',
@@ -61,6 +70,36 @@ const NODE_TYPES = [
         label: 'Speech-to-Text',
         description: 'Capturar voz del usuario y convertirla a texto',
         icon: <PiMicrophoneDuotone className="text-indigo-500" />,
+    },
+    {
+        type: 'action',
+        label: 'Acción',
+        description: 'Ejecuta una acción en el backend',
+        icon: <PiGearDuotone className="text-cyan-500" />,
+    },
+    {
+        type: 'check-availability',
+        label: 'Verificar Disponibilidad',
+        description: 'Verifica disponibilidad de citas',
+        icon: <PiCalendarDuotone className="text-blue-500" />,
+    },
+    {
+        type: 'book-appointment',
+        label: 'Agendar Cita',
+        description: 'Programa una cita y actualiza el lead',
+        icon: <PiCalendarPlusDuotone className="text-green-500" />,
+    },
+    {
+        type: 'reschedule-appointment',
+        label: 'Reprogramar Cita',
+        description: 'Permite reprogramar una cita existente',
+        icon: <PiCalendarCheckDuotone className="text-orange-500" />,
+    },
+    {
+        type: 'lead-qualification',
+        label: 'Calificar Lead',
+        description: 'Califica leads basado en respuestas',
+        icon: <PiUserGearDuotone className="text-purple-500" />,
     },
     {
         type: 'endNode',

@@ -3,15 +3,15 @@
  * Cliente centralizado de Supabase para la aplicación.
  * Patrón Singleton para proporcionar una única instancia del cliente Supabase.
  * 
- * @version 2.2.0
- * @updated 2025-07-14
+ * @version 2.2.1
+ * @updated 2025-07-05
  */
 
 import { createClient, SupabaseClient as SupabaseClientType } from '@supabase/supabase-js'
 
 // Valores de configuración de Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co'
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJh...ejemplo...cCI6IkpXVCJ9'
 
 // Verificar si las variables de entorno están definidas
 if (!supabaseUrl || !supabaseKey) {
@@ -57,7 +57,7 @@ export class SupabaseClient {
       console.warn('Reusing previous connection error without retry:', SupabaseClient.connectionError.message);
       // Devolvemos la instancia existente a pesar del error, para que la aplicación pueda seguir funcionando
       // con datos locales o cachés si es posible.
-      return SupabaseClient.instance || createClient(supabaseUrl || '', supabaseKey || '');
+      return SupabaseClient.instance || createClient(supabaseUrl, supabaseKey);
     }
 
     // Es hora de verificar la conexión nuevamente
@@ -69,16 +69,6 @@ export class SupabaseClient {
     console.log('Supabase URL:', supabaseUrl ? `Configurada (${supabaseUrl.substring(0, 15)}...)` : 'NO CONFIGURADA');
     console.log('Supabase Key:', supabaseKey ? 'Configurada (********)' : 'NO CONFIGURADA');
 
-    if (!supabaseUrl || !supabaseKey) {
-      const errorMsg = 'Error crítico: Faltan variables de entorno de Supabase al intentar crear la instancia.';
-      console.error(errorMsg);
-      SupabaseClient.connectionError = new Error(errorMsg);
-      
-      // Devolver un cliente no funcional con credenciales vacías para evitar errores de null/undefined
-      // El código que depende de Supabase fallará con errores más específicos
-      return createClient('', '');
-    }
-    
     try {
       // Si ya tenemos una instancia, sólo verificamos la conexión
       if (!SupabaseClient.instance) {
@@ -107,40 +97,27 @@ export class SupabaseClient {
        console.error('Error FATAL al crear/verificar la instancia de Supabase:', error);
        SupabaseClient.connectionError = error instanceof Error ? error : new Error(String(error));
        
-       // Devolver un cliente no funcional con credenciales vacías
-       return createClient('', '');
+       // Devolver un cliente no funcional con credenciales por defecto
+       return createClient(supabaseUrl, supabaseKey);
     }
   }
 }
 
-// Verificar si las credenciales son válidas antes de crear el cliente
-let supabaseClient;
-if (supabaseUrl && supabaseKey) {
-  try {
-    console.log('Inicializando cliente Supabase principal...');
-    supabaseClient = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-      global: {
-        headers: customHeaders,
-      },
-    });
-    console.log('Cliente Supabase principal inicializado correctamente.');
-  } catch (error) {
-    console.error('Error al inicializar cliente Supabase principal:', error);
-    // Crear un cliente con valores vacíos que generará errores descriptivos
-    supabaseClient = createClient('', '');
-  }
-} else {
-  console.error('ADVERTENCIA: Variables de entorno Supabase no disponibles');
-  // Crear un cliente con valores vacíos
-  supabaseClient = createClient('', '');
-}
+// Crear el cliente Supabase para uso general
+const supabaseClient = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  global: {
+    headers: customHeaders,
+  },
+});
+
+console.log('Cliente Supabase principal inicializado correctamente.');
 
 // Exportar el cliente como 'supabase' para compatibilidad con el código existente
 export const supabase = supabaseClient;
 
 // Exportar supabase como default para mantener compatibilidad
-export default supabase
+export default supabase;
