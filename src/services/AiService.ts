@@ -1,8 +1,8 @@
 /**
  * frontend/src/services/AiService.ts
  * Servicio para interactuar con APIs de IA para chat y generación de imágenes
- * @version 1.0.0
- * @updated 2025-06-05
+ * @version 1.1.0
+ * @updated 2025-08-05
  */
 
 import axios from 'axios';
@@ -11,6 +11,7 @@ import axios from 'axios';
 const API_BASE_URL = '/api';
 const AI_CHAT_ENDPOINT = `${API_BASE_URL}/ai/chat`;
 const AI_IMAGES_ENDPOINT = `${API_BASE_URL}/ai/images`;
+const AI_CHATBOT_GENERATOR_ENDPOINT = `${API_BASE_URL}/ai/chatbot-generator`;
 
 // Tipos de respuesta para post de chat
 export interface PostAiChatResponseChoice {
@@ -42,6 +43,29 @@ export interface GetImageResponse {
 }
 
 export interface PostImageResponse extends Array<AiImageItem> {}
+
+// Tipos para generación de chatbots
+export interface ChatbotGenerationOptions {
+  vertical?: string;
+  industry?: string;
+  description?: string;
+  features?: string[];
+  complexity?: 'simple' | 'medium' | 'complex';
+  language?: string;
+  includeAI?: boolean;
+  tenant_id?: string;
+}
+
+export interface ChatbotGenerationResponse {
+  name: string;
+  description: string;
+  status: 'draft' | 'published';
+  react_flow_json: {
+    nodes: any[];
+    edges: any[];
+  };
+  version: number;
+}
 
 /**
  * Envía un mensaje al API de chat IA
@@ -103,10 +127,28 @@ export const apiGetImages = async <T, D = any>(data: D): Promise<T> => {
   }
 };
 
+/**
+ * Genera un flujo de chatbot utilizando IA
+ * @param options Opciones para la generación del chatbot (vertical, industria, descripción, etc.)
+ * @returns Flujo de chatbot generado en formato compatible con ReactFlow
+ */
+export const apiGenerateChatbotFlow = async (
+  options: ChatbotGenerationOptions
+): Promise<ChatbotGenerationResponse> => {
+  try {
+    const response = await axios.post(AI_CHATBOT_GENERATOR_ENDPOINT, options);
+    return response.data;
+  } catch (error) {
+    console.error('Error en apiGenerateChatbotFlow:', error);
+    throw error;
+  }
+};
+
 // Exportamos todos los métodos
 export default {
   apiPostChat,
   apiGetChatHistory,
   apiPostImages,
-  apiGetImages
+  apiGetImages,
+  apiGenerateChatbotFlow
 };

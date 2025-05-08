@@ -47,6 +47,8 @@ import ChatbotPreview from './ChatbotPreview'
 import { Button, Dialog } from '@/components/ui'
 import { notifications } from '@/utils/notifications'
 import { supabase } from '@/services/supabase/SupabaseClient'
+import AIService, { ChatbotGenerationOptions, ChatbotGenerationResponse } from '@/services/AiService'
+import AIFlowGeneratorDialog from '@/components/view/ChatbotBuilder/AIFlowGeneratorDialog'
 import { v4 as uuidv4 } from 'uuid'
 import {
     PiEyeDuotone,
@@ -54,6 +56,7 @@ import {
     PiDownloadSimpleDuotone,
     PiArrowDownBold,
     PiUploadSimpleDuotone,
+    PiRobotDuotone,
 } from 'react-icons/pi'
 
 // Tipos adicionales
@@ -143,6 +146,8 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
         const [isPreviewMode, setIsPreviewMode] = useState(false)
         const [importModalOpen, setImportModalOpen] = useState(false)
         const [jsonContent, setJsonContent] = useState('')
+        const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false)
+        const [isGenerating, setIsGenerating] = useState(false)
 
         // Obtener el tema actual
         const mode = useTheme((state) => state.mode)
@@ -637,8 +642,56 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
 
         // Generar una versión automática del flujo con IA
         const generateWithAI = () => {
-            notifications.info('Función de generación con IA a implementar')
-            // TODO: Implementar generación automática con IA
+            setAiGeneratorOpen(true)
+        }
+        
+        // Manejador para procesar la generación de flujo con IA
+        const handleGenerateFlow = async (options: ChatbotGenerationOptions) => {
+            try {
+                setIsGenerating(true)
+                notifications.info('Generando flujo de chatbot, por favor espera...')
+                
+                // Incluir el tenant_id en las opciones si existe
+                if (templateData.id) {
+                    options.tenant_id = templateData.id
+                }
+                
+                // Llamar a la API de generación
+                const generatedFlow: ChatbotGenerationResponse = await AIService.apiGenerateChatbotFlow(options)
+                
+                if (!generatedFlow || !generatedFlow.react_flow_json) {
+                    throw new Error('Error al generar el flujo: respuesta inválida')
+                }
+                
+                // Actualizar estado del template con los datos generados
+                setTemplateData(prev => ({
+                    ...prev,
+                    name: prev.name !== 'Nueva plantilla' ? prev.name : generatedFlow.name,
+                    description: prev.description !== 'Descripción de la plantilla' ? prev.description : generatedFlow.description,
+                }))
+                
+                // Actualizar nodos y conexiones con los datos generados
+                if (generatedFlow.react_flow_json.nodes) {
+                    setNodes(generatedFlow.react_flow_json.nodes)
+                }
+                
+                if (generatedFlow.react_flow_json.edges) {
+                    setEdges(generatedFlow.react_flow_json.edges)
+                }
+                
+                // Mostrar notificación de éxito
+                notifications.success('Flujo de chatbot generado correctamente')
+                
+                // Marcar cambios sin guardar
+                setUnsavedChanges(true)
+                
+            } catch (error) {
+                console.error('Error al generar flujo de chatbot:', error)
+                notifications.error(`Error al generar el flujo: ${error instanceof Error ? error.message : 'Error desconocido'}`)
+            } finally {
+                setIsGenerating(false)
+                setAiGeneratorOpen(false)
+            }
         }
 
         // Procesar el contenido JSON importado (común para archivo y texto pegado)
@@ -857,8 +910,9 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                                 size="sm"
                                 variant="default"
                                 color="purple"
-                                icon={<PiSparkleLight className="mr-1" />}
+                                icon={<PiRobotDuotone className="mr-1" />}
                                 onClick={generateWithAI}
+                                loading={isGenerating}
                             >
                                 Generar con IA
                             </Button>
@@ -974,6 +1028,14 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                         </Button>
                     </div>
                 </Dialog>
+                
+                {/* Modal de generación con IA */}
+                <AIFlowGeneratorDialog
+                    isOpen={aiGeneratorOpen}
+                    onClose={() => setAiGeneratorOpen(false)}
+                    onGenerate={handleGenerateFlow}
+                    tenantId={templateData.id}
+                />
             </div>
         )
     },
