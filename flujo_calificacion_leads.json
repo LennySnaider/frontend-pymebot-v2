@@ -1,0 +1,469 @@
+{
+  "name": "Calificación de Leads y Citas",
+  "description": "Flujo para calificar leads y programar citas",
+  "status": "draft",
+  "react_flow_json": {
+    "nodes": [
+      {
+        "id": "startNode-1",
+        "type": "startNode",
+        "position": {"x": 50, "y": 150},
+        "data": {"label": "Inicio"}
+      },
+      {
+        "id": "welcomeMessage",
+        "type": "messageNode",
+        "position": {"x": 250, "y": 150},
+        "data": {
+          "label": "Bienvenida",
+          "message": "¡Hola! Soy el asistente virtual. Estoy aquí para ayudarte a encontrar la mejor solución para tus necesidades. ¿Me puedes decir tu nombre?",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputName",
+        "type": "inputNode",
+        "position": {"x": 500, "y": 150},
+        "data": {
+          "label": "Captura de Nombre",
+          "question": "Por favor, escribe tu nombre completo",
+          "variableName": "nombre_cliente",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "nameResponse",
+        "type": "messageNode",
+        "position": {"x": 750, "y": 150},
+        "data": {
+          "label": "Respuesta con Nombre",
+          "message": "Gracias, {{nombre_cliente}}. Para poder ayudarte mejor, ¿podrías indicarme tu correo electrónico?",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputEmail",
+        "type": "inputNode",
+        "position": {"x": 1000, "y": 150},
+        "data": {
+          "label": "Captura de Email",
+          "question": "Por favor, escribe tu correo electrónico",
+          "variableName": "email_cliente",
+          "inputType": "email"
+        }
+      },
+      {
+        "id": "inputPhone",
+        "type": "inputNode",
+        "position": {"x": 1250, "y": 150},
+        "data": {
+          "label": "Captura de Teléfono",
+          "question": "Y ahora, ¿podrías proporcionarme tu número de teléfono para contactarte?",
+          "variableName": "telefono_cliente",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "leadInterestMessage",
+        "type": "messageNode",
+        "position": {"x": 1500, "y": 150},
+        "data": {
+          "label": "Pregunta de Interés",
+          "message": "Perfecto, {{nombre_cliente}}. ¿En qué servicios estás interesado principalmente?",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputInterest",
+        "type": "inputNode",
+        "position": {"x": 1750, "y": 150},
+        "data": {
+          "label": "Captura de Interés",
+          "question": "Por ejemplo: consulta general, información sobre productos, cotización, etc.",
+          "variableName": "interes_cliente",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "leadUrgencyMessage",
+        "type": "messageNode",
+        "position": {"x": 2000, "y": 150},
+        "data": {
+          "label": "Pregunta de Urgencia",
+          "message": "Entiendo. ¿Qué tan urgente es tu necesidad? ¿Necesitas atención inmediata o puedes esperar unos días?",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputUrgency",
+        "type": "inputNode",
+        "position": {"x": 2250, "y": 150},
+        "data": {
+          "label": "Captura de Urgencia",
+          "question": "Por favor, indica si es: Urgente, Esta semana, o Sin prisa",
+          "variableName": "urgencia_cliente",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "leadBudgetMessage",
+        "type": "messageNode",
+        "position": {"x": 2500, "y": 150},
+        "data": {
+          "label": "Pregunta de Presupuesto",
+          "message": "¿Tienes un presupuesto aproximado para este proyecto o servicio?",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputBudget",
+        "type": "inputNode",
+        "position": {"x": 2750, "y": 150},
+        "data": {
+          "label": "Captura de Presupuesto",
+          "question": "Puedes indicar un rango aproximado o 'No definido' si aún no lo tienes claro",
+          "variableName": "presupuesto_cliente",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "qualificationAction",
+        "type": "action",
+        "position": {"x": 3000, "y": 150},
+        "data": {
+          "label": "Calificación de Lead",
+          "actionType": "qualifyLead",
+          "params": {
+            "nombre": "{{nombre_cliente}}",
+            "email": "{{email_cliente}}",
+            "telefono": "{{telefono_cliente}}",
+            "interes": "{{interes_cliente}}",
+            "urgencia": "{{urgencia_cliente}}",
+            "presupuesto": "{{presupuesto_cliente}}"
+          },
+          "outputVariables": {
+            "leadId": "lead_id",
+            "leadScore": "lead_score",
+            "leadStage": "lead_stage"
+          }
+        }
+      },
+      {
+        "id": "qualificationResponse",
+        "type": "aiNode",
+        "position": {"x": 3250, "y": 150},
+        "data": {
+          "label": "Respuesta Personalizada",
+          "prompt": "Genera una respuesta personalizada para {{nombre_cliente}} basada en su interés en {{interes_cliente}} y su nivel de urgencia {{urgencia_cliente}}. Ofrece programar una cita para conocer más detalles. La respuesta debe ser amable, profesional y estar enfocada en ayudar al cliente. No menciones nada sobre calificación de leads o puntajes.",
+          "model": "gpt-4o",
+          "temperature": 0.7,
+          "maxTokens": 200,
+          "responseVariableName": "respuesta_personalizada"
+        }
+      },
+      {
+        "id": "appointmentMessage",
+        "type": "messageNode",
+        "position": {"x": 3500, "y": 150},
+        "data": {
+          "label": "Mensaje de Cita",
+          "message": "{{respuesta_personalizada}}\n\n¿Te gustaría programar una cita para que uno de nuestros asesores te contacte personalmente?",
+          "delay": 1
+        }
+      },
+      {
+        "id": "wantAppointmentInput",
+        "type": "inputNode",
+        "position": {"x": 3750, "y": 150},
+        "data": {
+          "label": "¿Desea Cita?",
+          "question": "Responde 'sí' o 'no', por favor",
+          "variableName": "quiere_cita",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "appointmentCondition",
+        "type": "conditionNode",
+        "position": {"x": 4000, "y": 150},
+        "data": {
+          "label": "Verificar Respuesta Cita",
+          "condition": "{{quiere_cita}}",
+          "options": [
+            {
+              "label": "Quiere Cita",
+              "value": "handle-0",
+              "condition": "{{quiere_cita.toLowerCase().includes('s')}}"
+            },
+            {
+              "label": "No Quiere Cita",
+              "value": "handle-1",
+              "condition": "!{{quiere_cita.toLowerCase().includes('s')}}"
+            }
+          ]
+        }
+      },
+      {
+        "id": "dateRequestMessage",
+        "type": "messageNode",
+        "position": {"x": 4250, "y": 50},
+        "data": {
+          "label": "Solicitar Fecha",
+          "message": "Excelente. ¿Para qué fecha te gustaría programar la cita? Por favor, indica el día en formato DD/MM/YYYY.",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputDate",
+        "type": "inputNode",
+        "position": {"x": 4500, "y": 50},
+        "data": {
+          "label": "Captura de Fecha",
+          "question": "Por ejemplo: 15/06/2025",
+          "variableName": "fecha_cita",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "timeRequestMessage",
+        "type": "messageNode",
+        "position": {"x": 4750, "y": 50},
+        "data": {
+          "label": "Solicitar Hora",
+          "message": "¿A qué hora prefieres? Nuestro horario de atención es de 9:00 a 18:00.",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputTime",
+        "type": "inputNode",
+        "position": {"x": 5000, "y": 50},
+        "data": {
+          "label": "Captura de Hora",
+          "question": "Por ejemplo: 10:30",
+          "variableName": "hora_cita",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "createAppointmentAction",
+        "type": "action",
+        "position": {"x": 5250, "y": 50},
+        "data": {
+          "label": "Crear Cita",
+          "actionType": "createAppointment",
+          "params": {
+            "leadId": "{{lead_id}}",
+            "date": "{{fecha_cita}}",
+            "time": "{{hora_cita}}",
+            "notes": "Interés en: {{interes_cliente}}, Urgencia: {{urgencia_cliente}}"
+          },
+          "outputVariables": {
+            "appointmentId": "appointment_id",
+            "appointmentConfirmed": "appointment_confirmed"
+          }
+        }
+      },
+      {
+        "id": "appointmentConfirmationMessage",
+        "type": "messageNode",
+        "position": {"x": 5500, "y": 50},
+        "data": {
+          "label": "Confirmación de Cita",
+          "message": "¡Perfecto! Tu cita ha sido programada para el {{fecha_cita}} a las {{hora_cita}}. Te hemos enviado un correo a {{email_cliente}} con los detalles y un código QR para acceder a tu cita. ¿Necesitas algo más?",
+          "delay": 1
+        }
+      },
+      {
+        "id": "noAppointmentMessage",
+        "type": "messageNode",
+        "position": {"x": 4250, "y": 250},
+        "data": {
+          "label": "Mensaje Sin Cita",
+          "message": "Entiendo. Si cambias de opinión o necesitas más información, no dudes en contactarnos. Hemos guardado tus datos para cuando nos necesites.",
+          "delay": 1
+        }
+      },
+      {
+        "id": "finalMessage",
+        "type": "messageNode",
+        "position": {"x": 5500, "y": 150},
+        "data": {
+          "label": "Mensaje Final",
+          "message": "Gracias por contactarnos, {{nombre_cliente}}. Estamos a tu disposición para cualquier consulta adicional. ¡Que tengas un excelente día!",
+          "delay": 1
+        }
+      },
+      {
+        "id": "endNode",
+        "type": "endNode",
+        "position": {"x": 5750, "y": 150},
+        "data": {
+          "label": "Fin",
+          "message": "Fin de la conversación"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-start-welcome",
+        "source": "startNode-1",
+        "target": "welcomeMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-welcome-name",
+        "source": "welcomeMessage",
+        "target": "inputName",
+        "animated": true
+      },
+      {
+        "id": "edge-name-response",
+        "source": "inputName",
+        "target": "nameResponse",
+        "animated": true
+      },
+      {
+        "id": "edge-response-email",
+        "source": "nameResponse",
+        "target": "inputEmail",
+        "animated": true
+      },
+      {
+        "id": "edge-email-phone",
+        "source": "inputEmail",
+        "target": "inputPhone",
+        "animated": true
+      },
+      {
+        "id": "edge-phone-interest",
+        "source": "inputPhone",
+        "target": "leadInterestMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-interest-msg-input",
+        "source": "leadInterestMessage",
+        "target": "inputInterest",
+        "animated": true
+      },
+      {
+        "id": "edge-interest-urgency",
+        "source": "inputInterest",
+        "target": "leadUrgencyMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-urgency-msg-input",
+        "source": "leadUrgencyMessage",
+        "target": "inputUrgency",
+        "animated": true
+      },
+      {
+        "id": "edge-urgency-budget",
+        "source": "inputUrgency",
+        "target": "leadBudgetMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-budget-msg-input",
+        "source": "leadBudgetMessage",
+        "target": "inputBudget",
+        "animated": true
+      },
+      {
+        "id": "edge-budget-qualification",
+        "source": "inputBudget",
+        "target": "qualificationAction",
+        "animated": true
+      },
+      {
+        "id": "edge-qualification-ai",
+        "source": "qualificationAction",
+        "target": "qualificationResponse",
+        "animated": true
+      },
+      {
+        "id": "edge-ai-appointment",
+        "source": "qualificationResponse",
+        "target": "appointmentMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-appointment-want",
+        "source": "appointmentMessage",
+        "target": "wantAppointmentInput",
+        "animated": true
+      },
+      {
+        "id": "edge-want-condition",
+        "source": "wantAppointmentInput",
+        "target": "appointmentCondition",
+        "animated": true
+      },
+      {
+        "id": "edge-condition-date",
+        "source": "appointmentCondition",
+        "target": "dateRequestMessage",
+        "animated": true,
+        "sourceHandle": "handle-0"
+      },
+      {
+        "id": "edge-condition-no",
+        "source": "appointmentCondition",
+        "target": "noAppointmentMessage",
+        "animated": true,
+        "sourceHandle": "handle-1"
+      },
+      {
+        "id": "edge-date-msg-input",
+        "source": "dateRequestMessage",
+        "target": "inputDate",
+        "animated": true
+      },
+      {
+        "id": "edge-date-time",
+        "source": "inputDate",
+        "target": "timeRequestMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-time-msg-input",
+        "source": "timeRequestMessage",
+        "target": "inputTime",
+        "animated": true
+      },
+      {
+        "id": "edge-time-create",
+        "source": "inputTime",
+        "target": "createAppointmentAction",
+        "animated": true
+      },
+      {
+        "id": "edge-create-confirm",
+        "source": "createAppointmentAction",
+        "target": "appointmentConfirmationMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-confirm-final",
+        "source": "appointmentConfirmationMessage",
+        "target": "finalMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-no-final",
+        "source": "noAppointmentMessage",
+        "target": "finalMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-final-end",
+        "source": "finalMessage",
+        "target": "endNode",
+        "animated": true
+      }
+    ]
+  },
+  "version": 1
+}

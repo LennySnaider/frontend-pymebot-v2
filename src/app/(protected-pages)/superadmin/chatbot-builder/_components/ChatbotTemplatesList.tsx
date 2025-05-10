@@ -588,7 +588,7 @@ const ChatbotTemplatesList = forwardRef(
             return (
                 <div className="space-y-4">
                     {/* Barra de filtros */}
-                    <div className="flex flex-wrap gap-4 items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4">
+                    <div className="flex flex-wrap gap-4 items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4 border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-2 w-full md:w-auto">
                             <div className="relative w-full md:w-64">
                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
@@ -644,9 +644,9 @@ const ChatbotTemplatesList = forwardRef(
                     </div>
 
                     {/* Tabla */}
-                    <Card>
+                    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         <div className="overflow-x-auto">
-                            <Table className="w-full">
+                            <Table className="w-full dark:text-gray-200">
                                 <Table.Header>
                                     <Table.Row>
                                         <Table.HeaderCell>Nombre</Table.HeaderCell>
@@ -658,7 +658,7 @@ const ChatbotTemplatesList = forwardRef(
                                 </Table.Header>
                                 <Table.Body>
                                     {getCurrentPageItems().map((template) => (
-                                        <Table.Row key={template.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <Table.Row key={template.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/70">
                                             <Table.Cell>
                                                 <div className="flex items-center">
                                                     <Avatar 
@@ -669,7 +669,7 @@ const ChatbotTemplatesList = forwardRef(
                                                     />
                                                     <div>
                                                         <div className="font-medium">{template.name}</div>
-                                                        <div className="text-xs text-gray-500 mt-1 line-clamp-1">
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
                                                             {template.description}
                                                         </div>
                                                     </div>
@@ -681,7 +681,7 @@ const ChatbotTemplatesList = forwardRef(
                                                         <Badge className="bg-blue-500 text-white">
                                                             {template.vertical.name}
                                                         </Badge>
-                                                        <div className="text-xs text-gray-500 mt-1">
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                             {template.vertical.brand_name}
                                                         </div>
                                                     </div>
@@ -737,7 +737,7 @@ const ChatbotTemplatesList = forwardRef(
                                                 </div>
                                             </Table.Cell>
                                             <Table.Cell>
-                                                <div className="text-sm text-gray-600">
+                                                <div className="text-sm text-gray-600 dark:text-gray-400">
                                                     {formatDistance(
                                                         new Date(template.updated_at),
                                                         new Date(),
@@ -783,8 +783,8 @@ const ChatbotTemplatesList = forwardRef(
                             </Table>
                         </div>
                         {templatesCount > pageSize && (
-                            <div className="flex justify-between items-center p-4 border-t">
-                                <div className="text-sm text-gray-500">
+                            <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                     Mostrando {Math.min(filteredTemplates.length, pageSize)} de {templatesCount} plantillas
                                 </div>
                                 <Pagination
@@ -821,7 +821,7 @@ const ChatbotTemplatesList = forwardRef(
                     onRequestClose={() => setDeleteConfirmOpen(false)}
                 >
                     <div className="my-4">
-                        <p className="text-gray-600">
+                        <p className="text-gray-600 dark:text-gray-300">
                             ¿Estás seguro de que deseas eliminar esta plantilla?
                             Esta acción no se puede deshacer.
                         </p>

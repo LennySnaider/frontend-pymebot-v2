@@ -1,0 +1,97 @@
+/**
+ * frontend/src/assets/styles/components/text-dark-fixes.css
+ * Correcciones específicas para textos en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Corrección de texto para etiquetas principales */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Corrección para textos secundarios */
+.dark p,
+.dark span,
+.dark label,
+.dark div:not([class*="bg-"]) {
+  color: var(--dark-text-primary);
+}
+
+/* Textos específicos para configuraciones */
+.dark .text-gray-600,
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark .text-gray-400,
+.dark .text-gray-500 {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Correcciones para texto en modales y diálogos */
+.dark [role="dialog"] h1,
+.dark [role="dialog"] h2,
+.dark [role="dialog"] h3,
+.dark [role="dialog"] h4,
+.dark [role="dialog"] h5,
+.dark [role="dialog"] h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark [role="dialog"] p,
+.dark [role="dialog"] span,
+.dark [role="dialog"] label,
+.dark [role="dialog"] div:not([class*="bg-"]) {
+  color: var(--dark-text-primary);
+}
+
+/* Asegurar contraste en textos específicos */
+.dark .theme-configurator h6,
+.dark .modal-title h6,
+.dark .dialog-title h6,
+.dark .panel-title h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark .theme-configurator span,
+.dark .modal-description span,
+.dark .dialog-description span,
+.dark .panel-description span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Estilos específicos para elementos de configuración */
+.dark .flex.flex-col.gap-y-10 h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark .flex.flex-col.gap-y-10 span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Correcciones para elementos de navigación */
+.dark .navigation-title,
+.dark .nav-title,
+.dark .section-title {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark .navigation-description,
+.dark .nav-description,
+.dark .section-description {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Correcciones específicas para botones de texto */
+.dark button:not([class*="bg-"]),
+.dark a:not([class*="bg-"]) {
+  color: inherit;
+}

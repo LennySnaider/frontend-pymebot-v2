@@ -1,0 +1,89 @@
+{
+  "appointments": {
+    "settings": {
+      "title": "Business Hours Configuration",
+      "description": "Configure business hours, exceptions and appointment types for your business.",
+      "fetch_error": "An error occurred while loading configuration",
+      "save_error": "An error occurred while saving configuration",
+      "save_success": "Configuration successfully saved",
+      "tabs": {
+        "business_hours": "Business Hours",
+        "exceptions": "Exceptions",
+        "appointment_settings": "Appointment Settings",
+        "appointment_types": "Appointment Types",
+        "locations": "Locations"
+      },
+      "business_hours": {
+        "title": "Business Hours",
+        "description": "Configure the days and hours when your business is open for appointments.",
+        "open": "Open",
+        "closed": "Closed",
+        "open_time": "Opening time",
+        "close_time": "Closing time"
+      },
+      "exceptions": {
+        "title": "Schedule Exceptions",
+        "description": "Configure specific days with special hours or closed days for holidays.",
+        "add": "Add exception",
+        "date": "Date",
+        "status": "Status",
+        "hours": "Hours",
+        "reason": "Reason",
+        "closed": "Closed",
+        "open": "Open",
+        "no_data": "No exceptions configured",
+        "date_required": "Date is required",
+        "hours_required": "Hours are required if business is open",
+        "select_date": "Select a date",
+        "reason_placeholder": "For example: Holiday, Special day, etc.",
+        "open_time": "Opening time",
+        "close_time": "Closing time",
+        "save_success": "Exception successfully saved",
+        "delete_success": "Exception successfully deleted",
+        "delete_error": "An error occurred while deleting the exception"
+      },
+      "appointment_settings": {
+        "title": "Appointment Settings",
+        "description": "Configure general parameters for appointment scheduling.",
+        "duration": "Default duration",
+        "duration_help": "Default duration for all appointments",
+        "buffer": "Buffer time between appointments",
+        "buffer_help": "Additional time between appointments for preparation",
+        "max_daily": "Maximum appointments per day",
+        "max_daily_help": "Leave blank for unlimited",
+        "unlimited": "Unlimited",
+        "min_notice": "Minimum notice time",
+        "min_notice_help": "How far in advance an appointment must be scheduled",
+        "max_future": "Maximum days in advance",
+        "max_future_help": "How far in the future appointments can be scheduled",
+        "require_approval": "Requires approval",
+        "require_approval_help": "Appointments must be manually approved",
+        "reminder_time": "Reminder time",
+        "reminder_time_help": "How long before the appointment to send a reminder",
+        "notification_email": "Notification email",
+        "notification_email_help": "Receive notifications of new appointments at this email",
+        "minutes": "minutes",
+        "hours": "hours",
+        "days": "days"
+      }
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "success": "Success",
+    "error": "Error",
+    "loading": "Loading",
+    "search": "Search",
+    "filter": "Filter",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "details": "Details"
+  }
+}

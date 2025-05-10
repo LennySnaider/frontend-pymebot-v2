@@ -1,0 +1,112 @@
+/**
+ * frontend/src/assets/styles/components/specific-tags-fixes.css
+ * Estilos específicos para casos concretos de etiquetas en la aplicación
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Estilos específicos para el componente CustomerListTableFilter */
+.dark .customer-list span.rounded-full,
+.dark .clients-list span.rounded-full,
+.dark .CustomerList span.rounded-full,
+.dark .ClientsList span.rounded-full {
+  border: 1px solid !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.125rem 0.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  line-height: 1.25rem !important;
+}
+
+/* Estilos para etiquetas verdes */
+.dark .customer span[class*="bg-green"],
+.dark .Customer span[class*="bg-green"],
+.dark .customer-list span[class*="bg-green"],
+.dark .Customer-list span[class*="bg-green"] {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+  color: #4ade80 !important;
+  border-color: #166534 !important;
+}
+
+/* Estilos para etiquetas grises */
+.dark .customer span[class*="bg-gray"],
+.dark .Customer span[class*="bg-gray"],
+.dark .customer-list span[class*="bg-gray"],
+.dark .Customer-list span[class*="bg-gray"] {
+  background-color: rgba(75, 85, 99, 0.2) !important;
+  color: #e5e7eb !important;
+  border-color: #4b5563 !important;
+}
+
+/* Estilos para etiquetas ámbar */
+.dark .customer span[class*="bg-amber"],
+.dark .Customer span[class*="bg-amber"],
+.dark .customer-list span[class*="bg-amber"],
+.dark .Customer-list span[class*="bg-amber"] {
+  background-color: rgba(217, 119, 6, 0.2) !important;
+  color: #fbbf24 !important;
+  border-color: #b45309 !important;
+}
+
+/* Estilos específicos para estados de publicación */
+.dark span.px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full,
+.dark .published-tag,
+.dark .draft-tag,
+.dark .status-tag,
+.dark .tag-status {
+  padding: 0.125rem 0.5rem !important;
+  border: 1px solid !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Estilo específico para "Publicada" */
+.dark span.px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full.bg-green-100,
+.dark .published-tag,
+.dark .tag-published {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+  color: #4ade80 !important;
+  border-color: #166534 !important;
+}
+
+/* Estilo específico para "Borrador" */
+.dark span.px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full.bg-amber-100,
+.dark .draft-tag,
+.dark .tag-draft {
+  background-color: rgba(217, 119, 6, 0.2) !important;
+  color: #fbbf24 !important;
+  border-color: #b45309 !important;
+}
+
+/* Asegurar alto contraste en tablas y listas con etiquetas de estado */
+.dark tbody td span.rounded-full,
+.dark tbody td span.bg-green-100,
+.dark tbody td span.bg-amber-100,
+.dark tbody td span.bg-gray-100,
+.dark tbody td span.bg-red-100,
+.dark tr td span.rounded-full,
+.dark tr td span.bg-green-100,
+.dark tr td span.bg-amber-100,
+.dark tr td span.bg-gray-100,
+.dark tr td span.bg-red-100 {
+  font-weight: 600 !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+}
+
+/* Selector específico para tabla de clientes */
+.dark .CustomerList span.rounded-full,
+.dark .CustomerTable span.rounded-full,
+.dark .customer-list span.rounded-full,
+.dark .customer-table span.rounded-full {
+  border: 1px solid !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}

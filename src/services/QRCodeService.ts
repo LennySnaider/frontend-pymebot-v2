@@ -1,9 +1,9 @@
 /**
  * frontend/src/services/QRCodeService.ts
  * Servicio para generación y verificación de códigos QR para citas
- * 
- * @version 1.0.0
- * @updated 2025-06-11
+ *
+ * @version 1.2.0
+ * @updated 2025-09-05
  */
 
 import { supabase } from '@/services/supabase/SupabaseClient';
@@ -21,6 +21,14 @@ export interface QRVerificationResponse {
   appointmentId?: string;
   message: string;
   appointmentDetails?: any;
+}
+
+export interface SendQROptions {
+  isReschedule?: boolean;
+  sendWhatsApp?: boolean;
+  customerPhone?: string;
+  customerName?: string;
+  appointmentDetails?: any; // Detalles adicionales para personalizar el mensaje
 }
 
 class QRCodeService {
@@ -137,13 +145,20 @@ class QRCodeService {
   
   /**
    * Envía el código QR por email
+   * @param tenantId ID del tenant
+   * @param appointmentId ID de la cita
+   * @param email Email del destinatario
+   * @param options Opciones adicionales de envío
    */
   async sendQRByEmail(
     tenantId: string,
     appointmentId: string,
-    email: string
+    email: string,
+    options: SendQROptions = {}
   ): Promise<boolean> {
     try {
+      const { isReschedule = false } = options;
+
       const response = await ApiService.fetchDataWithAxios<{
         success: boolean;
         error?: string;
@@ -152,19 +167,210 @@ class QRCodeService {
         method: 'post',
         data: {
           tenant_id: tenantId,
-          email
+          email,
+          isReschedule
         }
       });
-      
+
       if (!response.success) {
         throw new Error(response.error || 'Error al enviar QR por email');
       }
-      
+
       return true;
     } catch (error) {
       console.error('Error al enviar QR por email:', error);
       return false;
     }
+  }
+
+  /**
+   * Envía el código QR por WhatsApp
+   * @param tenantId ID del tenant
+   * @param appointmentId ID de la cita
+   * @param phoneNumber Número de teléfono del destinatario (con formato internacional)
+   * @param options Opciones adicionales de envío
+   */
+  async sendQRByWhatsApp(
+    tenantId: string,
+    appointmentId: string,
+    phoneNumber: string,
+    options: SendQROptions = {}
+  ): Promise<boolean> {
+    try {
+      const {
+        isReschedule = false,
+        customerName = '',
+        appointmentDetails = null
+      } = options;
+
+      const response = await ApiService.fetchDataWithAxios<{
+        success: boolean;
+        error?: string;
+      }>({
+        url: `/appointments/${appointmentId}/send-qr-whatsapp`,
+        method: 'post',
+        data: {
+          tenant_id: tenantId,
+          phone_number: phoneNumber,
+          customer_name: customerName,
+          is_reschedule: isReschedule,
+          appointment_details: appointmentDetails
+        }
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || 'Error al enviar QR por WhatsApp');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error al enviar QR por WhatsApp:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Verifica si un usuario ha alcanzado el límite de reprogramaciones para una cita
+   */
+  async checkRescheduleLimit(
+    tenantId: string,
+    appointmentId: string,
+    maxAttempts: number
+  ): Promise<{
+    limitReached: boolean;
+    currentCount: number;
+  }> {
+    try {
+      const { data, error } = await supabase
+        .from('tenant_appointment_changes')
+        .select('count')
+        .eq('tenant_id', tenantId)
+        .eq('appointment_id', appointmentId)
+        .eq('change_type', 'reschedule')
+        .single();
+      
+      if (error && error.code !== 'PGRST116') { // Error diferente a "no se encontraron registros"
+        throw error;
+      }
+      
+      const currentCount = data?.count || 0;
+      
+      return {
+        limitReached: currentCount >= maxAttempts,
+        currentCount
+      };
+    } catch (error) {
+      console.error('Error al verificar límite de reprogramaciones:', error);
+      // En caso de error, asumimos que no ha alcanzado el límite
+      return {
+        limitReached: false,
+        currentCount: 0
+      };
+    }
+  }
+  
+  /**
+   * Registra una reprogramación para llevar el conteo
+   */
+  async recordReschedule(
+    tenantId: string,
+    appointmentId: string
+  ): Promise<boolean> {
+    try {
+      // Primero verificamos si ya existe un registro para esta cita
+      const { data, error: checkError } = await supabase
+        .from('tenant_appointment_changes')
+        .select('id, count')
+        .eq('tenant_id', tenantId)
+        .eq('appointment_id', appointmentId)
+        .eq('change_type', 'reschedule')
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (data) {
+        // Si existe, incrementamos el contador
+        const { error: updateError } = await supabase
+          .from('tenant_appointment_changes')
+          .update({
+            count: data.count + 1,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', data.id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Si no existe, creamos un nuevo registro
+        const { error: insertError } = await supabase
+          .from('tenant_appointment_changes')
+          .insert({
+            tenant_id: tenantId,
+            appointment_id: appointmentId,
+            change_type: 'reschedule',
+            count: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error al registrar reprogramación:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Envía el código QR por todos los medios disponibles (email y/o WhatsApp)
+   * @param tenantId ID del tenant
+   * @param appointmentId ID de la cita
+   * @param appointmentData Datos de la cita y del cliente
+   * @param options Opciones adicionales de envío
+   */
+  async sendQRByAllMethods(
+    tenantId: string,
+    appointmentId: string,
+    appointmentData: {
+      email?: string;
+      phoneNumber?: string;
+      customerName?: string;
+    },
+    options: SendQROptions = {}
+  ): Promise<{
+    emailSent: boolean;
+    whatsappSent: boolean;
+  }> {
+    const results = {
+      emailSent: false,
+      whatsappSent: false
+    };
+
+    // Enviar por email si hay un email
+    if (appointmentData.email) {
+      results.emailSent = await this.sendQRByEmail(
+        tenantId,
+        appointmentId,
+        appointmentData.email,
+        options
+      );
+    }
+
+    // Enviar por WhatsApp si hay un número de teléfono
+    if (appointmentData.phoneNumber) {
+      results.whatsappSent = await this.sendQRByWhatsApp(
+        tenantId,
+        appointmentId,
+        appointmentData.phoneNumber,
+        {
+          ...options,
+          customerName: appointmentData.customerName || ''
+        }
+      );
+    }
+
+    return results;
   }
 }
 

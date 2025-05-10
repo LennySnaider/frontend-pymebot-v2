@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Dialog, Input, DatePicker, TimeInput, Notification, toast, Table, Badge } from '@/components/ui';
+import { Card, Button, Dialog, Input, DatePicker, TimeInput, Notification, toast } from '@/components/ui';
+import Table from '@/components/ui/Table';
+import { Tr, Th, Td, THead, TBody } from '@/components/ui/Table';
+import Tag from '@/components/ui/Tag';
 import { DateException } from './types';
 
 // Función temporal para traducciones mientras solucionamos el problema
@@ -39,7 +42,6 @@ const mockTranslation = (key: string) => {
 };
 
 const ExceptionsSettings = () => {
-  // Función t para sustituir useTranslation temporalmente
   const t = mockTranslation;
   const [loading, setLoading] = useState(true);
   const [exceptions, setExceptions] = useState<DateException[]>([]);
@@ -74,7 +76,35 @@ const ExceptionsSettings = () => {
       }
       
       const data = await response.json();
-      setExceptions(data);
+      
+      // Asegurarnos que tenemos un array, incluso si es vacío
+      const exceptionsArray = Array.isArray(data) ? data : [];
+      
+      if (exceptionsArray.length > 0) {
+        // Asegurarnos que los campos open_time y close_time estén formateados correctamente
+        const formattedExceptions = exceptionsArray.map(exception => {
+          // Si open_time tiene formato HH:MM:SS, convertirlo a HH:MM
+          const open_time = exception.open_time ? 
+            exception.open_time.substring(0, 5) : 
+            exception.open_time;
+            
+          // Si close_time tiene formato HH:MM:SS, convertirlo a HH:MM
+          const close_time = exception.close_time ? 
+            exception.close_time.substring(0, 5) : 
+            exception.close_time;
+            
+          return { 
+            ...exception, 
+            open_time, 
+            close_time 
+          };
+        });
+        
+        setExceptions(formattedExceptions);
+      } else {
+        setExceptions([]);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error al cargar excepciones:', error);
@@ -200,8 +230,18 @@ const ExceptionsSettings = () => {
   };
   
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      // Verificar si es una fecha válida
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+      return date.toLocaleDateString();
+    } catch (error) {
+      return dateString;
+    }
   };
   
   // Columnas para la tabla
@@ -214,24 +254,37 @@ const ExceptionsSettings = () => {
     {
       key: 'status',
       title: t('appointments.settings.exceptions.status'),
-      render: (_, row: DateException) => (
-        <Badge className={row.is_closed ? 'bg-red-500' : 'bg-green-500'}>
-          {row.is_closed
-            ? t('appointments.settings.exceptions.closed')
-            : t('appointments.settings.exceptions.open')}
-        </Badge>
-      ),
+      render: (_, row: DateException) => {
+        const isClosed = row.is_closed === true || row.is_closed === 'true';
+        return isClosed ? (
+          <Tag className="text-red-600 bg-red-100 dark:text-red-100 dark:bg-red-500/20 border-0">
+            {t('appointments.settings.exceptions.closed')}
+          </Tag>
+        ) : (
+          <Tag className="text-emerald-600 bg-emerald-100 dark:text-emerald-100 dark:bg-emerald-500/20 border-0">
+            {t('appointments.settings.exceptions.open')}
+          </Tag>
+        );
+      },
     },
     {
       key: 'hours',
       title: t('appointments.settings.exceptions.hours'),
-      render: (_, row: DateException) => (
-        <span>
-          {row.is_closed
-            ? '-'
-            : `${row.open_time} - ${row.close_time}`}
-        </span>
-      ),
+      render: (_, row: DateException) => {
+        // Asegurar que is_closed se trate tanto como boolean como string
+        const isClosed = row.is_closed === true || row.is_closed === 'true';
+        
+        // Si está cerrado, mostrar un guion
+        if (isClosed) {
+          return <span>-</span>;
+        }
+        
+        // Formatear las horas (quitar segundos si existen)
+        const openTime = row.open_time ? row.open_time.substring(0, 5) : '-';
+        const closeTime = row.close_time ? row.close_time.substring(0, 5) : '-';
+        
+        return <span>{openTime} - {closeTime}</span>;
+      },
     },
     {
       key: 'reason',
@@ -266,7 +319,11 @@ const ExceptionsSettings = () => {
             {t('appointments.settings.exceptions.description')}
           </p>
         </div>
-        <Button variant="solid" color="primary" onClick={handleOpenModal}>
+        <Button 
+          variant="solid" 
+          color="primary" 
+          onClick={handleOpenModal}
+        >
           {t('appointments.settings.exceptions.add')}
         </Button>
       </div>
@@ -277,12 +334,35 @@ const ExceptionsSettings = () => {
         </div>
       ) : (
         <div>
-          {exceptions.length === 0 ? (
+          {!exceptions || exceptions.length === 0 ? (
             <Card className="p-6 text-center">
               <p>{t('appointments.settings.exceptions.no_data')}</p>
             </Card>
           ) : (
-            <Table columns={columns} data={exceptions} />
+            <div className="w-full overflow-x-auto">
+              <Table>
+                <THead>
+                  <Tr>
+                    {columns.map((column, idx) => (
+                      <Th key={idx}>
+                        {column.title}
+                      </Th>
+                    ))}
+                  </Tr>
+                </THead>
+                <TBody>
+                  {exceptions.map((row, rowIndex) => (
+                    <Tr key={row.id || rowIndex}>
+                      {columns.map((column, colIndex) => (
+                        <Td key={`${rowIndex}-${colIndex}`}>
+                          {column.render ? column.render('', row) : row[column.key as keyof DateException]}
+                        </Td>
+                      ))}
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
+            </div>
           )}
         </div>
       )}
@@ -346,9 +426,14 @@ const ExceptionsSettings = () => {
                 {t('appointments.settings.exceptions.open_time')}
               </label>
               <TimeInput
-                timeInputProps={{
-                  value: newException.open_time || '',
-                  onChange: (value) => handleInputChange('open_time', value),
+                value={newException.open_time || ''}
+                onChange={(value) => {
+                  // Cuando recibimos un valor desde TimeInput, es un objeto Date
+                  // pero necesitamos convertirlo a string en formato HH:MM
+                  const timeString = value 
+                    ? `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}`
+                    : '00:00';
+                  handleInputChange('open_time', timeString);
                 }}
               />
             </div>
@@ -357,9 +442,14 @@ const ExceptionsSettings = () => {
                 {t('appointments.settings.exceptions.close_time')}
               </label>
               <TimeInput
-                timeInputProps={{
-                  value: newException.close_time || '',
-                  onChange: (value) => handleInputChange('close_time', value),
+                value={newException.close_time || ''}
+                onChange={(value) => {
+                  // Cuando recibimos un valor desde TimeInput, es un objeto Date
+                  // pero necesitamos convertirlo a string en formato HH:MM
+                  const timeString = value 
+                    ? `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}`
+                    : '00:00';
+                  handleInputChange('close_time', timeString);
                 }}
               />
             </div>
@@ -367,10 +457,17 @@ const ExceptionsSettings = () => {
         )}
         
         <div className="mt-6 flex justify-end space-x-2">
-          <Button variant="plain" onClick={handleCloseModal}>
+          <Button 
+            variant="plain" 
+            onClick={handleCloseModal}
+          >
             {t('common.cancel')}
           </Button>
-          <Button variant="solid" color="primary" onClick={handleSaveException}>
+          <Button 
+            variant="solid" 
+            color="primary" 
+            onClick={handleSaveException}
+          >
             {t('common.save')}
           </Button>
         </div>

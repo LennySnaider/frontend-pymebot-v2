@@ -1,0 +1,82 @@
+/**
+ * frontend/src/assets/styles/components/dark-variables.css
+ * Variables CSS específicas para el modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+.dark {
+  /* Colores base del modo oscuro */
+  --dark-bg-primary: #121212;
+  --dark-bg-secondary: #1a1a1a;
+  --dark-bg-tertiary: #282828;
+  --dark-border: #333333;
+  --dark-text-primary: #e5e7eb;
+  --dark-text-secondary: #d1d5db;
+
+  /* Sobrescribir variables de Tailwind */
+  --tw-bg-opacity: 1;
+  --tw-border-opacity: 1;
+  --tw-text-opacity: 1;
+
+  /* Sobreescritura de colores de borde */
+  --gray-100: #333333;
+  --gray-200: #333333;
+  --gray-300: #333333;
+  --gray-400: #4b5563;
+
+  /* Variables CSS para ECME UI */
+  --border-color-base: #333333;
+  --border-color-light: #333333;
+  --border-color-200: #333333;
+  --border-color-300: #333333;
+  --border-color-400: #4b5563;
+
+  /* Variables para componentes específicos */
+  --table-border-color: #333333;
+  --thead-border-color: #333333;
+  --tbody-border-color: #333333;
+
+  /* Colores específicos para scrollbars */
+  --scrollbar-track-color: transparent;
+  --scrollbar-thumb-color: rgba(75, 85, 99, 0.4);
+  --scrollbar-thumb-hover-color: rgba(75, 85, 99, 0.7);
+
+  /* Colores específicos para menú lateral */
+  --menu-item-color: #d1d5db;
+  --menu-item-hover-color: #f3f4f6;
+  --menu-item-hover-bg: #374151;
+  --menu-item-active-color: var(--color-primary-500);
+  --menu-title-color: #d1d5db;
+
+  /* Colores para drawers y paneles de configuración */
+  --drawer-header-text: #e5e7eb;
+  --drawer-body-text: #e5e7eb;
+  --drawer-description-text: #d1d5db;
+  --dialog-title-text: #e5e7eb;
+  --dialog-description-text: #d1d5db;
+  --config-title-text: #e5e7eb;
+  --config-description-text: #d1d5db;
+
+  /* Colores para inputs en modo oscuro */
+  --input-bg: #1e1e1e;
+  --input-bg-focus: #282828;
+  --input-border: #333333;
+  --input-border-focus: var(--color-primary-500);
+  --input-text: #e5e7eb;
+  --input-placeholder: #6b7280;
+
+  /* Colores para botones en modo oscuro */
+  --button-default-bg: #1a1a1a;
+  --button-default-bg-hover: #282828;
+  --button-default-border: #333333;
+  --button-default-text: #e5e7eb;
+  --button-solid-text: #ffffff;
+  --button-plain-text: var(--color-primary-500);
+
+  /* Sobrescrituras específicas para clases de Tailwind en modo oscuro */
+  --text-gray-600: var(--dark-text-primary);
+  --text-gray-700: var(--dark-text-primary);
+  --text-gray-800: var(--dark-text-primary);
+  --text-gray-900: var(--dark-text-primary);
+}

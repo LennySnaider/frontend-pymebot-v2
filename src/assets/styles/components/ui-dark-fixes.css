@@ -1,0 +1,88 @@
+/**
+ * frontend/src/assets/styles/components/ui-dark-fixes.css
+ * Correcciones específicas para componentes UI en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Corregir bordes de tablas */
+.dark .border-gray-200,
+.dark [class*="border-gray-200"],
+.dark [style*="border-color: var(--gray-200)"] {
+  border-color: #333333 !important;
+  --tw-border-opacity: 1 !important;
+}
+
+/* Corregir el borde de los headers de tablas */
+.dark thead,
+.dark thead th,
+.dark thead td,
+.dark .table thead,
+.dark .table thead th,
+.dark .table thead td,
+.dark .table-default thead,
+.dark .table-default thead th,
+.dark .table-default thead td,
+.dark .table-container thead,
+.dark .table-container thead th,
+.dark .table-container thead td,
+.dark [class*="Table"] thead,
+.dark [class*="Table"] thead th,
+.dark [class*="Table"] thead td {
+  border-color: #333333 !important;
+  border-bottom-color: #333333 !important;
+  border-top-color: #333333 !important;
+}
+
+/* Corregir separadores para tablas */
+.dark .divide-gray-200 > * + *,
+.dark [class*="divide-gray-200"] > * + * {
+  border-color: #333333 !important;
+}
+
+.dark .divide-y,
+.dark .divide-x,
+.dark [class*="divide-y"],
+.dark [class*="divide-x"] {
+  --tw-divide-opacity: 1 !important;
+  --tw-divide-color: rgba(51, 51, 51, var(--tw-divide-opacity)) !important;
+}
+
+/* Corregir colores de bordes inline */
+.dark [style*="border-color: rgb(229, 231, 235)"],
+.dark [style*="border-color: #e5e7eb"],
+.dark [style*="border-color: rgb(209, 213, 219)"],
+.dark [style*="border-color: #d1d5db"] {
+  border-color: #333333 !important;
+}
+
+/* Corregir colores de bordes variables CSS */
+.dark {
+  --border-color-200: #333333 !important;
+  --border-color-300: #333333 !important;
+  --border-color-light: #333333 !important;
+  --gray-200: #333333 !important;
+  --gray-300: #333333 !important;
+}
+
+/* Corregir estilo para tablas */
+.dark .table {
+  --tw-border-opacity: 1 !important;
+  --tw-border-color: rgba(51, 51, 51, var(--tw-border-opacity)) !important;
+  border-color: #333333 !important;
+}
+
+.dark .table th,
+.dark .table td {
+  --tw-border-opacity: 1 !important;
+  --tw-border-color: rgba(51, 51, 51, var(--tw-border-opacity)) !important;
+  border-color: #333333 !important;
+}
+
+/* Corregir divisores específicos */
+.dark .border-b,
+.dark .border-t,
+.dark .border-l,
+.dark .border-r {
+  border-color: #333333 !important;
+}

@@ -6,12 +6,22 @@ const ApiService = {
         param: AxiosRequestConfig<Request>,
     ) {
         // Return the full AxiosResponse object, not just the data
-        return new Promise<AxiosResponse<Response>>((resolve, reject) => {
+        return new Promise<Response>((resolve, reject) => {
             AxiosBase(param)
                 .then((response: AxiosResponse<Response>) => {
-                    resolve(response) // Resolve with the full response object
+                    resolve(response.data) // Resolve with just the data for simplified usage
                 })
                 .catch((errors: AxiosError) => {
+                    // Mejorar el mensaje de error para depuración
+                    console.error('Error en ApiService.fetchDataWithAxios:', {
+                        url: param.url,
+                        method: param.method,
+                        status: errors.response?.status,
+                        statusText: errors.response?.statusText,
+                        message: errors.message,
+                        data: errors.response?.data
+                    });
+                    
                     reject(errors)
                 })
         })

@@ -1,0 +1,292 @@
+{
+  "name": "Reprogramación de Citas",
+  "description": "Flujo completo para la reprogramación de citas existentes con diseño horizontal",
+  "status": "draft",
+  "react_flow_json": {
+    "nodes": [
+      {
+        "id": "start-node",
+        "type": "start",
+        "position": {"x": 50, "y": 250},
+        "data": {"label": "Inicio del flujo"}
+      },
+      {
+        "id": "welcomeMessage",
+        "type": "text",
+        "position": {"x": 250, "y": 250},
+        "data": {
+          "label": "Mensaje de Bienvenida",
+          "message": "Hola, soy el asistente virtual. Entiendo que deseas reprogramar una cita. ¿Podrías proporcionarme tu correo electrónico o el ID de tu cita para localizarla?",
+          "delayMs": 1000
+        }
+      },
+      {
+        "id": "inputIdentifier",
+        "type": "input",
+        "position": {"x": 500, "y": 250},
+        "data": {
+          "label": "Captura de Datos",
+          "prompt": "Por favor, escribe tu correo electrónico o el ID de tu cita",
+          "variableName": "cliente_identificador",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "searchingMessage",
+        "type": "text",
+        "position": {"x": 750, "y": 250},
+        "data": {
+          "label": "Mensaje de Búsqueda",
+          "message": "Gracias. Estoy buscando tu cita en nuestro sistema. Un momento por favor...",
+          "delayMs": 1000
+        }
+      },
+      {
+        "id": "searchAppointment",
+        "type": "action",
+        "position": {"x": 1000, "y": 250},
+        "data": {
+          "label": "Búsqueda de Cita",
+          "actionType": "findAppointment",
+          "params": {
+            "identifier": "{{cliente_identificador}}"
+          },
+          "outputVariables": {
+            "appointmentId": "appointmentId",
+            "appointmentDate": "appointmentDate",
+            "appointmentTime": "appointmentTime",
+            "appointmentTypeId": "appointmentTypeId",
+            "leadId": "leadId",
+            "agentId": "agentId"
+          }
+        }
+      },
+      {
+        "id": "foundAppointmentMessage",
+        "type": "text",
+        "position": {"x": 1250, "y": 250},
+        "data": {
+          "label": "Cita Encontrada",
+          "message": "Encontré tu cita para el {{appointmentDate}} a las {{appointmentTime}}. ¿Para qué fecha te gustaría reprogramarla?",
+          "delayMs": 1000
+        }
+      },
+      {
+        "id": "inputNewDate",
+        "type": "input",
+        "position": {"x": 1500, "y": 250},
+        "data": {
+          "label": "Captura Nueva Fecha",
+          "prompt": "Por favor, escribe la fecha deseada (DD/MM/YYYY)",
+          "variableName": "nueva_fecha",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "checkAvailability",
+        "type": "check-availability",
+        "position": {"x": 1750, "y": 250},
+        "data": {
+          "label": "Verificar Disponibilidad",
+          "appointmentTypeId": "{{appointmentTypeId}}",
+          "date": "{{nueva_fecha}}",
+          "agentId": "{{agentId}}",
+          "locationId": "",
+          "maxDays": 30,
+          "noAvailabilityMessage": "Lo siento, no tenemos disponibilidad para esa fecha. ¿Te gustaría intentar con otra fecha?"
+        }
+      },
+      {
+        "id": "availableTimesMessage",
+        "type": "text",
+        "position": {"x": 2000, "y": 150},
+        "data": {
+          "label": "Horarios Disponibles",
+          "message": "Para la fecha seleccionada, tenemos los siguientes horarios disponibles: {{availableSlots}}",
+          "delayMs": 1000
+        }
+      },
+      {
+        "id": "inputTimeSlot",
+        "type": "input",
+        "position": {"x": 2250, "y": 150},
+        "data": {
+          "label": "Captura Horario",
+          "prompt": "Por favor, selecciona un horario escribiendo el número correspondiente",
+          "variableName": "selectedTimeSlotIndex",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "askForReason",
+        "type": "text",
+        "position": {"x": 2000, "y": 350},
+        "data": {
+          "label": "Solicitar Motivo",
+          "message": "¿Podrías indicarme el motivo por el cual necesitas reprogramar tu cita?",
+          "delayMs": 1000
+        }
+      },
+      {
+        "id": "inputReason",
+        "type": "input",
+        "position": {"x": 2250, "y": 350},
+        "data": {
+          "label": "Captura Motivo",
+          "prompt": "Por favor, escribe brevemente el motivo",
+          "variableName": "reschedule_reason",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "rescheduleAppointment",
+        "type": "reschedule-appointment",
+        "position": {"x": 2500, "y": 250},
+        "data": {
+          "label": "Reprogramar Cita",
+          "appointmentId": "{{appointmentId}}",
+          "leadId": "{{leadId}}",
+          "newDate": "{{nueva_fecha}}",
+          "newTimeSlotIndex": "{{selectedTimeSlotIndex}}",
+          "reason": "{{reschedule_reason}}",
+          "update_lead_on_reschedule": true,
+          "require_reason": true,
+          "notify_agent": true,
+          "send_confirmation": true,
+          "max_reschedule_attempts": 3,
+          "success_message": "¡Excelente! Tu cita ha sido reprogramada con éxito para el {{newAppointmentDate}} a las {{newAppointmentTime}}. Te hemos enviado un correo con los detalles y un código QR para tu cita.",
+          "failure_message": "Lo siento, ha ocurrido un problema al reprogramar tu cita. Por favor, intenta de nuevo más tarde o comunícate directamente con nosotros al número de atención al cliente."
+        }
+      },
+      {
+        "id": "farewellMessage",
+        "type": "text",
+        "position": {"x": 2750, "y": 150},
+        "data": {
+          "label": "Mensaje Final",
+          "message": "¿Hay algo más en lo que pueda ayudarte hoy?",
+          "delayMs": 1000
+        }
+      },
+      {
+        "id": "errorMessage",
+        "type": "text",
+        "position": {"x": 2750, "y": 350},
+        "data": {
+          "label": "Mensaje Error",
+          "message": "Lo siento, ha ocurrido un problema al reprogramar tu cita. Por favor, intenta de nuevo más tarde o comunícate directamente con nosotros al número de atención al cliente.",
+          "delayMs": 1000
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-start-welcome",
+        "source": "start-node",
+        "target": "welcomeMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-welcome-input",
+        "source": "welcomeMessage",
+        "target": "inputIdentifier",
+        "animated": true
+      },
+      {
+        "id": "edge-input-searching",
+        "source": "inputIdentifier",
+        "target": "searchingMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-searching-action",
+        "source": "searchingMessage",
+        "target": "searchAppointment",
+        "animated": true
+      },
+      {
+        "id": "edge-action-found",
+        "source": "searchAppointment",
+        "target": "foundAppointmentMessage",
+        "animated": true
+      },
+      {
+        "id": "edge-found-inputdate",
+        "source": "foundAppointmentMessage",
+        "target": "inputNewDate",
+        "animated": true
+      },
+      {
+        "id": "edge-inputdate-check",
+        "source": "inputNewDate",
+        "target": "checkAvailability",
+        "animated": true
+      },
+      {
+        "id": "edge-check-available",
+        "source": "checkAvailability",
+        "target": "availableTimesMessage",
+        "animated": true,
+        "sourceHandle": "available"
+      },
+      {
+        "id": "edge-check-inputdate",
+        "source": "checkAvailability",
+        "target": "inputNewDate",
+        "animated": true,
+        "sourceHandle": "unavailable"
+      },
+      {
+        "id": "edge-available-inputtime",
+        "source": "availableTimesMessage",
+        "target": "inputTimeSlot",
+        "animated": true
+      },
+      {
+        "id": "edge-inputtime-reschedule",
+        "source": "inputTimeSlot",
+        "target": "rescheduleAppointment",
+        "animated": true
+      },
+      {
+        "id": "edge-reschedule-need-reason",
+        "source": "rescheduleAppointment",
+        "target": "askForReason",
+        "animated": true,
+        "sourceHandle": "needReason"
+      },
+      {
+        "id": "edge-ask-reason-input-reason",
+        "source": "askForReason",
+        "target": "inputReason",
+        "animated": true
+      },
+      {
+        "id": "edge-input-reason-reschedule",
+        "source": "inputReason",
+        "target": "rescheduleAppointment",
+        "animated": true
+      },
+      {
+        "id": "edge-reschedule-success",
+        "source": "rescheduleAppointment",
+        "target": "farewellMessage",
+        "animated": true,
+        "sourceHandle": "success"
+      },
+      {
+        "id": "edge-reschedule-failure",
+        "source": "rescheduleAppointment",
+        "target": "errorMessage",
+        "animated": true,
+        "sourceHandle": "failure"
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 0.5
+    }
+  },
+  "version": 1
+}

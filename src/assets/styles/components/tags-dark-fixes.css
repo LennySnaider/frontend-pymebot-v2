@@ -1,0 +1,157 @@
+/**
+ * frontend/src/assets/styles/components/tags-dark-fixes.css
+ * Correcciones específicas para mejorar el contraste de tags en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Estilos generales para mejorar el contraste de los tags */
+.dark .tag {
+  color: #e5e7eb !important;
+  border-color: #4b5563 !important;
+}
+
+/* Estilos para tags verdes/success */
+.dark .tag.green,
+.dark .tag.success,
+.dark .green.tag,
+.dark .success.tag,
+.dark .tag.bg-green-100,
+.dark .tag.bg-success-100 {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+  color: #4ade80 !important;
+  border-color: #166534 !important;
+}
+
+/* Estilos para tags rojos/error */
+.dark .tag.red,
+.dark .tag.error,
+.dark .red.tag,
+.dark .error.tag,
+.dark .tag.bg-red-100,
+.dark .tag.bg-error-100 {
+  background-color: rgba(220, 38, 38, 0.2) !important;
+  color: #f87171 !important;
+  border-color: #991b1b !important;
+}
+
+/* Estilos para tags naranjas/warning */
+.dark .tag.orange,
+.dark .tag.warning,
+.dark .tag.amber,
+.dark .orange.tag,
+.dark .warning.tag,
+.dark .amber.tag,
+.dark .tag.bg-orange-100,
+.dark .tag.bg-warning-100,
+.dark .tag.bg-amber-100 {
+  background-color: rgba(234, 88, 12, 0.2) !important;
+  color: #fdba74 !important;
+  border-color: #c2410c !important;
+}
+
+/* Estilos para tags azules/info */
+.dark .tag.blue,
+.dark .tag.info,
+.dark .blue.tag,
+.dark .info.tag,
+.dark .tag.bg-blue-100,
+.dark .tag.bg-info-100 {
+  background-color: rgba(37, 99, 235, 0.2) !important;
+  color: #93c5fd !important;
+  border-color: #1e40af !important;
+}
+
+/* Estilos para tags morados/purple */
+.dark .tag.purple,
+.dark .tag.violet,
+.dark .purple.tag,
+.dark .violet.tag,
+.dark .tag.bg-purple-100,
+.dark .tag.bg-violet-100 {
+  background-color: rgba(126, 34, 206, 0.2) !important;
+  color: #c4b5fd !important;
+  border-color: #6d28d9 !important;
+}
+
+/* Estilos para tags grises/default */
+.dark .tag.gray,
+.dark .tag.grey,
+.dark .gray.tag,
+.dark .grey.tag,
+.dark .tag.bg-gray-100,
+.dark .tag.bg-grey-100 {
+  background-color: rgba(75, 85, 99, 0.2) !important;
+  color: #e5e7eb !important;
+  border-color: #4b5563 !important;
+}
+
+/* Estilos para tags en el estado publicado/borrador */
+.dark .px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full {
+  border: 1px solid;
+}
+
+/* Estado publicado/activo */
+.dark .px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full.bg-green-100 {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+  color: #4ade80 !important;
+  border-color: #166534 !important;
+}
+
+/* Estado borrador/inactivo */
+.dark .px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full.bg-amber-100,
+.dark .px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full.bg-gray-100 {
+  background-color: rgba(234, 88, 12, 0.2) !important;
+  color: #fdba74 !important;
+  border-color: #c2410c !important;
+}
+
+/* Estilo específico para tags con el texto "Sí" y "No" */
+.dark span.px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full,
+.dark tr td span.rounded-full {
+  border: 1px solid !important;
+}
+
+/* Específicos para tags de confirmación (Verde) */
+.dark span.bg-green-100,
+.dark span.text-green-800,
+.dark span.success {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+  color: #4ade80 !important;
+  border-color: #166534 !important;
+}
+
+/* Específicos para tags de negación o neutros (Gris) */
+.dark span.bg-gray-100,
+.dark span.text-gray-800,
+.dark span.neutral {
+  background-color: rgba(75, 85, 99, 0.2) !important;
+  color: #e5e7eb !important;
+  border-color: #4b5563 !important;
+}
+
+/* Mejora para los tags en listas y tablas */
+.dark tr td span.rounded-full,
+.dark [role="grid"] span.rounded-full,
+.dark .table-default span.rounded-full {
+  border: 1px solid;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Específico para chatbot-templates en la lista */
+.dark span.px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full {
+  border: 1px solid !important;
+}
+
+/* Clases específicas para las etiquetas de estado */
+.dark .status-tag,
+.dark .tag-status {
+  border: 1px solid !important;
+  font-weight: 600 !important;
+}

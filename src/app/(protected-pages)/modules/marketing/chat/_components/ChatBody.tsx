@@ -8,16 +8,33 @@
 
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+// IMPORTANTE: Evitamos configuraciones de SSR en el componente
+// La configuración la maneja page.tsx para todo el módulo
+
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Card from '@/components/ui/Card'
 import ChatBox from '@/components/view/ChatBox'
 import ChatAction from './ChatAction'
 import StartConverstation from '@/assets/svg/StartConverstation'
 import { useChatStore } from '../_store/chatStore'
-import { apiGetConversation } from '@/services/ChatService'
-// Importación directa del archivo específico
-import apiSendChatMessage from '@/services/ChatService/apiSendChatMessage'
+// Importamos de forma dinámica para evitar problemas de SSR
+import dynamic from 'next/dynamic'
+
+// Cargamos los servicios solo en el cliente
+let apiGetConversation: any;
+let apiSendChatMessage: any;
+
+// En el navegador, cargamos los módulos
+if (typeof window !== 'undefined') {
+  Promise.all([
+    import('@/services/ChatService'),
+    import('@/services/ChatService/apiSendChatMessage')
+  ]).then(([ChatService, sendMessage]) => {
+    apiGetConversation = ChatService.apiGetConversation;
+    apiSendChatMessage = sendMessage.default;
+  });
+}
 import classNames from '@/utils/classNames'
 import useResponsive from '@/utils/hooks/useResponsive'
 import dayjs from 'dayjs'
@@ -38,6 +55,17 @@ const ChatBody = () => {
     const tenantIdRef = useRef(uuidv4()) // Generate and store tenant ID as UUID
     const botIdRef = useRef(uuidv4()) // Generate and store bot ID as UUID
 
+    // Estado para el modo de prueba que permite enviar mensajes como si fuéramos el lead
+    // Inicializado desde localStorage para mantener sincronizado con el header
+    const [testAsLead, setTestAsLead] = useState(() => {
+        // Verificar si estamos en el cliente y leer de localStorage
+        if (typeof window !== 'undefined') {
+            const savedMode = window.localStorage.getItem('chatTestMode');
+            return savedMode === 'lead';
+        }
+        return false;
+    })
+
     const selectedChat = useChatStore((state) => state.selectedChat)
     const conversationRecord = useChatStore((state) => state.conversationRecord)
     const pushConversationRecord = useChatStore(
@@ -57,6 +85,22 @@ const ChatBody = () => {
     // const [conversation, setConversation] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(false) // Estado para controlar la carga
 
+    // Efecto para escuchar cambios en el modo desde otros componentes
+    useEffect(() => {
+        const handleModeChange = (e: any) => {
+            const { testAsLead: newMode } = e.detail;
+            setTestAsLead(newMode);
+            console.log('ChatBody: Modo cambiado a', newMode ? 'Lead' : 'Agente');
+        };
+
+        // Escuchar eventos de cambio de modo
+        window.addEventListener('chatModeChanged', handleModeChange);
+
+        return () => {
+            window.removeEventListener('chatModeChanged', handleModeChange);
+        };
+    }, []);
+
     const { smaller } = useResponsive()
 
     const scrollToBottom = () => {
@@ -73,6 +117,24 @@ const ChatBody = () => {
             open: true,
         })
     }
+
+    // Precargar los servicios de API al montar el componente
+    useEffect(() => {
+        // Precargar la función apiGetConversation
+        async function preloadAPIs() {
+            if (!apiGetConversation) {
+                const chatService = await import('@/services/ChatService');
+                apiGetConversation = chatService.apiGetConversation;
+            }
+            if (!apiSendChatMessage) {
+                const messageSender = await import('@/services/ChatService/apiSendChatMessage');
+                apiSendChatMessage = messageSender.default;
+            }
+            console.log('APIs precargadas correctamente');
+        }
+
+        preloadAPIs();
+    }, []);
 
     const handlePushMessage = (message: Message) => {
         console.log('Agregando mensaje a la conversación:', message)
@@ -97,18 +159,40 @@ const ChatBody = () => {
 
         setIsLoading(true) // Activar estado de carga
 
+        // Determinar el ID a usar basado en el modo de prueba
+        // En modo normal (como agente), usamos el ID generado
+        // En modo prueba (como lead), usamos el ID del chat (que incluye lead_)
+        const effectiveUserId = testAsLead
+            ? (selectedChat.id?.replace('lead_', '') || userIdRef.current)
+            : userIdRef.current;
+
+        // Crear mensaje personalizado según el modo
+        let senderName = 'You';
+        let senderAvatar = '/img/avatars/thumb-1.jpg';
+        // IMPORTANTE: En el modo lead, visualmente queremos que el mensaje SIEMPRE se muestre como "mío"
+        // para que aparezca a la derecha y con el estilo correcto
+        let isMyMsg = true; // Siempre true visualmente para fines de UI
+
+        // Si estamos en modo lead, configurar los datos del remitente como el lead
+        if (testAsLead) {
+            senderName = selectedChat.name || 'Lead';
+            senderAvatar = selectedChat.avatar || '/img/avatars/thumb-2.jpg';
+            // No cambiamos isMyMsg a false, porque queremos que visualmente aparezca como "mi mensaje"
+            console.log('Modo Lead activado - Usando nombre:', senderName, 'avatar:', senderAvatar, 'pero manteniendo visual como mensaje propio');
+        }
+
         // Create new message object with user's input
         const userMessage: Message = {
             id: uniqueId('chat-conversation-'),
             sender: {
-                id: userIdRef.current, // Use the generated user ID
-                name: 'You', // Or the actual user's name
-                avatarImageUrl: '/img/avatars/thumb-1.jpg', // User's avatar
+                id: effectiveUserId,
+                name: senderName,
+                avatarImageUrl: senderAvatar,
             },
             content: value,
             timestamp: dayjs().toDate(),
             type: 'regular',
-            isMyMessage: true,
+            isMyMessage: isMyMsg, // Siempre true para que visualmente aparezca a la derecha
         }
 
         // Display user's message immediately
@@ -116,11 +200,13 @@ const ChatBody = () => {
 
         try {
             // Get tenant ID
-            const tenantId = selectedChat.tenantId || tenantIdRef.current // Use generated tenant ID
-            const userId = userIdRef.current // Use generated user ID
+            const tenantId = selectedChat.tenantId || tenantIdRef.current
+
+            // Usar el ID apropiado según el modo
+            const userId = effectiveUserId
 
             // No necesitamos obtener sessionId aquí porque se pasa directamente a apiSendChatMessage
-            const botId = botIdRef.current // Use generated bot ID
+            const botId = botIdRef.current
 
             // Envío de mensaje (log adicional)
             console.log('=========== INICIO ENVÍO ===========')
@@ -133,7 +219,15 @@ const ChatBody = () => {
                 activeTemplateId,
             })
 
+            // Asegurarnos de que tenemos las funciones API cargadas
+            if (!apiSendChatMessage) {
+                console.log('Cargando apiSendChatMessage...');
+                const sendModule = await import('@/services/ChatService/apiSendChatMessage');
+                apiSendChatMessage = sendModule.default;
+            }
+
             try {
+                // Ahora sí usamos la función
                 const response = await apiSendChatMessage(
                     value,
                     userId,
@@ -250,6 +344,12 @@ const ChatBody = () => {
                             <div className="flex justify-between">
                                 <div className="font-bold heading-text truncate">
                                     {selectedChat.user?.name}
+                                    {/* Mostrar etapa del lead si está disponible */}
+                                    {selectedChat.id && selectedChat.id.startsWith('lead_') && (
+                                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
+                                            {selectedChat.stage || 'new'}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                             <div>
@@ -320,6 +420,13 @@ const ChatBody = () => {
                     // Avoid fetching conversation for the default chat ID
                     if (selectedChat.id !== 'default-chat-id') {
                         try {
+                            // Verificar si tenemos la función apiGetConversation cargada
+                            if (!apiGetConversation) {
+                                console.log('Cargando apiGetConversation bajo demanda...');
+                                const chatService = await import('@/services/ChatService');
+                                apiGetConversation = chatService.apiGetConversation;
+                            }
+
                             const axiosResp =
                                 await apiGetConversation<GetConversationResponse>(
                                     {
@@ -372,27 +479,42 @@ const ChatBody = () => {
     }, [selectedChat.id, conversationRecord, pushConversationRecord]) // Added dependencies back
 
     const messageList = useMemo(() => {
+        // Validar que conversationRecord sea un array
+        if (!Array.isArray(conversationRecord)) {
+            console.warn('conversationRecord no es un array');
+            return [];
+        }
+
         // Obtener la conversación actual del store global
-        const currentConversation = conversationRecord.find(
-            (record) => record.id === selectedChat.id,
-        )?.conversation
+        const conversation = conversationRecord.find(
+            (record) => record && record.id === selectedChat.id
+        );
+
+        const currentConversation = conversation?.conversation || [];
 
         console.log(
             'Renderizando messageList, estado de conversationRecord para el chat seleccionado:',
-            currentConversation,
+            selectedChat.id,
+            'Encontrada:', !!conversation,
+            'Mensajes:', currentConversation.length
         )
 
         // Verificar que currentConversation sea un array válido antes de intentar map
-        if (!currentConversation || !Array.isArray(currentConversation)) {
+        if (!Array.isArray(currentConversation)) {
             console.warn(
-                'currentConversation no es un array válido:',
+                'currentConversation no es un array:',
                 currentConversation,
             )
             return []
         }
 
         return currentConversation.map((item: Message) => {
-            // Añadir tipo explícito a item
+            // Asegurarse de que item no sea null o undefined
+            if (!item) {
+                console.warn('Item de mensaje null o undefined encontrado');
+                return null;
+            }
+
             // Asegurarse de que hay una marca de tiempo válida
             const timestamp = item.timestamp
                 ? typeof item.timestamp === 'number'
@@ -400,16 +522,28 @@ const ChatBody = () => {
                     : item.timestamp
                 : new Date()
 
+            // ¡IMPORTANTE! Siempre mostrar los mensajes del modo "Lead" como si fueran míos
+            // para que aparezcan correctamente en la UI como mensajes salientes (a la derecha)
+            let isMyMessage = item.isMyMessage;
+
+            // Si el mensaje fue enviado mientras estaba activo el modo Lead
+            // (comprobamos esto por el remitente, que tendrá el nombre del Lead)
+            if (testAsLead && item.sender && item.sender.name === (selectedChat.name || 'Lead')) {
+                console.log('Forzando isMyMessage=true para mensaje en modo Lead');
+                isMyMessage = true;
+            }
+
             const processedItem = {
                 ...item,
                 timestamp: timestamp,
+                isMyMessage: isMyMessage, // Usar valor actualizado
             }
 
-            console.log('Procesando mensaje para mostrar:', processedItem)
             return processedItem
-        })
-        // Depender de conversationRecord y selectedChat.id para re-calcular
-    }, [conversationRecord, selectedChat.id])
+        }).filter(Boolean); // Filtrar cualquier null/undefined
+
+        // Depender de conversationRecord, selectedChat.id y testAsLead para re-calcular
+    }, [conversationRecord, selectedChat.id, testAsLead, selectedChat.name])
 
     return (
         <div
@@ -424,13 +558,16 @@ const ChatBody = () => {
                     bodyClass="h-[calc(100%-100px)] relative"
                     {...cardHeaderProps}
                 >
+
                     <ChatBox
                         ref={scrollRef}
                         messageList={messageList}
                         placeholder={
                             isLoading
                                 ? 'Procesando...'
-                                : 'Escribe tu mensaje aquí'
+                                : testAsLead
+                                  ? `💬 Escribiendo como CLIENTE (${selectedChat.name || 'Lead'})...`
+                                  : '🤖 Escribiendo como AGENTE...'
                         }
                         showAvatar={true}
                         avatarGap={true}

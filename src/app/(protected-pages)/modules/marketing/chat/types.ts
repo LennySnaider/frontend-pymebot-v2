@@ -46,7 +46,10 @@ export type SelectedChat = {
         name: string
         avatarImageUrl: string
     }
-    tenantId?: string // Added tenantId property
+    tenantId?: string // Tenant ID property
+    stage?: string    // Etapa del lead (new, prospecting, qualification, etc.)
+    name?: string     // Nombre del lead o chat para facilitar referencia
+    avatar?: string   // Avatar URL para facilitar referencia
 }
 
 export type Messages = Message[]

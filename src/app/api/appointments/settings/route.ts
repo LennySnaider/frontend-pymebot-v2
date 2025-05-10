@@ -1,32 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTenantFromRequest, verifyAdminOrManager } from '../../business/hours/tenant-middleware';
-// Just a comment to force rebuild
+import { auth } from '@/auth';
 import { supabase } from '@/services/supabase/SupabaseClient';
-import { AppointmentSettingsRequest } from './types';
 
 /**
- * GET /api/appointments/settings
- * Obtiene la configuración de citas para un tenant
+ * GET: Obtiene la configuración de citas para el tenant
  */
 export async function GET(req: NextRequest) {
   try {
-    // Verificar tenant
-    const tenantResult = await getTenantFromRequest(req);
+    // Obtener la sesión usando NextAuth
+    const session = await auth();
     
-    if (tenantResult.error) {
-      return tenantResult.error;
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
     }
     
-    const { tenant_id } = tenantResult;
+    const tenant_id = session.user.tenant_id;
     
-    // Consultar configuración
-    const { data, error } = await supabase
+    if (!tenant_id) {
+      return NextResponse.json(
+        { error: 'Usuario no asociado a ningún tenant' },
+        { status: 403 }
+      );
+    }
+    
+    // Obtener la configuración de citas para el tenant
+    const { data: appointmentSettings, error } = await supabase
       .from('tenant_appointment_settings')
       .select('*')
       .eq('tenant_id', tenant_id)
-      .single();
+      .maybeSingle();
     
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no data found
+    if (error) {
       console.error('Error al obtener configuración de citas:', error);
       return NextResponse.json(
         { error: 'Error al obtener configuración de citas' },
@@ -34,134 +41,167 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    if (!data) {
-      // No hay configuración, retornar valores por defecto
-      return NextResponse.json({
+    // Si no hay configuración, crear una configuración predeterminada
+    if (!appointmentSettings) {
+      // Valores predeterminados
+      const defaultSettings = {
         tenant_id,
-        appointment_duration: 30,
-        buffer_time: 0,
-        max_daily_appointments: null,
-        min_notice_minutes: 60,
-        max_future_days: 30,
-        require_approval: false,
-        reminder_time_hours: 24,
+        appointment_duration: 30, // 30 minutos por defecto
+        buffer_time: 0, // Sin tiempo de buffer por defecto
+        max_daily_appointments: null, // Sin límite diario por defecto
+        min_notice_minutes: 60, // 1 hora de antelación mínima
+        max_future_days: 30, // Reservas hasta 30 días en el futuro
+        require_approval: false, // No requiere aprobación manual
+        reminder_time_hours: 24, // Recordatorio 24h antes
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      }, { status: 200 });
+      };
+      
+      // Insertar configuración predeterminada
+      const { data: newSettings, error: insertError } = await supabase
+        .from('tenant_appointment_settings')
+        .insert(defaultSettings)
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('Error al crear configuración predeterminada:', insertError);
+        // Devolver configuración predeterminada aunque no se pueda insertar
+        return NextResponse.json(defaultSettings);
+      }
+      
+      return NextResponse.json(newSettings);
     }
     
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(appointmentSettings);
   } catch (error) {
     console.error('Error en GET /api/appointments/settings:', error);
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { error: 'Error del servidor' },
       { status: 500 }
     );
   }
 }
 
 /**
- * PUT /api/appointments/settings
- * Actualiza la configuración de citas para un tenant
+ * PUT: Actualiza la configuración de citas
  */
 export async function PUT(req: NextRequest) {
   try {
-    // Verificar permisos de administrador
-    const adminResult = await verifyAdminOrManager(req);
+    // Obtener la sesión usando NextAuth
+    const session = await auth();
     
-    if (adminResult.error) {
-      return adminResult.error;
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
     }
     
-    const { tenant_id } = adminResult;
+    const tenant_id = session.user.tenant_id;
+    const userRole = session.user.role;
     
-    // Parsear cuerpo de la solicitud
-    const data: AppointmentSettingsRequest = await req.json();
-    
-    // Validar datos
-    if (data.appointment_duration <= 0) {
+    if (!tenant_id) {
       return NextResponse.json(
-        { error: 'La duración de la cita debe ser mayor que cero' },
+        { error: 'Usuario no asociado a ningún tenant' },
+        { status: 403 }
+      );
+    }
+    
+    // Verificar si el usuario tiene permisos de administrador
+    if (userRole !== 'super_admin' && userRole !== 'tenant_admin') {
+      return NextResponse.json(
+        { error: 'No autorizado' },
+        { status: 403 }
+      );
+    }
+    
+    // Obtener los datos del body
+    const settings = await req.json();
+    
+    // Validar campos obligatorios
+    if (settings.appointment_duration === undefined || 
+        settings.buffer_time === undefined) {
+      return NextResponse.json(
+        { error: 'Faltan campos obligatorios: appointment_duration, buffer_time' },
         { status: 400 }
       );
     }
     
-    if (data.buffer_time < 0) {
-      return NextResponse.json(
-        { error: 'El tiempo de buffer no puede ser negativo' },
-        { status: 400 }
-      );
-    }
-    
-    if (data.max_future_days <= 0) {
-      return NextResponse.json(
-        { error: 'Los días máximos en el futuro deben ser mayores que cero' },
-        { status: 400 }
-      );
-    }
+    // Preparar los datos para actualizar
+    const updateData = {
+      ...settings,
+      tenant_id, // Asegurar que el tenant_id sea correcto
+      updated_at: new Date().toISOString()
+    };
     
     // Verificar si ya existe configuración para este tenant
     const { data: existingSettings, error: checkError } = await supabase
       .from('tenant_appointment_settings')
       .select('id')
       .eq('tenant_id', tenant_id)
-      .single();
+      .maybeSingle();
     
-    const settingsExists = !checkError || checkError.code !== 'PGRST116';
-    const settingsId = existingSettings?.id;
-    
-    // Preparar datos para guardar
-    const settingsData = {
-      ...data,
-      tenant_id,
-      updated_at: new Date().toISOString()
-    };
-    
-    let result;
-    
-    if (settingsExists && settingsId) {
-      // Actualizar configuración existente
-      const { data: updatedData, error: updateError } = await supabase
-        .from('tenant_appointment_settings')
-        .update(settingsData)
-        .eq('id', settingsId)
-        .select();
-      
-      if (updateError) {
-        console.error('Error al actualizar configuración:', updateError);
-        return NextResponse.json(
-          { error: 'Error al actualizar configuración de citas' },
-          { status: 500 }
-        );
-      }
-      
-      result = updatedData[0];
-    } else {
-      // Crear nueva configuración
-      const { data: newData, error: insertError } = await supabase
-        .from('tenant_appointment_settings')
-        .insert({
-          ...settingsData,
-          created_at: new Date().toISOString()
-        })
-        .select();
-      
-      if (insertError) {
-        console.error('Error al crear configuración:', insertError);
-        return NextResponse.json(
-          { error: 'Error al crear configuración de citas' },
-          { status: 500 }
-        );
-      }
-      
-      result = newData[0];
+    if (checkError) {
+      console.error('Error al verificar configuración existente:', checkError);
+      return NextResponse.json(
+        { error: 'Error al verificar configuración existente' },
+        { status: 500 }
+      );
     }
     
-    return NextResponse.json(result, { status: 200 });
+    // Actualizar o insertar según corresponda
+    let result;
+    
+    if (existingSettings) {
+      // Actualizar configuración existente
+      const { data, error } = await supabase
+        .from('tenant_appointment_settings')
+        .update(updateData)
+        .eq('id', existingSettings.id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error al actualizar configuración:', error);
+        return NextResponse.json(
+          { error: 'Error al actualizar configuración' },
+          { status: 500 }
+        );
+      }
+      
+      result = data;
+    } else {
+      // Insertar nueva configuración
+      const { data, error } = await supabase
+        .from('tenant_appointment_settings')
+        .insert({
+          ...updateData,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error al crear configuración:', error);
+        return NextResponse.json(
+          { error: 'Error al crear configuración' },
+          { status: 500 }
+        );
+      }
+      
+      result = data;
+    }
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Configuración de citas actualizada correctamente',
+      settings: result
+    });
   } catch (error) {
     console.error('Error en PUT /api/appointments/settings:', error);
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { error: 'Error del servidor' },
       { status: 500 }
     );
   }

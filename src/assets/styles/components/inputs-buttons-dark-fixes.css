@@ -1,0 +1,225 @@
+/**
+ * frontend/src/assets/styles/components/inputs-buttons-dark-fixes.css
+ * Correcciones específicas para inputs y botones en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Mejoras de contraste para inputs en modo oscuro */
+.dark .input {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+}
+
+.dark .input:focus,
+.dark .input:focus-within {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg-focus) !important;
+  border-color: var(--input-border-focus) !important;
+  box-shadow: 0 0 0 1px var(--input-border-focus) !important;
+}
+
+.dark .input::placeholder {
+  color: #9ca3af !important;
+  opacity: 0.8 !important;
+}
+
+/* Mejoras para grupos de inputs */
+.dark .input-wrapper .input-suffix-start,
+.dark .input-wrapper .input-suffix-end {
+  color: var(--input-text) !important;
+}
+
+.dark .input-addon {
+  color: var(--input-text) !important;
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+/* Mejoras de contraste para botones en modo oscuro */
+.dark .button {
+  color: var(--button-default-text) !important;
+}
+
+/* Estilos para botones variante default en modo oscuro */
+.dark .button[class*="bg-white"] {
+  background-color: var(--button-default-bg) !important;
+  border-color: var(--button-default-border) !important;
+  color: var(--button-default-text) !important;
+}
+
+.dark .button[class*="bg-white"]:hover {
+  background-color: var(--button-default-bg-hover) !important;
+  border-color: var(--input-border-focus) !important;
+}
+
+/* Mejor contraste para texto en botones solid */
+.dark .button[class*="bg-primary"] {
+  color: var(--button-solid-text) !important;
+}
+
+/* Mejor contraste para botones plain */
+.dark .button[class*="text-primary"] {
+  color: var(--button-plain-text) !important;
+}
+
+.dark .button[class*="text-gray-600"] {
+  color: var(--button-default-text) !important;
+}
+
+/* Corregir colores de texto en botones con bordes */
+.dark .button[class*="border-gray-300"] {
+  border-color: var(--button-default-border) !important;
+  color: var(--button-default-text) !important;
+}
+
+/* Corregir colores para botones deshabilitados */
+.dark .button.opacity-50 {
+  color: rgba(229, 231, 235, 0.5) !important;
+}
+
+/* Asegurar buen contraste en botones con íconos */
+.dark .button .text-lg svg,
+.dark .button .text-xl svg,
+.dark .button .text-2xl svg {
+  fill: currentColor !important;
+}
+
+/* Corregir estilos específicos para botones secundarios en modales y drawers */
+.dark [role="dialog"] .button[class*="bg-white"],
+.dark .drawer .button[class*="bg-white"] {
+  background-color: var(--button-default-bg-hover) !important;
+  border-color: var(--button-default-border) !important;
+  color: var(--button-default-text) !important;
+}
+
+/* Corregir textos en botones de formularios */
+.dark form .button,
+.dark .form .button,
+.dark .input-group .button {
+  color: var(--button-default-text) !important;
+}
+
+/* Corregir estilos para textareas */
+.dark textarea.input {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+}
+
+.dark textarea.input:focus {
+  background-color: var(--input-bg-focus) !important;
+  border-color: var(--input-border-focus) !important;
+  box-shadow: 0 0 0 1px var(--input-border-focus) !important;
+}
+
+/* Mejorar estado hover para botones */
+.dark .button:hover {
+  filter: brightness(1.1);
+}
+
+/* Mejorar estilos para inputs de búsqueda */
+.dark input[type="search"],
+.dark .search-input {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg) !important;
+}
+
+/* Corregir campos readonly */
+.dark .input[readonly] {
+  background-color: var(--input-bg-focus) !important;
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Corregir inputs inválidos */
+.dark .input.input-invalid {
+  border-color: var(--color-error-500) !important;
+}
+
+/* Corregir labels de inputs */
+.dark label {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Estilos específicos para la configuración de tema */
+.dark [class*="ThemeConfigurator"] .button,
+.dark .theme-configurator .button {
+  color: var(--button-default-text) !important;
+}
+
+/* Estilos para botones de tema activo */
+.dark .active-theme-button,
+.dark .color-circle.active {
+  outline: 2px solid #fff !important;
+}
+
+/* Botones con texto específico */
+.dark button.text-gray-600,
+.dark button.text-gray-700,
+.dark button.text-gray-800,
+.dark button .text-gray-600,
+.dark button .text-gray-700,
+.dark button .text-gray-800 {
+  color: var(--button-default-text) !important;
+}
+
+/* Estilos para input prefijos/sufijos */
+.dark .input-suffix-start,
+.dark .input-suffix-end {
+  color: var(--button-default-text) !important;
+}
+
+/* Corregir selector de idioma y otros botones específicos en cabecera */
+.dark .header-action .button,
+.dark .header-action button {
+  color: var(--button-default-text) !important;
+}
+
+/* Correcciones para estilos de inputs fuertemente anidados */
+html.dark input.input,
+html.dark select.input,
+html.dark textarea.input {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+}
+
+/* Corregir inputs en formularios de filtro y búsqueda */
+html.dark .filter-form .input,
+html.dark .search-form .input,
+html.dark [class*="search"] .input,
+html.dark [class*="filter"] .input,
+html.dark [class*="Search"] .input,
+html.dark [class*="Filter"] .input {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg) !important;
+}
+
+/* Corregir botones en paneles de configuración y formularios */
+html.dark [role="dialog"] button,
+html.dark .drawer button,
+html.dark form button,
+html.dark .form button {
+  color: var(--button-default-text) !important;
+}
+
+/* Corregir botones dentro de inputs */
+html.dark .input-suffix-end button,
+html.dark .input-suffix-start button {
+  color: var(--button-default-text) !important;
+}
+
+/* Input con iconos */
+html.dark .input-wrapper svg,
+html.dark .input-group svg {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Input en focus con iconos */
+html.dark .input:focus + .input-suffix-end svg,
+html.dark .input:focus-within + .input-suffix-end svg,
+html.dark .input-suffix-start + .input:focus ~ .input-suffix-end svg,
+html.dark .input-suffix-start + .input:focus-within ~ .input-suffix-end svg {
+  color: var(--input-border-focus) !important;
+}

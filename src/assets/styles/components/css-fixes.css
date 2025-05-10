@@ -1,0 +1,103 @@
+/**
+ * frontend/src/assets/styles/components/css-fixes.css
+ * Correcciones para problemas con selectores CSS inválidos
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* 
+ * Este archivo contiene correcciones para problemas específicos de CSS
+ * como selectores inválidos o incompatibilidades entre navegadores.
+ * Este archivo debe ser incluido al final de todas las importaciones CSS
+ * para asegurar que sus reglas tengan prioridad sobre las demás.
+ */
+
+/* Corregir etiquetas de estado de cliente */
+.dark .customer-status-tag,
+.dark .client-status-tag,
+.dark [class*="customer-status"] span,
+.dark [class*="client-status"] span,
+.dark [class*="CustomerStatus"] span,
+.dark [class*="ClientStatus"] span {
+  border: 1px solid !important;
+  padding: 0.125rem 0.5rem !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Estado activo/confirmado */
+.dark .customer-status-tag.active,
+.dark .client-status-tag.active,
+.dark [class*="status"].active,
+.dark [class*="Status"].active,
+.dark [class*="status-active"],
+.dark [class*="Status-active"] {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+  color: #4ade80 !important;
+  border-color: #166534 !important;
+}
+
+/* Estado pendiente/en espera */
+.dark .customer-status-tag.pending,
+.dark .client-status-tag.pending,
+.dark [class*="status"].pending,
+.dark [class*="Status"].pending,
+.dark [class*="status-pending"],
+.dark [class*="Status-pending"] {
+  background-color: rgba(217, 119, 6, 0.2) !important;
+  color: #fbbf24 !important;
+  border-color: #b45309 !important;
+}
+
+/* Estado inactivo/cancelado */
+.dark .customer-status-tag.inactive,
+.dark .client-status-tag.inactive,
+.dark [class*="status"].inactive,
+.dark [class*="Status"].inactive,
+.dark [class*="status-inactive"],
+.dark [class*="Status-inactive"] {
+  background-color: rgba(220, 38, 38, 0.2) !important;
+  color: #f87171 !important;
+  border-color: #991b1b !important;
+}
+
+/* Estilos específicos para texto "Sí"/"No" en las tablas */
+.dark tr td span.rounded-full.bg-green-100,
+.dark tr td span.rounded-full.text-green-800,
+.dark tr td span[class*="green"],
+.dark span.px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full.bg-green-100 {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+  color: #4ade80 !important;
+  border-color: #166534 !important;
+  border: 1px solid !important;
+  border-radius: 9999px !important;
+}
+
+.dark tr td span.rounded-full.bg-gray-100,
+.dark tr td span.rounded-full.text-gray-800,
+.dark tr td span[class*="gray"],
+.dark span.px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full.bg-gray-100 {
+  background-color: rgba(75, 85, 99, 0.2) !important;
+  color: #e5e7eb !important;
+  border-color: #4b5563 !important;
+  border: 1px solid !important;
+  border-radius: 9999px !important;
+}
+
+/* Corregir todas las etiquetas específicas en las tablas */
+.dark table span.rounded-full,
+.dark tbody span.rounded-full,
+.dark tr span.rounded-full,
+.dark td span.rounded-full {
+  border: 1px solid !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.125rem 0.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+}

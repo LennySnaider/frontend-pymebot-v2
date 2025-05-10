@@ -62,7 +62,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     }
 
     return (
-        <div className="bg-white p-3 rounded-md shadow-md w-80">
+        <div className="bg-white p-3 rounded-md shadow-md w-80 chatbot-builder-toolbar">
             <div className="flex justify-between items-center mb-3">
                 <div>
                     <h2 className="text-sm font-semibold text-gray-800 flex items-center">

@@ -205,9 +205,14 @@ const BusinessHoursSettings = () => {
                           {t('appointments.settings.business_hours.open_time')}
                         </label>
                         <TimeInput
-                          timeInputProps={{
-                            value: daySchedule.open_time,
-                            onChange: (value) => handleTimeChange(index, 'open_time', value),
+                          value={daySchedule.open_time}
+                          onChange={(value) => {
+                            // Cuando recibimos un valor desde TimeInput, es un objeto Date
+                            // pero necesitamos convertirlo a string en formato HH:MM
+                            const timeString = value 
+                              ? `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}`
+                              : '00:00';
+                            handleTimeChange(index, 'open_time', timeString);
                           }}
                         />
                       </div>
@@ -216,9 +221,14 @@ const BusinessHoursSettings = () => {
                           {t('appointments.settings.business_hours.close_time')}
                         </label>
                         <TimeInput
-                          timeInputProps={{
-                            value: daySchedule.close_time,
-                            onChange: (value) => handleTimeChange(index, 'close_time', value),
+                          value={daySchedule.close_time}
+                          onChange={(value) => {
+                            // Cuando recibimos un valor desde TimeInput, es un objeto Date
+                            // pero necesitamos convertirlo a string en formato HH:MM
+                            const timeString = value 
+                              ? `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}`
+                              : '00:00';
+                            handleTimeChange(index, 'close_time', timeString);
                           }}
                         />
                       </div>

@@ -57,11 +57,21 @@ const ChatList = () => {
             setChatRead(id)
         }
 
+        // Buscar datos adicionales del chat/lead
+        const chatItem = chats.find(chat => chat.id === id);
+        const stage = chatItem?.metadata?.stage || (id.startsWith('lead_') ? 'new' : undefined);
+
+        // Configurar el chat seleccionado con información adicional
         setSelectedChat({
             id,
             user,
             muted,
             chatType,
+            // Añadir información de etapa y otros datos útiles
+            stage,
+            name: chatItem?.name,
+            avatar: chatItem?.avatar,
+            tenantId: chatItem?.tenantId,
         })
         setMobileSidebar(false)
     }

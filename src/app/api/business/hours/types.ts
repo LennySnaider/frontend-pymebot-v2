@@ -33,11 +33,11 @@ export interface BusinessHourException {
   id: string;
   tenant_id: string;
   exception_date: string; // Format: YYYY-MM-DD
-  open_time?: string; // Format: HH:MM
-  close_time?: string; // Format: HH:MM
+  open_time?: string | null; // Format: HH:MM
+  close_time?: string | null; // Format: HH:MM
   is_closed: boolean;
   reason?: string;
-  location_id?: string;
+  location_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,11 +47,11 @@ export interface BusinessHourException {
  */
 export interface BusinessHourExceptionRequest {
   exception_date: string; // Format: YYYY-MM-DD
-  open_time?: string; // Format: HH:MM
-  close_time?: string; // Format: HH:MM
+  open_time?: string | null; // Format: HH:MM
+  close_time?: string | null; // Format: HH:MM
   is_closed: boolean;
   reason?: string;
-  location_id?: string;
+  location_id?: string | null;
 }
 
 /**

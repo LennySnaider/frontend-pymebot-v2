@@ -1,43 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTenantFromRequest, verifyAdminOrManager } from '../../business/hours/tenant-middleware';
-// Just a comment to force rebuild
+import { auth } from '@/auth';
 import { supabase } from '@/services/supabase/SupabaseClient';
-import { AppointmentTypeRequest } from '../settings/types';
 
 /**
- * GET /api/appointments/types
- * Obtiene los tipos de cita para un tenant
+ * GET: Obtiene los tipos de citas configurados para el tenant
  */
 export async function GET(req: NextRequest) {
   try {
-    // Verificar tenant
-    const tenantResult = await getTenantFromRequest(req);
+    // Obtener la sesión usando NextAuth
+    const session = await auth();
     
-    if (tenantResult.error) {
-      return tenantResult.error;
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
     }
     
-    const { tenant_id } = tenantResult;
+    const tenant_id = session.user.tenant_id;
     
-    // Obtener parámetros de consulta
-    const searchParams = req.nextUrl.searchParams;
-    const includeInactive = searchParams.get('include_inactive') === 'true';
+    if (!tenant_id) {
+      return NextResponse.json(
+        { error: 'Usuario no asociado a ningún tenant' },
+        { status: 403 }
+      );
+    }
     
-    // Consultar tipos de cita
-    let query = supabase
+    // Obtener los tipos de cita para el tenant
+    const { data: appointmentTypes, error } = await supabase
       .from('tenant_appointment_types')
       .select('*')
-      .eq('tenant_id', tenant_id);
-    
-    // Filtrar por activos si no se solicitan inactivos
-    if (!includeInactive) {
-      query = query.eq('is_active', true);
-    }
-    
-    // Ordenar por nombre
-    query = query.order('name');
-    
-    const { data, error } = await query;
+      .eq('tenant_id', tenant_id)
+      .eq('is_active', true)
+      .order('name');
     
     if (error) {
       console.error('Error al obtener tipos de cita:', error);
@@ -47,259 +42,226 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    return NextResponse.json(data || [], { status: 200 });
+    return NextResponse.json(appointmentTypes || []);
   } catch (error) {
     console.error('Error en GET /api/appointments/types:', error);
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { error: 'Error del servidor' },
       { status: 500 }
     );
   }
 }
 
 /**
- * POST /api/appointments/types
- * Crea un nuevo tipo de cita
+ * POST: Crea un nuevo tipo de cita
  */
 export async function POST(req: NextRequest) {
   try {
-    // Verificar permisos de administrador
-    const adminResult = await verifyAdminOrManager(req);
+    // Obtener la sesión usando NextAuth
+    const session = await auth();
     
-    if (adminResult.error) {
-      return adminResult.error;
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
     }
     
-    const { tenant_id } = adminResult;
+    const tenant_id = session.user.tenant_id;
+    const userRole = session.user.role;
     
-    // Parsear cuerpo de la solicitud
-    const typeData: AppointmentTypeRequest = await req.json();
-    
-    // Validar datos requeridos
-    if (!typeData.name) {
+    if (!tenant_id) {
       return NextResponse.json(
-        { error: 'El nombre del tipo de cita es obligatorio' },
+        { error: 'Usuario no asociado a ningún tenant' },
+        { status: 403 }
+      );
+    }
+    
+    // Verificar si el usuario tiene permisos de administrador
+    if (userRole !== 'super_admin' && userRole !== 'tenant_admin') {
+      return NextResponse.json(
+        { error: 'No autorizado' },
+        { status: 403 }
+      );
+    }
+    
+    // Obtener los datos del body
+    const appointmentType = await req.json();
+    
+    // Validar campos obligatorios
+    if (!appointmentType.name || !appointmentType.duration_minutes) {
+      return NextResponse.json(
+        { error: 'Faltan campos obligatorios: name, duration_minutes' },
         { status: 400 }
       );
     }
     
-    if (typeData.duration <= 0) {
-      return NextResponse.json(
-        { error: 'La duración debe ser mayor que cero' },
-        { status: 400 }
-      );
-    }
-    
-    // Preparar datos para inserción
-    const dataWithTenant = {
-      ...typeData,
+    // Agregar tenant_id al objeto
+    const typeWithTenant = {
+      ...appointmentType,
       tenant_id,
+      is_active: appointmentType.is_active !== false, // Activo por defecto
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
     
-    // Insertar el tipo de cita
+    // Insertar nuevo tipo de cita
     const { data, error } = await supabase
       .from('tenant_appointment_types')
-      .insert(dataWithTenant)
-      .select();
+      .insert(typeWithTenant)
+      .select()
+      .single();
     
     if (error) {
       console.error('Error al crear tipo de cita:', error);
-      
-      // Si es un error de unicidad (nombre ya existe)
-      if (error.code === '23505') {
-        return NextResponse.json(
-          { error: 'Ya existe un tipo de cita con ese nombre' },
-          { status: 409 }
-        );
-      }
-      
       return NextResponse.json(
         { error: 'Error al crear tipo de cita' },
         { status: 500 }
       );
     }
     
-    return NextResponse.json(data[0], { status: 201 });
+    return NextResponse.json({
+      success: true,
+      message: 'Tipo de cita creado correctamente',
+      appointment_type: data
+    });
   } catch (error) {
     console.error('Error en POST /api/appointments/types:', error);
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { error: 'Error del servidor' },
       { status: 500 }
     );
   }
 }
 
 /**
- * GET /api/appointments/types/[id]
- * Obtiene un tipo de cita específico
+ * PUT: Actualiza un tipo de cita existente
  */
-export async function GET_ID(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: NextRequest) {
   try {
-    // Verificar tenant
-    const tenantResult = await getTenantFromRequest(req);
+    // Obtener la sesión usando NextAuth
+    const session = await auth();
     
-    if (tenantResult.error) {
-      return tenantResult.error;
-    }
-    
-    const { tenant_id } = tenantResult;
-    const { id } = params;
-    
-    // Consultar el tipo de cita
-    const { data, error } = await supabase
-      .from('tenant_appointment_types')
-      .select('*')
-      .eq('id', id)
-      .eq('tenant_id', tenant_id) // Asegurar que pertenece al tenant
-      .single();
-    
-    if (error) {
-      console.error('Error al obtener tipo de cita:', error);
-      
-      if (error.code === 'PGRST116') { // No data found
-        return NextResponse.json(
-          { error: 'Tipo de cita no encontrado' },
-          { status: 404 }
-        );
-      }
-      
+    if (!session) {
       return NextResponse.json(
-        { error: 'Error al obtener tipo de cita' },
-        { status: 500 }
+        { error: 'No autenticado' },
+        { status: 401 }
       );
     }
     
-    return NextResponse.json(data, { status: 200 });
-  } catch (error) {
-    console.error('Error en GET /api/appointments/types/[id]:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * PUT /api/appointments/types/[id]
- * Actualiza un tipo de cita existente
- */
-export async function PUT_ID(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // Verificar permisos de administrador
-    const adminResult = await verifyAdminOrManager(req);
+    const tenant_id = session.user.tenant_id;
+    const userRole = session.user.role;
     
-    if (adminResult.error) {
-      return adminResult.error;
+    if (!tenant_id) {
+      return NextResponse.json(
+        { error: 'Usuario no asociado a ningún tenant' },
+        { status: 403 }
+      );
     }
     
-    const { tenant_id } = adminResult;
-    const { id } = params;
-    
-    // Parsear cuerpo de la solicitud
-    const typeData: AppointmentTypeRequest = await req.json();
-    
-    // Validar datos requeridos
-    if (!typeData.name) {
+    // Verificar si el usuario tiene permisos de administrador
+    if (userRole !== 'super_admin' && userRole !== 'tenant_admin') {
       return NextResponse.json(
-        { error: 'El nombre del tipo de cita es obligatorio' },
+        { error: 'No autorizado' },
+        { status: 403 }
+      );
+    }
+    
+    // Obtener los datos del body
+    const { id, ...appointmentType } = await req.json();
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Falta el ID del tipo de cita' },
         { status: 400 }
       );
     }
     
-    if (typeData.duration <= 0) {
-      return NextResponse.json(
-        { error: 'La duración debe ser mayor que cero' },
-        { status: 400 }
-      );
-    }
-    
-    // Verificar si el tipo de cita existe y pertenece al tenant
-    const { data: existingType, error: checkError } = await supabase
-      .from('tenant_appointment_types')
-      .select('id')
-      .eq('id', id)
-      .eq('tenant_id', tenant_id)
-      .single();
-    
-    if (checkError || !existingType) {
-      return NextResponse.json(
-        { error: 'Tipo de cita no encontrado o sin permiso para editar' },
-        { status: 404 }
-      );
-    }
-    
-    // Preparar datos para actualización
-    const updateData = {
-      ...typeData,
-      updated_at: new Date().toISOString()
+    // Actualizar tipo de cita con timestamp
+    const typeToUpdate = {
+      ...appointmentType,
+      updated_at: new Date().toISOString(),
     };
     
     // Actualizar el tipo de cita
     const { data, error } = await supabase
       .from('tenant_appointment_types')
-      .update(updateData)
+      .update(typeToUpdate)
       .eq('id', id)
-      .eq('tenant_id', tenant_id) // Verificar que pertenece al tenant
-      .select();
+      .eq('tenant_id', tenant_id) // Seguridad adicional
+      .select()
+      .single();
     
     if (error) {
       console.error('Error al actualizar tipo de cita:', error);
-      
-      // Si es un error de unicidad (nombre ya existe)
-      if (error.code === '23505') {
-        return NextResponse.json(
-          { error: 'Ya existe un tipo de cita con ese nombre' },
-          { status: 409 }
-        );
-      }
-      
       return NextResponse.json(
         { error: 'Error al actualizar tipo de cita' },
         { status: 500 }
       );
     }
     
-    return NextResponse.json(data[0], { status: 200 });
+    return NextResponse.json({
+      success: true,
+      message: 'Tipo de cita actualizado correctamente',
+      appointment_type: data
+    });
   } catch (error) {
-    console.error('Error en PUT /api/appointments/types/[id]:', error);
+    console.error('Error en PUT /api/appointments/types:', error);
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { error: 'Error del servidor' },
       { status: 500 }
     );
   }
 }
 
 /**
- * DELETE /api/appointments/types/[id]
- * Elimina un tipo de cita
+ * DELETE: Elimina un tipo de cita (o lo marca como inactivo)
  */
-export async function DELETE_ID(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest) {
   try {
-    // Verificar permisos de administrador
-    const adminResult = await verifyAdminOrManager(req);
+    // Obtener la sesión usando NextAuth
+    const session = await auth();
     
-    if (adminResult.error) {
-      return adminResult.error;
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
     }
     
-    const { tenant_id } = adminResult;
-    const { id } = params;
+    const tenant_id = session.user.tenant_id;
+    const userRole = session.user.role;
     
-    // Verificar si hay citas asociadas a este tipo
+    if (!tenant_id) {
+      return NextResponse.json(
+        { error: 'Usuario no asociado a ningún tenant' },
+        { status: 403 }
+      );
+    }
+    
+    // Verificar si el usuario tiene permisos de administrador
+    if (userRole !== 'super_admin' && userRole !== 'tenant_admin') {
+      return NextResponse.json(
+        { error: 'No autorizado' },
+        { status: 403 }
+      );
+    }
+    
+    // Obtener el ID del query param
+    const url = new URL(req.url);
+    const id = url.searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Falta el ID del tipo de cita' },
+        { status: 400 }
+      );
+    }
+    
+    // Verificar si hay citas con este tipo
     const { count, error: countError } = await supabase
       .from('tenant_appointments')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('appointment_type_id', id)
       .eq('tenant_id', tenant_id);
     
@@ -311,48 +273,54 @@ export async function DELETE_ID(
       );
     }
     
-    // Si hay citas, no permitir eliminar
+    // Si hay citas, marcar como inactivo en lugar de eliminar
     if (count && count > 0) {
-      return NextResponse.json(
-        { 
-          error: 'No se puede eliminar este tipo de cita porque tiene citas asociadas',
-          count 
-        },
-        { status: 409 }
-      );
+      const { error: updateError } = await supabase
+        .from('tenant_appointment_types')
+        .update({ 
+          is_active: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('tenant_id', tenant_id);
+      
+      if (updateError) {
+        console.error('Error al desactivar tipo de cita:', updateError);
+        return NextResponse.json(
+          { error: 'Error al desactivar tipo de cita' },
+          { status: 500 }
+        );
+      }
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Tipo de cita desactivado correctamente (no eliminado debido a citas existentes)',
+      });
     }
     
-    // Eliminar el tipo de cita
-    const { data, error } = await supabase
+    // Si no hay citas, eliminar el tipo
+    const { error: deleteError } = await supabase
       .from('tenant_appointment_types')
       .delete()
       .eq('id', id)
-      .eq('tenant_id', tenant_id) // Verificar que pertenece al tenant
-      .select();
+      .eq('tenant_id', tenant_id);
     
-    if (error) {
-      console.error('Error al eliminar tipo de cita:', error);
+    if (deleteError) {
+      console.error('Error al eliminar tipo de cita:', deleteError);
       return NextResponse.json(
         { error: 'Error al eliminar tipo de cita' },
         { status: 500 }
       );
     }
     
-    if (!data || data.length === 0) {
-      return NextResponse.json(
-        { error: 'Tipo de cita no encontrado o sin permiso para eliminar' },
-        { status: 404 }
-      );
-    }
-    
-    return NextResponse.json(
-      { message: 'Tipo de cita eliminado con éxito' },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      message: 'Tipo de cita eliminado correctamente',
+    });
   } catch (error) {
-    console.error('Error en DELETE /api/appointments/types/[id]:', error);
+    console.error('Error en DELETE /api/appointments/types:', error);
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { error: 'Error del servidor' },
       { status: 500 }
     );
   }

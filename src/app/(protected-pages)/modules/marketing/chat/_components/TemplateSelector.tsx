@@ -47,13 +47,23 @@ const TemplateSelector = ({ onTemplateChange }: TemplateSelectorProps) => {
     }, [])
 
     // Establecer la plantilla por defecto al iniciar
+    // IMPORTANTE: Solo usamos las plantillas que vienen del servidor, sin preferencias arbitrarias
     useEffect(() => {
         if (isClient && templates.length > 0 && !selectedTemplate) {
-            const defaultTemplate =
-                templates.find((t) => t.isActive) || templates[0]
-            setSelectedTemplate(defaultTemplate.id)
+            // Buscar plantilla activa según el servidor, o usar la primera
+            const defaultTemplate = templates.find((t) => t.isActive) || templates[0];
+
+            // Log para debugging
+            console.log('Seleccionando EXACTAMENTE la plantilla que viene del servidor:',
+                        defaultTemplate.name, 'ID:', defaultTemplate.id);
+
+            // Actualizar la selección local
+            setSelectedTemplate(defaultTemplate.id);
+
+            // Activar la plantilla en el store global
+            setActiveTemplate(defaultTemplate.id);
         }
-    }, [templates, selectedTemplate, isClient])
+    }, [templates, selectedTemplate, isClient, setActiveTemplate])
 
     // Manejar el cambio de plantilla
     const handleTemplateChange = (value: string) => {

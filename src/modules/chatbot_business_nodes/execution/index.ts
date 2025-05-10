@@ -8,6 +8,8 @@ import { executeBookAppointment } from '@/components/view/ChatbotBuilder/nodes/B
 import { executeLeadQualification } from '@/components/view/ChatbotBuilder/nodes/LeadQualificationNode';
 import { executeRescheduleAppointment } from '@/components/view/ChatbotBuilder/nodes/RescheduleAppointmentNode';
 import { executeCancelAppointment } from '@/components/view/ChatbotBuilder/nodes/CancelAppointmentNode';
+import { executeServicesNode } from '@/components/view/ChatbotBuilder/nodes/ServicesNode';
+import { executeProductNode } from '@/components/view/ChatbotBuilder/nodes/ProductNode';
 
 // Re-exportar para uso en el motor de ejecución del chatbot
 export {
@@ -15,7 +17,9 @@ export {
   executeBookAppointment,
   executeLeadQualification,
   executeRescheduleAppointment,
-  executeCancelAppointment
+  executeCancelAppointment,
+  executeServicesNode,
+  executeProductNode
 };
 
 // Registro de ejecutores para el motor de chatbot
@@ -24,7 +28,9 @@ export const businessNodeExecutors = {
   BookAppointmentNode: executeBookAppointment,
   LeadQualificationNode: executeLeadQualification,
   RescheduleAppointmentNode: executeRescheduleAppointment,
-  CancelAppointmentNode: executeCancelAppointment
+  CancelAppointmentNode: executeCancelAppointment,
+  ServicesNode: executeServicesNode,
+  ProductNode: executeProductNode
 };
 
 // Función auxiliar para ejecutar un nodo de negocio

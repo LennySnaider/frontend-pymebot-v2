@@ -9,7 +9,7 @@
 import React, { useCallback } from 'react';
 import { Handle, Position } from 'reactflow';
 import Checkbox from '@/components/ui/Checkbox';
-import Select from '@/components/ui/Select';
+import { Select, Option } from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import { PiUserGearBold, PiPlus, PiTrash } from 'react-icons/pi';
 import SalesFunnelService from '@/services/SalesFunnelService';
@@ -178,9 +178,9 @@ const LeadQualificationNode: React.FC<LeadQualificationNodeProps> = ({ id, data,
                     value={high_score_stage}
                     onChange={handleHighScoreStageChange}
                   >
-                    <Select.Option value="qualification">Calificación</Select.Option>
-                    <Select.Option value="opportunity">Oportunidad</Select.Option>
-                    <Select.Option value="confirmed">Confirmado</Select.Option>
+                    <Option value="qualification">Calificación</Option>
+                    <Option value="opportunity">Oportunidad</Option>
+                    <Option value="confirmed">Confirmado</Option>
                   </Select>
                 </div>
                 
@@ -190,9 +190,9 @@ const LeadQualificationNode: React.FC<LeadQualificationNodeProps> = ({ id, data,
                     value={medium_score_stage}
                     onChange={handleMediumScoreStageChange}
                   >
-                    <Select.Option value="prospecting">Prospectando</Select.Option>
-                    <Select.Option value="qualification">Calificación</Select.Option>
-                    <Select.Option value="opportunity">Oportunidad</Select.Option>
+                    <Option value="prospecting">Prospectando</Option>
+                    <Option value="qualification">Calificación</Option>
+                    <Option value="opportunity">Oportunidad</Option>
                   </Select>
                 </div>
                 
@@ -202,9 +202,9 @@ const LeadQualificationNode: React.FC<LeadQualificationNodeProps> = ({ id, data,
                     value={low_score_stage}
                     onChange={handleLowScoreStageChange}
                   >
-                    <Select.Option value="new">Nuevo</Select.Option>
-                    <Select.Option value="prospecting">Prospectando</Select.Option>
-                    <Select.Option value="qualification">Calificación</Select.Option>
+                    <Option value="new">Nuevo</Option>
+                    <Option value="prospecting">Prospectando</Option>
+                    <Option value="qualification">Calificación</Option>
                   </Select>
                 </div>
               </>

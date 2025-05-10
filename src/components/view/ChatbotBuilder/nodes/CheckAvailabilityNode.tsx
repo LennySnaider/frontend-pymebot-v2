@@ -6,11 +6,14 @@
  * @updated 2025-07-05
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import BusinessHoursService from '@/services/BusinessHoursService';
-import Select from '@/components/ui/Select';
+import { Select, Option } from '@/components/ui/Select';
 import { PiCalendarBold } from 'react-icons/pi';
+import useTheme from '@/utils/hooks/useTheme';
+import { MODE_DARK } from '@/constants/theme.constant';
+import useDarkModeNode from '../hooks/useDarkModeNode';
 
 export interface CheckAvailabilityNodeData {
   tenant_id: string;
@@ -24,13 +27,16 @@ export interface CheckAvailabilityNodeData {
 /**
  * Componente para el nodo de verificación de disponibilidad
  */
-const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({ 
-  id, 
-  data, 
+const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
+  id,
+  data,
   selected,
-  isConnectable 
+  isConnectable
 }) => {
   const { tenant_id, appointment_type_id, location_id, agent_id, onUpdateNodeData, label } = data;
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const mode = useTheme(state => state.mode);
+  const isDarkMode = useDarkModeNode(nodeRef, id);
   
   // Manejadores para actualizar los datos del nodo
   const handleAppointmentTypeChange = useCallback((value: string) => {
@@ -52,69 +58,78 @@ const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
   }, [id, data, onUpdateNodeData]);
   
   return (
-    <div className={`rounded-md border-2 ${selected ? 'border-primary' : 'border-gray-200'} bg-white p-3 shadow-md min-w-[250px] max-w-[320px]`}>
+    <div
+      ref={nodeRef}
+      className={`rounded-md border-2 ${selected ? 'border-primary' : 'border-gray-200 dark:border-gray-600'} p-3 shadow-md min-w-[250px] max-w-[320px] check-availability-node dark:node-dark-bg`}
+      style={{
+        backgroundColor: mode === MODE_DARK ? '#1f2937' : 'white',
+        borderColor: mode === MODE_DARK ? '#4b5563' : '',
+      }}
+      data-node-type="check_availability"
+      data-dark-mode={isDarkMode ? 'true' : 'false'}>
       {/* Título del nodo */}
-      <div className="mb-2 border-b border-gray-200 pb-2">
+      <div className="mb-2 border-b border-gray-200 dark:border-gray-700 pb-2">
         <div className="flex items-center">
-          <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+          <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-2">
             <PiCalendarBold className="h-4 w-4 text-blue-500" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-800">
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
               {label || 'Verificar Disponibilidad'}
             </p>
           </div>
         </div>
       </div>
-      
+
       {/* Contenido del nodo */}
-      <div className="bg-gray-50 p-2 rounded-md mb-1">
+      <div className="bg-gray-50 dark:!bg-gray-700 p-2 rounded-md mb-1"
+           style={{backgroundColor: mode === MODE_DARK ? '#374151' : '#f9fafb'}}>
         <div className="space-y-2">
           <div className="form-group">
-            <label className="text-xs text-gray-600 mb-1 block">Tipo de Cita:</label>
-            <Select 
+            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Tipo de Cita:</label>
+            <Select
               onChange={handleAppointmentTypeChange}
               value={appointment_type_id || ''}
               size="sm"
             >
-              <Select.Option value="">Cualquier tipo</Select.Option>
-              <Select.Option value="1">Consulta Inicial</Select.Option>
-              <Select.Option value="2">Seguimiento</Select.Option>
-              <Select.Option value="3">Tratamiento</Select.Option>
+              <Option value="">Cualquier tipo</Option>
+              <Option value="1">Consulta Inicial</Option>
+              <Option value="2">Seguimiento</Option>
+              <Option value="3">Tratamiento</Option>
             </Select>
           </div>
           
           <div className="form-group">
-            <label className="text-xs text-gray-600 mb-1 block">Ubicación:</label>
-            <Select 
+            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Ubicación:</label>
+            <Select
               onChange={handleLocationChange}
               value={location_id || ''}
               size="sm"
             >
-              <Select.Option value="">Cualquier ubicación</Select.Option>
-              <Select.Option value="1">Oficina Central</Select.Option>
-              <Select.Option value="2">Sucursal Norte</Select.Option>
-              <Select.Option value="3">Sucursal Sur</Select.Option>
+              <Option value="">Cualquier ubicación</Option>
+              <Option value="1">Oficina Central</Option>
+              <Option value="2">Sucursal Norte</Option>
+              <Option value="3">Sucursal Sur</Option>
             </Select>
           </div>
           
           <div className="form-group">
-            <label className="text-xs text-gray-600 mb-1 block">Agente:</label>
-            <Select 
+            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Agente:</label>
+            <Select
               onChange={handleAgentChange}
               value={agent_id || ''}
               size="sm"
             >
-              <Select.Option value="">Cualquier agente</Select.Option>
-              <Select.Option value="1">Carlos Rodríguez</Select.Option>
-              <Select.Option value="2">Ana Martínez</Select.Option>
-              <Select.Option value="3">Miguel Sánchez</Select.Option>
+              <Option value="">Cualquier agente</Option>
+              <Option value="1">Carlos Rodríguez</Option>
+              <Option value="2">Ana Martínez</Option>
+              <Option value="3">Miguel Sánchez</Option>
             </Select>
           </div>
         </div>
       </div>
       
-      <div className="flex justify-between mt-2 text-xs text-gray-500">
+      <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
         <div className="flex items-center">
           <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
           <span>Disponible</span>
@@ -124,26 +139,26 @@ const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
           <span>No disponible</span>
         </div>
       </div>
-      
+
       {/* Handles para conexiones horizontales */}
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 bg-blue-500 border-2 border-white"
+        className="w-3 h-3 bg-blue-500 border-2 border-white dark:border-gray-800"
         isConnectable={isConnectable}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="available"
-        className="w-3 h-3 bg-green-500 border-2 border-white"
+        className="w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800"
         isConnectable={isConnectable}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="unavailable"
-        className="w-3 h-3 bg-red-500 border-2 border-white"
+        className="w-3 h-3 bg-red-500 border-2 border-white dark:border-gray-800"
         style={{ top: '70%' }}
         isConnectable={isConnectable}
       />

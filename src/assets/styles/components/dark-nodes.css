@@ -1,0 +1,150 @@
+/**
+ * frontend/src/assets/styles/components/dark-nodes.css
+ * Estilos específicos para nodos en modo oscuro y correcciones para modo oscuro
+ * @version 1.0.1
+ * @updated 2025-09-05
+ */
+
+/* Correcciones para tablas en modo oscuro */
+.dark .ant-table,
+.dark .ant-card,
+.dark .ant-table-wrapper,
+.dark .ant-table-container,
+.dark .ant-table-content,
+.dark .ant-table-thead,
+.dark .ant-table-tbody,
+.dark .ant-table-cell,
+.dark .ant-table-row {
+  background-color: #121212 !important;
+  color: #e5e7eb !important;
+  --tw-bg-opacity: 1 !important;
+  --tw-text-opacity: 1 !important;
+  border-color: #333333 !important;
+}
+
+.dark .ant-table-thead > tr > th,
+.dark .ant-table-tbody > tr > td {
+  background-color: #121212 !important;
+  color: #e5e7eb !important;
+  border-color: #333333 !important;
+}
+
+.dark .ant-table-thead > tr > th {
+  background-color: #1e1e1e !important;
+  color: #e5e7eb !important;
+  border-color: #333333 !important;
+}
+
+.dark .ant-table-row-hover > td,
+.dark .ant-table-row:hover > td {
+  background-color: #282828 !important;
+  color: #e5e7eb !important;
+}
+
+/* Estilos para formularios en modo oscuro */
+.dark .ant-select,
+.dark .ant-select-selector,
+.dark .ant-select-selection-search,
+.dark .ant-select-selection-item,
+.dark .ant-input,
+.dark .ant-input-group,
+.dark .ant-input-affix-wrapper {
+  background-color: #282828 !important;
+  color: #e5e7eb !important;
+  border-color: #333333 !important;
+}
+
+/* Estilos para diálogos en modo oscuro */
+.dark .ant-modal,
+.dark .ant-modal-content,
+.dark .ant-modal-header,
+.dark .ant-modal-body,
+.dark .ant-modal-footer {
+  background-color: #121212 !important;
+  color: #e5e7eb !important;
+  border-color: #333333 !important;
+}
+
+/*
+ * Estos selectores están diseñados específicamente para sobrescribir los estilos
+ * de nodos de ReactFlow que no respetan correctamente el modo oscuro
+ */
+
+/* Selector para sobrescribir TODOS los fondos blancos */
+html.dark [data-testid="check-availability-dark"],
+html.dark .react-flow__node[data-type="check-availability"],
+html.dark .react-flow__node[data-type="check_availability"],
+html.dark .react-flow__node[data-type="checkAvailability"],
+html.dark .react-flow__node-check-availability,
+html.dark .react-flow__node-check_availability,
+html.dark .react-flow__node-checkAvailability,
+html.dark [data-node-dark="true"] {
+  background-color: #1a1a1a !important;
+  color: #e5e7eb !important;
+  --tw-bg-opacity: 1 !important;
+  --tw-text-opacity: 1 !important;
+  border-color: #333333 !important;
+}
+
+/* Selectores de mayor especificidad para selectores importantes */
+body.dark .react-flow__node[data-type="check-availability"],
+body.dark .react-flow__renderer .react-flow__node-check-availability,
+body.dark .react-flow__pane .react-flow__node[data-type="check-availability"],
+html.dark body main .react-flow__renderer .react-flow__node[data-type="check-availability"] {
+  background-color: #1a1a1a !important;
+}
+
+/* Selector para el contenedor del nodo */
+html.dark .react-flow__node-check-availability > div,
+html.dark .react-flow__node[data-type="check-availability"] > div,
+html.dark .react-flow__node[data-type="check_availability"] > div,
+html.dark .react-flow__node-checkAvailability > div {
+  background-color: #1a1a1a !important;
+}
+
+/* Selector para el elemento raíz con mayor especificidad */
+.dark .react-flow__renderer .react-flow__viewport .react-flow__node[data-type="check-availability"],
+.dark .react-flow__renderer .react-flow__viewport .react-flow__node[data-type="check_availability"],
+.dark .react-flow__renderer .react-flow__viewport .react-flow__node-check-availability,
+.dark .react-flow__renderer .react-flow__viewport .react-flow__node-checkAvailability {
+  background-color: #1a1a1a !important;
+}
+
+/* Selector para añadir después del renderizado */
+html.dark .react-flow__node-check-availability::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #1a1a1a;
+  z-index: -1;
+}
+
+/* Selector para los selects dentro del nodo */
+html.dark .react-flow__node-check-availability .select-control,
+html.dark .react-flow__node[data-type="check-availability"] .select-control,
+html.dark [data-testid="check-availability-dark"] .select-control {
+  background-color: #282828 !important;
+  border-color: #333333 !important;
+  color: #e5e7eb !important;
+}
+
+/* Selector para todos los elementos de formulario */
+html.dark .react-flow__node-check-availability .form-select,
+html.dark .react-flow__node-check-availability select,
+html.dark .react-flow__node-check-availability input,
+html.dark .react-flow__node[data-type="check-availability"] .form-select,
+html.dark .react-flow__node[data-type="check-availability"] select,
+html.dark .react-flow__node[data-type="check-availability"] input {
+  background-color: #282828 !important;
+  border-color: #333333 !important;
+  color: #e5e7eb !important;
+}
+
+/* Clases específicas para el nodo */
+html.dark .react-flow__node-check-availability .bg-gray-50,
+html.dark .react-flow__node[data-type="check-availability"] .bg-gray-50 {
+  background-color: #282828 !important;
+}

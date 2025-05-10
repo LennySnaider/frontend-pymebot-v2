@@ -8,6 +8,8 @@ import BookAppointmentNode from '@/components/view/ChatbotBuilder/nodes/BookAppo
 import LeadQualificationNode from '@/components/view/ChatbotBuilder/nodes/LeadQualificationNode';
 import RescheduleAppointmentNode from '@/components/view/ChatbotBuilder/nodes/RescheduleAppointmentNode';
 import CancelAppointmentNode from '@/components/view/ChatbotBuilder/nodes/CancelAppointmentNode';
+import ServicesNode from '@/components/view/ChatbotBuilder/nodes/ServicesNode';
+import ProductNode from '@/components/view/ChatbotBuilder/nodes/ProductNode';
 
 // Re-exportar para uso en otros módulos
 export {
@@ -15,7 +17,9 @@ export {
   BookAppointmentNode,
   LeadQualificationNode,
   RescheduleAppointmentNode,
-  CancelAppointmentNode
+  CancelAppointmentNode,
+  ServicesNode,
+  ProductNode
 };
 
 // Exportar registro de nodos para integrarse con el constructor de chatbot
@@ -71,6 +75,7 @@ export const businessNodeRegistry = {
       require_reason: true,
       notify_agent: true,
       send_confirmation: true,
+      send_whatsapp: false,
       max_reschedule_attempts: 3,
       success_message: 'Tu cita ha sido reprogramada correctamente. Te hemos enviado los detalles actualizados.',
       failure_message: 'Lo siento, no pudimos reprogramar tu cita. Por favor, intenta de nuevo más tarde.'
@@ -78,7 +83,8 @@ export const businessNodeRegistry = {
     description: 'Reprograma una cita existente a un nuevo horario',
     outputs: [
       { id: 'success', label: 'Éxito' },
-      { id: 'failure', label: 'Fallo' }
+      { id: 'failure', label: 'Fallo' },
+      { id: 'needReason', label: 'Requiere Motivo' }
     ]
   },
   CancelAppointmentNode: {
@@ -138,6 +144,48 @@ export const businessNodeRegistry = {
       { id: 'high', label: 'Alto Potencial' },
       { id: 'medium', label: 'Potencial Medio' },
       { id: 'low', label: 'Bajo Potencial' }
+    ]
+  },
+  ServicesNode: {
+    type: 'ServicesNode',
+    label: 'Mostrar Servicios',
+    category: 'business',
+    component: ServicesNode,
+    initialData: {
+      tenant_id: '',
+      category_id: '',
+      limit: 5,
+      filter_by_price: false,
+      min_price: 0,
+      max_price: 0,
+      sort_by: 'popularity'
+    },
+    description: 'Muestra una lista de servicios disponibles para el cliente',
+    outputs: [
+      { id: 'selected', label: 'Servicio Seleccionado' },
+      { id: 'noSelection', label: 'Sin Selección' },
+      { id: 'noResults', label: 'Sin Resultados' }
+    ]
+  },
+  ProductNode: {
+    type: 'ProductNode',
+    label: 'Mostrar Productos',
+    category: 'business',
+    component: ProductNode,
+    initialData: {
+      tenant_id: '',
+      category_id: '',
+      limit: 5,
+      filter_by_price: false,
+      min_price: 0,
+      max_price: 0,
+      sort_by: 'popularity'
+    },
+    description: 'Muestra una lista de productos disponibles para el cliente',
+    outputs: [
+      { id: 'selected', label: 'Producto Seleccionado' },
+      { id: 'noSelection', label: 'Sin Selección' },
+      { id: 'noResults', label: 'Sin Resultados' }
     ]
   }
 };

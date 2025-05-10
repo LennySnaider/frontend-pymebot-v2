@@ -46,9 +46,11 @@ export interface RescheduleAppointmentNodeData {
   require_reason?: boolean;
   notify_agent?: boolean;
   send_confirmation?: boolean;
+  send_whatsapp?: boolean;
   max_reschedule_attempts?: number;
   success_message?: string;
   failure_message?: string;
+  whatsapp_message?: string;
   onUpdateNodeData?: (nodeId: string, data: any) => void;
 }
 

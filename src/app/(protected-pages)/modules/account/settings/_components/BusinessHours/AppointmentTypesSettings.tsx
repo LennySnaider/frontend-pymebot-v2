@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Dialog, Input, Notification, toast, Table, Tag, Badge, Form, FormItem } from '@/components/ui';
+import InputGroup from '@/components/ui/InputGroup';
 import { AppointmentTypeConfig } from './types';
 
 // Función temporal para traducciones mientras solucionamos el problema
@@ -32,20 +33,20 @@ const mockTranslation = (key: string) => {
     'appointments.types.fields.description': 'Descripción',
     'appointments.types.fields.duration': 'Duración',
     'appointments.types.fields.color': 'Color',
-    'appointments.types.fields.buffer': 'Buffer',
+    'appointments.types.fields.buffer': 'Tiempo entre citas',
     'appointments.types.fields.status': 'Estado',
     'appointments.types.fields.max_daily': 'Máximo diario',
-    'appointments.types.fields.booking_url': 'URL de reserva',
+    'appointments.types.fields.booking_url': 'Enlace personalizado',
     'appointments.types.fields.requires_payment': 'Requiere pago',
     'appointments.types.fields.payment_amount': 'Monto',
     'appointments.types.fields.is_active': 'Activo',
     'appointments.types.placeholders.name': 'Ej. Consulta inicial',
     'appointments.types.placeholders.description': 'Descripción breve del tipo de cita',
-    'appointments.types.placeholders.booking_url': 'consulta-inicial',
+    'appointments.types.placeholders.booking_url': 'Ej. consulta-inicial',
     'appointments.types.placeholders.unlimited': 'Sin límite',
     'appointments.types.errors.name_required': 'El nombre es obligatorio',
     'appointments.types.errors.duration_required': 'La duración debe ser mayor que cero',
-    'appointments.types.errors.buffer_non_negative': 'El buffer no puede ser negativo',
+    'appointments.types.errors.buffer_non_negative': 'El tiempo entre citas no puede ser negativo',
     'appointments.types.errors.max_non_negative': 'El máximo no puede ser negativo',
     'appointments.types.errors.payment_required': 'El monto es obligatorio si requiere pago'
   };
@@ -87,20 +88,35 @@ const AppointmentTypesSettings = () => {
       setLoading(true);
       const response = await fetch('/api/appointments/types');
       
-      if (!response.ok) {
-        toast.push(
-          <Notification title={t('common.error')} type="danger">
-            {t('appointments.types.fetch_error')}
-          </Notification>
-        );
-        throw new Error('Error al obtener tipos de cita');
+      // Si la respuesta es una redirección (status 302), usamos valores por defecto
+      if (response.redirected || !response.ok) {
+        console.warn('Usando tipos de cita por defecto debido a error en la API:', 
+          response.status, response.statusText, response.redirected ? 'Redirección' : '');
+        
+        // Solo mostrar notificación si no es una redirección por falta de autenticación
+        if (!response.redirected) {
+          toast.push(
+            <Notification title={t('common.error')} type="danger">
+              {t('appointments.types.fetch_error')}
+            </Notification>
+          );
+        }
+        
+        // Usar tipos por defecto
+        setTypes([]);
+        setLoading(false);
+        return;
       }
       
       const data = await response.json();
-      setTypes(data);
+      console.log('Tipos de cita cargados:', data);
+      setTypes(Array.isArray(data) ? data : []);
       setLoading(false);
     } catch (error) {
       console.error('Error al cargar tipos de cita:', error);
+      
+      // En caso de error, establecer un array vacío
+      setTypes([]);
       setLoading(false);
     }
   };
@@ -210,9 +226,26 @@ const AppointmentTypesSettings = () => {
         });
       }
       
+      // Si la respuesta es una redirección (status 302), mostrar mensaje adecuado
+      if (response.redirected) {
+        console.warn('Redirección al intentar guardar tipo de cita:', response.url);
+        toast.push(
+          <Notification title={t('common.error')} type="danger">
+            Se requiere iniciar sesión para guardar el tipo de cita
+          </Notification>
+        );
+        return;
+      }
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al guardar tipo de cita');
+        let errorMessage = 'Error al guardar tipo de cita';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          console.warn('No se pudo procesar respuesta de error como JSON:', parseError);
+        }
+        throw new Error(errorMessage);
       }
       
       toast.push(
@@ -242,8 +275,25 @@ const AppointmentTypesSettings = () => {
         method: 'DELETE',
       });
       
+      // Manejar redirecciones por falta de autenticación
+      if (response.redirected) {
+        console.warn('Redirección al intentar eliminar tipo de cita:', response.url);
+        toast.push(
+          <Notification title={t('common.error')} type="danger">
+            Se requiere iniciar sesión para eliminar el tipo de cita
+          </Notification>
+        );
+        return;
+      }
+      
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          console.warn('No se pudo procesar respuesta de error como JSON:', parseError);
+          throw new Error('Error al eliminar tipo de cita');
+        }
         
         // Si hay citas asignadas, mostrar mensaje específico
         if (response.status === 409 && errorData.count) {
@@ -433,12 +483,14 @@ const AppointmentTypesSettings = () => {
               invalid={!!errors.duration}
               errorMessage={errors.duration}
             >
-              <Input
-                type="number"
-                value={currentType.duration}
-                onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 0)}
-                addonAfter={t('appointments.types.minutes')}
-              />
+              <InputGroup>
+                <Input
+                  type="number"
+                  value={currentType.duration}
+                  onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 0)}
+                />
+                <InputGroup.Addon>{t('appointments.types.minutes')}</InputGroup.Addon>
+              </InputGroup>
             </FormItem>
             
             <FormItem
@@ -446,12 +498,14 @@ const AppointmentTypesSettings = () => {
               invalid={!!errors.buffer_time}
               errorMessage={errors.buffer_time}
             >
-              <Input
-                type="number"
-                value={currentType.buffer_time}
-                onChange={(e) => handleInputChange('buffer_time', parseInt(e.target.value) || 0)}
-                addonAfter={t('appointments.types.minutes')}
-              />
+              <InputGroup>
+                <Input
+                  type="number"
+                  value={currentType.buffer_time}
+                  onChange={(e) => handleInputChange('buffer_time', parseInt(e.target.value) || 0)}
+                />
+                <InputGroup.Addon>{t('appointments.types.minutes')}</InputGroup.Addon>
+              </InputGroup>
             </FormItem>
             
             <FormItem
@@ -491,6 +545,7 @@ const AppointmentTypesSettings = () => {
             <FormItem
               label={t('appointments.types.fields.booking_url')}
               className="md:col-span-2"
+              extra="Este enlace se usará para crear una URL personalizada para reservar este tipo de cita (ejemplo: https://su-negocio.com/reservar/consulta-inicial)"
             >
               <Input
                 value={currentType.booking_url_suffix || ''}
@@ -518,16 +573,18 @@ const AppointmentTypesSettings = () => {
                   invalid={!!errors.payment_amount}
                   errorMessage={errors.payment_amount}
                 >
-                  <Input
-                    type="number"
-                    value={currentType.payment_amount === null ? '' : currentType.payment_amount}
-                    onChange={(e) => {
-                      const value = e.target.value === '' ? null : parseFloat(e.target.value);
-                      handleInputChange('payment_amount', value);
-                    }}
-                    addonBefore="$"
-                    step="0.01"
-                  />
+                  <InputGroup>
+                    <InputGroup.Addon>$</InputGroup.Addon>
+                    <Input
+                      type="number"
+                      value={currentType.payment_amount === null ? '' : currentType.payment_amount}
+                      onChange={(e) => {
+                        const value = e.target.value === '' ? null : parseFloat(e.target.value);
+                        handleInputChange('payment_amount', value);
+                      }}
+                      step="0.01"
+                    />
+                  </InputGroup>
                 </FormItem>
               )}
             </div>

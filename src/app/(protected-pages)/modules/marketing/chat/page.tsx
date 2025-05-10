@@ -1,9 +1,12 @@
 /**
  * frontend/agentprop/src/app/(protected-pages)/modules/marketing/chat/page.tsx
  * Página principal del componente de chat con selector de plantillas
- * @version 2.0.0
- * @updated 2025-04-26
+ * @version 2.3.0
+ * @updated 2025-09-05
  */
+
+// Configuración para evitar errores de SSR
+export const runtime = 'edge'
 
 import Card from '@/components/ui/Card'
 import ChatProvider from './_components/ChatProvider'
@@ -11,10 +14,16 @@ import ChatSidebar from './_components/ChatSidebar'
 import ChatBody from './_components/ChatBody'
 import ContactInfoDrawer from './_components/ContactInfoDrawer'
 import ClientChatHeader from './_components/ClientChatHeader'
-import getChatList from '@/server/actions/getChatList'
+import getChatListFromLeads from '@/server/actions/getChatListFromLeads'
+import { auth } from '@/auth'
 
 export default async function Page() {
-    const data = await getChatList()
+    // Obtener la sesión actual para tener acceso al tenant_id
+    const session = await auth()
+    console.log('SESSION EN CHAT PAGE:', session?.user)
+
+    // Ahora usamos la nueva función para obtener chats a partir de leads reales
+    const data = await getChatListFromLeads()
 
     return (
         <ChatProvider chats={data}>

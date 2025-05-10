@@ -17,6 +17,8 @@
             "variableBuilderDesc": "System variable builder and manager",
             "notificationBuilder": "Notification Builder",
             "notificationBuilderDesc": "Notification configuration and management",
+            "systemVariables": "System Variables",
+            "systemVariablesDesc": "System variables management",
             "iaConfig": "AI Configuration",
             "iaConfigDesc": "API configuration for AI models",
             "moduleEditor": "Module Editor",

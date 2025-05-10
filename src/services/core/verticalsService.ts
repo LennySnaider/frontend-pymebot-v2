@@ -6,14 +6,17 @@
  * @updated 2025-04-30
  */
 
+import { VerticalModule as CoreVerticalModule, VerticalCategory } from '@/types/core/vertical';
+
 // Interfaces para tipado
 interface VerticalColors {
   primary: string;
   secondary: string;
   accent?: string;
+  background?: string;
 }
 
-// Nuevo: Interface para tipos de vertical
+// Interface para tipos de vertical
 export interface VerticalType {
   id: string;
   code: string;
@@ -28,6 +31,7 @@ export interface VerticalType {
   updatedAt: string;
 }
 
+// Interface para verticales retornadas por API
 export interface Vertical {
   id: string;
   code: string;
@@ -41,11 +45,12 @@ export interface Vertical {
   colors: VerticalColors;
   createdAt: string;
   updatedAt: string;
-  // Nuevo: Tipos soportados por esta vertical
+  // Tipos soportados por esta vertical
   types?: VerticalType[];
   defaultType?: string;
 }
 
+// Interface para módulos retornados por API
 export interface VerticalModule {
   id: string;
   code: string;
@@ -63,6 +68,30 @@ export interface VerticalModule {
   createdAt: string;
   updatedAt: string;
   children?: VerticalModule[]; // Para estructura jerárquica
+}
+
+// Función para convertir desde API a tipo core
+export function mapApiToCoreVertical(apiVertical: Vertical): CoreVerticalModule {
+  return {
+    id: apiVertical.id,
+    name: apiVertical.name,
+    code: apiVertical.code,
+    description: apiVertical.description,
+    icon: apiVertical.icon,
+    enabled: apiVertical.enabled,
+    category: apiVertical.category,
+    order: apiVertical.order,
+    features: apiVertical.features,
+    colors: apiVertical.colors,
+    components: {}, // Esto se llenará dinámicamente en la carga del módulo
+    config: {}, // Se llenará con la configuración específica
+    metadata: {
+      types: apiVertical.types,
+      defaultType: apiVertical.defaultType,
+      createdAt: apiVertical.createdAt,
+      updatedAt: apiVertical.updatedAt
+    }
+  };
 }
 
 interface PaginationMeta {
@@ -128,12 +157,19 @@ const DEFAULT_CACHE_DURATION = 5 * 60 * 1000;
 
 /**
  * Clase de servicio para interactuar con la API de verticales
+ * Proporciona métodos para obtener y gestionar verticales, sus módulos y tipos.
  */
 class VerticalsService {
   private apiBaseUrl: string;
   
   constructor() {
     this.apiBaseUrl = '/api/core';
+    
+    // Detectar entorno para ajustar URL base
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      console.log('Usando entorno local para API de verticales');
+      // Mantener URL relativa para desarrollo local
+    }
   }
   
   /**
@@ -256,6 +292,9 @@ class VerticalsService {
   
   /**
    * Obtiene todos los tipos disponibles para una vertical específica
+   * @param verticalCode Código de la vertical
+   * @param options Opciones de filtrado
+   * @returns Promesa con tipos de vertical
    */
   async getVerticalTypes(
     verticalCode: string,
@@ -300,6 +339,9 @@ class VerticalsService {
   
   /**
    * Obtiene un tipo específico de una vertical
+   * @param verticalCode Código de la vertical
+   * @param typeCode Código del tipo
+   * @returns Promesa con el tipo de vertical
    */
   async getVerticalType(verticalCode: string, typeCode: string): Promise<VerticalType> {
     try {
@@ -499,6 +541,9 @@ class VerticalsService {
   
   /**
    * Obtiene datos para inicialización de una vertical
+   * @param verticalCode Código de la vertical
+   * @param typeCode Código del tipo (opcional)
+   * @returns Promesa con datos de inicialización
    */
   async getVerticalInitData(
     verticalCode: string,
@@ -507,28 +552,52 @@ class VerticalsService {
     vertical: Vertical;
     modules: VerticalModule[];
     type?: VerticalType;
+    coreVertical?: CoreVerticalModule; // Versión compatible con core
   }> {
-    // Realizar peticiones en paralelo
-    const [vertical, modulesResponse] = await Promise.all([
-      this.getVertical(verticalCode),
-      this.getModules(verticalCode, { enabledOnly: true })
-    ]);
-    
-    // Si se especifica un tipo, también obtenerlo
-    let type;
-    if (typeCode) {
-      try {
-        type = await this.getVerticalType(verticalCode, typeCode);
-      } catch (error) {
-        console.warn(`Tipo ${typeCode} no encontrado en vertical ${verticalCode}`);
+    try {
+      // Construir clave de caché
+      const cacheKey = `vertical:init:${verticalCode}:${typeCode || 'default'}`;
+      
+      // Verificar caché
+      const cachedData = this.getFromCache(cacheKey);
+      if (cachedData) {
+        return cachedData;
       }
+      
+      // Realizar peticiones en paralelo
+      const [vertical, modulesResponse] = await Promise.all([
+        this.getVertical(verticalCode),
+        this.getModules(verticalCode, { enabledOnly: true })
+      ]);
+      
+      // Si se especifica un tipo, también obtenerlo
+      let type;
+      if (typeCode) {
+        try {
+          type = await this.getVerticalType(verticalCode, typeCode);
+        } catch (error) {
+          console.warn(`Tipo ${typeCode} no encontrado en vertical ${verticalCode}`);
+        }
+      }
+      
+      // Convertir a formato compatible con core
+      const coreVertical = mapApiToCoreVertical(vertical);
+      
+      const result = {
+        vertical,
+        modules: modulesResponse.data,
+        type,
+        coreVertical
+      };
+      
+      // Guardar en caché
+      this.saveToCache(cacheKey, result);
+      
+      return result;
+    } catch (error) {
+      console.error(`Error en getVerticalInitData(${verticalCode}):`, error);
+      throw error;
     }
-    
-    return {
-      vertical,
-      modules: modulesResponse.data,
-      type
-    };
   }
   
   /**
@@ -575,5 +644,24 @@ class VerticalsService {
 
 // Exportar instancia única
 export const verticalsService = new VerticalsService();
+
+// Registrar verticales disponibles en el sistema
+// Este método sería llamado durante la inicialización de la aplicación
+export async function registerAvailableVerticals() {
+  try {
+    // Obtener todas las verticales habilitadas
+    const verticals = await verticalsService.getEnabledVerticals();
+    
+    console.log(`Registrando ${verticals.length} verticales en el sistema...`);
+    
+    // Aquí se podría implementar la lógica para registrar cada vertical
+    // en el sistema core utilizando el registro de verticales
+    
+    return verticals;
+  } catch (error) {
+    console.error('Error al registrar verticales disponibles:', error);
+    return [];
+  }
+}
 
 export default verticalsService;

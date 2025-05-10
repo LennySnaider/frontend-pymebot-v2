@@ -8,7 +8,8 @@ import type {
     SelectedChat,
 } from '../types'
 import { ChatTemplate } from '../_components/TemplateSelector'
-import apiGetChatTemplates from '@/services/ChatService/apiGetChatTemplates' // Importar el servicio
+// Evitar importar cualquier API o módulo que dependa de apis con este comentario
+// Las importaciones deben hacerse dinámicamente en runtime (cliente)
 
 type ContactInfoDrawer = {
     userId: string
@@ -115,17 +116,35 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
     pushConversationMessage: (id, message) =>
         set(() => {
             const previousConversationRecord = get().conversationRecord
-            const conversationRecord = structuredClone(
-                previousConversationRecord,
-            ).map((record) => {
-                if (id === record.id) {
-                    record.conversation.push(message)
-                }
-                return record
-            })
+
+            // Verificar si la conversación existe
+            const existingRecord = previousConversationRecord.find(record => record.id === id);
+
+            let conversationRecord;
+
+            if (existingRecord) {
+                // Si la conversación existe, añadir el mensaje
+                conversationRecord = structuredClone(previousConversationRecord).map((record) => {
+                    if (id === record.id) {
+                        // Registrar debug para revisar el mensaje
+                        console.log('Añadiendo mensaje a conversación existente:', id, message);
+                        record.conversation.push(message);
+                    }
+                    return record;
+                });
+            } else {
+                // Si la conversación no existe, crearla con el mensaje
+                console.log('Creando nueva conversación para:', id);
+                const newRecord = {
+                    id,
+                    conversation: [message]
+                };
+                conversationRecord = [...previousConversationRecord, newRecord];
+            }
+
             return {
                 conversationRecord,
-            }
+            };
         }),
     deleteConversationRecord: (payload) =>
         set(() => {
@@ -165,16 +184,58 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 activeTemplateId: templateId,
             }
         }),
-    // Implementación de la nueva acción fetchTemplates
+    // Implementación de la acción fetchTemplates compatible con SSR
     fetchTemplates: async () => {
         try {
-            const templatesData = await apiGetChatTemplates() // Llama al servicio API
-            if (templatesData) {
-                get().setTemplates(templatesData) // Usa la acción existente para actualizar el estado
+            // Solo ejecutar fetch en el cliente, nunca en el servidor
+            if (typeof window !== 'undefined') {
+                console.log('Obteniendo plantillas desde API (cliente)...');
+
+                try {
+                    // Primer intento: obtener plantillas reales del backend
+                    const response = await fetch('/api/chatbot/public-templates', {
+                        method: 'GET',
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        },
+                        credentials: 'include' // Incluir cookies para el tenant_id
+                    });
+
+                    if (response.ok) {
+                        const jsonData = await response.json();
+
+                        if (jsonData && jsonData.success && Array.isArray(jsonData.templates)) {
+                            const templates = jsonData.templates;
+                            console.log('Plantillas obtenidas desde API:', templates);
+
+                            if (templates.length > 0) {
+                                // NO agregamos ninguna plantilla personalizada
+                                // SOLO usamos exactamente lo que viene del servidor
+                                console.log('Usando SOLO las plantillas obtenidas del servidor:', templates.map(t => t.name).join(', '));
+
+                                get().setTemplates(templates);
+                                return templates;
+                            }
+                        }
+                    } else {
+                        console.warn('Error en la respuesta de la API:', response.status, response.statusText);
+                    }
+                } catch (fetchError) {
+                    console.warn('Error al obtener plantillas de la API:', fetchError);
+                }
             }
+
+            // Si estamos en el servidor o hubo un error, no mostrar ninguna plantilla
+            // IMPORTANTE: NO usar plantillas predeterminadas
+            console.log('No se pudieron obtener plantillas del servidor. No se usará ninguna plantilla predeterminada.');
+
+            // Devolvemos array vacío para forzar error explícito
+            get().setTemplates([]);
+            return [];
         } catch (error) {
-            console.error('Error fetching templates in store:', error)
-            // Opcionalmente, manejar el estado de error en el store
+            console.error('Error general al configurar plantillas en store:', error)
+            return [];
         }
     },
 }))

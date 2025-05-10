@@ -105,17 +105,28 @@ const ChatbotPreview: React.FC<ChatbotPreviewProps> = ({
             return false
         }
 
-        const containsVoiceNodes = nodes.some(isVoiceNode)
+        // Buscar nodos específicos de voz
+        const voiceNodes = nodes.filter(isVoiceNode)
+        const containsVoiceNodes = voiceNodes.length > 0
+
+        // Verifica si el nodo de inicio tiene una configuración de modo de voz
+        const startNode = nodes.find(node => node.type === 'startNode' || node.type === 'start')
+        const hasVoiceModeConfig = startNode?.data?.voiceMode === true ||
+                                   startNode?.data?.mode === 'voice' ||
+                                   startNode?.data?.botType === 'voicebot'
+
+        // Determinar si es voicebot basado en nodos o configuración
+        const isVoiceBotFlow = containsVoiceNodes || hasVoiceModeConfig
 
         console.log(
             'Detección de tipo de bot:',
-            containsVoiceNodes ? 'voicebot' : 'chatbot',
+            isVoiceBotFlow ? 'voicebot' : 'chatbot',
             'Nodos detectados con capacidades de voz:',
-            nodes
-                .filter(isVoiceNode)
-                .map((n) => ({ id: n.id, type: n.type, label: n.data?.label })),
+            voiceNodes.map((n) => ({ id: n.id, type: n.type, label: n.data?.label })),
+            'Configuración de voz en nodo inicio:', hasVoiceModeConfig
         )
-        setIsVoiceBot(containsVoiceNodes)
+
+        setIsVoiceBot(isVoiceBotFlow)
 
         // Buscar configuración de duración máxima en nodos STT
         nodes.forEach((node) => {

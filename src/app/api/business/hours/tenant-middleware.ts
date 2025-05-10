@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { cookies } from 'next/headers';
 
+// Logging helper para depuración
+const logSession = (session: any, context: string) => {
+  console.log(`[${context}] Datos de sesión:`, {
+    id: session?.user?.id,
+    role: session?.user?.role,
+    tenant_id: session?.user?.tenant_id,
+    authority: session?.user?.authority,
+  });
+};
+
 /**
  * Middleware para verificar y obtener el tenant_id de la sesión
  * @param req - NextRequest
@@ -10,6 +20,7 @@ import { cookies } from 'next/headers';
 export async function getTenantFromRequest(req: NextRequest) {
   try {
     const session = await auth();
+    logSession(session, 'getTenantFromRequest');
     
     if (!session) {
       return {
@@ -17,8 +28,8 @@ export async function getTenantFromRequest(req: NextRequest) {
       };
     }
 
-    // Obtener tenant_id desde la sesión del usuario
-    const tenant_id = session.user?.app_metadata?.tenant_id;
+    // Obtener tenant_id directamente desde la sesión del usuario
+    const tenant_id = session.user?.tenant_id;
     
     if (!tenant_id) {
       return {
@@ -43,6 +54,7 @@ export async function getTenantFromRequest(req: NextRequest) {
 export async function verifyAdminOrManager(req: NextRequest) {
   try {
     const session = await auth();
+    logSession(session, 'verifyAdminOrManager');
     
     if (!session) {
       return {
@@ -50,8 +62,9 @@ export async function verifyAdminOrManager(req: NextRequest) {
       };
     }
 
-    const tenant_id = session.user?.app_metadata?.tenant_id;
-    const role = session.user?.app_metadata?.role;
+    // Obtener datos directamente
+    const tenant_id = session.user?.tenant_id;
+    const role = session.user?.role;
     
     if (!tenant_id) {
       return {
@@ -59,7 +72,8 @@ export async function verifyAdminOrManager(req: NextRequest) {
       };
     }
     
-    const isAdmin = role === 'admin' || role === 'manager';
+    // Comprobar si tiene rol de administrador (super_admin, tenant_admin o manager)
+    const isAdmin = role === 'super_admin' || role === 'tenant_admin' || role === 'admin' || role === 'manager';
     
     if (!isAdmin) {
       return {

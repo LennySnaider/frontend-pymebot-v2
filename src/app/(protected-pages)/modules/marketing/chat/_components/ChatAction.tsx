@@ -10,14 +10,19 @@ import {
     TbShare3,
     TbTrash,
     TbUserPlus,
+    TbUserExclamation,
+    TbUserCheck,
+    TbArrowsExchange,
 } from 'react-icons/tb'
 import type { DropdownRef } from '@/components/ui/Dropdown'
 
 type ChatActionProps = {
-    muted?: boolean
+    muted?: boolean;
+    testAsLead?: boolean;
+    onToggleTestMode?: () => void;
 }
 
-const ChatAction = ({ muted }: ChatActionProps) => {
+const ChatAction = ({ muted, testAsLead, onToggleTestMode }: ChatActionProps) => {
     const dropdownRef = useRef<DropdownRef>(null)
     const selectedChat = useChatStore((state) => state.selectedChat)
     const setSelectedChat = useChatStore((state) => state.setSelectedChat)
@@ -54,6 +59,19 @@ const ChatAction = ({ muted }: ChatActionProps) => {
                     </span>
                     <span>{muted ? 'Unmute' : 'Mute'}</span>
                 </Dropdown.Item>
+                {/* Modo de prueba toggle - Agregado para super_admin */}
+                <Dropdown.Item
+                    eventKey="toggleTestMode"
+                    onClick={() => onToggleTestMode && onToggleTestMode()}
+                >
+                    <span className="text-lg text-blue-500">
+                        {testAsLead ? <TbUserCheck /> : <TbUserExclamation />}
+                    </span>
+                    <span className={testAsLead ? "text-blue-600 font-bold" : ""}>
+                        {testAsLead ? "Modo Lead Activado" : "Activar Modo Lead"}
+                    </span>
+                </Dropdown.Item>
+
                 {selectedChat.chatType === 'groups' ? (
                     <Dropdown.Item eventKey="inviteMember">
                         <span className="text-lg">

@@ -65,22 +65,58 @@ const AppointmentSettings = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
+      
+      // Verificar primero si el usuario está autenticado
+      // Si no está autenticado, utilizar valores predeterminados
       const response = await fetch('/api/appointments/settings');
       
-      if (!response.ok) {
-        toast.push(
-          <Notification title={t('common.error')} type="danger">
-            {t('appointments.settings.fetch_error')}
-          </Notification>
-        );
-        throw new Error('Error al obtener configuración');
+      // Si la respuesta es una redirección (status 302), usamos valores por defecto
+      if (response.redirected || !response.ok) {
+        console.warn('Usando configuración por defecto debido a error en la API:', 
+          response.status, response.statusText, response.redirected ? 'Redirección' : '');
+        
+        // Solo mostrar notificación si no es una redirección por falta de autenticación
+        if (!response.redirected) {
+          toast.push(
+            <Notification title={t('common.error')} type="danger">
+              {t('appointments.settings.fetch_error')}
+            </Notification>
+          );
+        }
+        
+        // Usar configuración por defecto en lugar de lanzar un error
+        setSettings({
+          appointment_duration: 30,
+          buffer_time: 0,
+          max_daily_appointments: null,
+          min_notice_minutes: 60,
+          max_future_days: 30,
+          require_approval: false,
+          reminder_time_hours: 24,
+        });
+        
+        setLoading(false);
+        return;
       }
       
       const data = await response.json();
+      console.log('Configuración cargada:', data);
       setSettings(data);
       setLoading(false);
     } catch (error) {
       console.error('Error al cargar configuración:', error);
+      
+      // En caso de error, usar configuración por defecto
+      setSettings({
+        appointment_duration: 30,
+        buffer_time: 0,
+        max_daily_appointments: null,
+        min_notice_minutes: 60,
+        max_future_days: 30,
+        require_approval: false,
+        reminder_time_hours: 24,
+      });
+      
       setLoading(false);
     }
   };
@@ -153,8 +189,29 @@ const AppointmentSettings = () => {
         body: JSON.stringify(settings),
       });
       
+      // Manejar redirecciones por falta de autenticación
+      if (response.redirected) {
+        console.warn('Redirección al intentar guardar configuración:', response.url);
+        toast.push(
+          <Notification title={t('common.error')} type="danger">
+            Se requiere iniciar sesión para guardar la configuración
+          </Notification>
+        );
+        setSaving(false);
+        return;
+      }
+      
       if (!response.ok) {
-        throw new Error('Error al guardar configuración');
+        console.error('Error al guardar configuración:', response.status, response.statusText);
+        throw new Error(`Error ${response.status}: ${response.statusText || 'Error al guardar configuración'}`);
+      }
+      
+      // Intentar procesar respuesta JSON
+      try {
+        const result = await response.json();
+        console.log('Respuesta del servidor al guardar:', result);
+      } catch (jsonError) {
+        console.warn('No se pudo procesar respuesta como JSON:', jsonError);
       }
       
       toast.push(
@@ -169,7 +226,7 @@ const AppointmentSettings = () => {
       console.error('Error al guardar configuración:', error);
       toast.push(
         <Notification title={t('common.error')} type="danger">
-          {t('appointments.settings.save_error')}
+          {error instanceof Error ? error.message : t('appointments.settings.save_error')}
         </Notification>
       );
     } finally {

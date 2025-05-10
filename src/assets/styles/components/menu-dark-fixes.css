@@ -1,0 +1,80 @@
+/**
+ * frontend/src/assets/styles/components/menu-dark-fixes.css
+ * Correcciones específicas para el menú lateral en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Restaurar colores de texto del menú lateral */
+.dark .menu-item {
+  color: var(--menu-item-color) !important;
+  opacity: 1 !important;
+}
+
+.dark .menu-item.menu-item-hoverable:hover {
+  color: var(--menu-item-hover-color) !important;
+  background-color: var(--menu-item-hover-bg) !important;
+}
+
+.dark .menu-item.menu-item-active {
+  color: var(--menu-item-active-color) !important;
+}
+
+.dark .menu-item.menu-item-active:hover {
+  color: var(--menu-item-active-color) !important;
+}
+
+/* Estilo para items de menú desplegables */
+.dark .menu-collapse-item {
+  color: var(--menu-item-color) !important;
+}
+
+.dark .menu-collapse-item:hover {
+  color: var(--menu-item-hover-color) !important;
+  background-color: var(--menu-item-hover-bg) !important;
+}
+
+.dark .menu-collapse-item.menu-collapse-item-active {
+  color: var(--menu-item-active-color) !important;
+}
+
+/* Títulos de grupo de menú */
+.dark .menu-title {
+  color: var(--menu-title-color) !important;
+}
+
+/* Estilos específicos para el componente de navegación vertical */
+.dark .side-nav .menu-item {
+  color: var(--menu-item-color) !important;
+}
+
+.dark .side-nav .menu-item.menu-item-active {
+  color: var(--menu-item-active-color) !important;
+}
+
+.dark .side-nav .menu-collapse-item {
+  color: var(--menu-item-color) !important;
+}
+
+.dark .side-nav .menu-collapse-item.menu-collapse-item-active {
+  color: var(--menu-item-active-color) !important;
+}
+
+/* Iconos en el menú lateral */
+.dark .side-nav .menu-item .menu-item-icon,
+.dark .side-nav .menu-collapse-item .menu-item-icon {
+  color: inherit !important;
+}
+
+/* Textos específicos para la navegación */
+.dark .side-nav {
+  --tw-text-opacity: 1 !important;
+}
+
+/* Asegurar que los textos del menú se ven correctamente */
+.dark .menu-title,
+.dark .menu-group-title,
+.dark .menu-item-text,
+.dark .menu-collapse-text {
+  color: var(--menu-item-color) !important;
+}

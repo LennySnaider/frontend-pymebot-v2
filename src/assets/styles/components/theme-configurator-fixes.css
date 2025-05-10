@@ -1,0 +1,86 @@
+/**
+ * frontend/src/assets/styles/components/theme-configurator-fixes.css
+ * Correcciones específicas para el configurador de tema en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Estilos para texto en ThemeConfigurator */
+.dark div[role="dialog"] h6 {
+  color: var(--dark-text-primary) !important;
+  font-weight: 600;
+}
+
+.dark div[role="dialog"] span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Estilos para ThemeConfigurator específicos */
+.dark div[role="dialog"] .flex.items-center.justify-between h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark div[role="dialog"] .flex.items-center.justify-between span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Estilos para el contenedor del configurador */
+.dark div[role="dialog"] .flex.flex-col.h-full.justify-between h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark div[role="dialog"] .flex.flex-col.h-full.justify-between span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Estilos para secciones del configurador */
+.dark div[role="dialog"] .flex.flex-col.gap-y-10 h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark div[role="dialog"] .flex.flex-col.gap-y-10 span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Estilos específicos para opciones dentro del configurador */
+.dark div[role="dialog"] .flex div h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark div[role="dialog"] .flex div span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Estilos para ThemeConfigurator por identificadores de clase */
+.dark .theme-configurator h6,
+.dark [class*="ThemeConfigurator"] h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark .theme-configurator span,
+.dark [class*="ThemeConfigurator"] span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Selectores altamente específicos para el configurador de tema */
+html.dark div[role="dialog"] h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark div[role="dialog"] span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Super specificity */
+html.dark body div[role="dialog"] div h6 {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark body div[role="dialog"] div span {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Ultimo recurso - establecer todos los textos del diálogo en el color correcto */
+html.dark div[role="dialog"] {
+  color: var(--dark-text-primary) !important;
+}

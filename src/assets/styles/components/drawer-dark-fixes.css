@@ -1,0 +1,118 @@
+/**
+ * frontend/src/assets/styles/components/drawer-dark-fixes.css
+ * Correcciones específicas para los drawers en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Estilos para texto del drawer en modo oscuro */
+.dark .drawer-header h4,
+.dark .drawer-header h5,
+.dark .drawer-header h6,
+.dark .drawer-header span {
+  color: var(--drawer-header-text) !important;
+}
+
+.dark .drawer-body {
+  color: var(--drawer-body-text) !important;
+}
+
+.dark .drawer-body p,
+.dark .drawer-body span,
+.dark .drawer-body label,
+.dark .drawer-body div {
+  color: var(--drawer-body-text) !important;
+}
+
+.dark .drawer-body h1,
+.dark .drawer-body h2,
+.dark .drawer-body h3,
+.dark .drawer-body h4,
+.dark .drawer-body h5,
+.dark .drawer-body h6 {
+  color: var(--drawer-header-text) !important;
+}
+
+.dark .drawer-footer {
+  color: var(--drawer-body-text) !important;
+}
+
+/* Estilos específicos para el configurador de tema */
+.dark [role="dialog"] h6 {
+  color: var(--dialog-title-text) !important;
+  font-weight: 600;
+}
+
+.dark [role="dialog"] span,
+.dark [role="dialog"] p {
+  color: var(--dialog-description-text) !important;
+}
+
+/* Estilos para títulos y textos específicos */
+.dark .flex.items-center.justify-between h6 {
+  color: var(--config-title-text) !important;
+}
+
+.dark .flex.items-center.justify-between span {
+  color: var(--config-description-text) !important;
+}
+
+/* Corregir textos en elementos de configuración de tema */
+.dark .theme-configurator-container h6,
+.dark .theme-configurator h6,
+.dark [class*="ThemeConfigurator"] h6,
+.dark [class*="configurator"] h6,
+.dark [class*="Configurator"] h6 {
+  color: var(--config-title-text) !important;
+}
+
+.dark .theme-configurator-container span,
+.dark .theme-configurator span,
+.dark [class*="ThemeConfigurator"] span,
+.dark [class*="configurator"] span,
+.dark [class*="Configurator"] span {
+  color: var(--config-description-text) !important;
+}
+
+/* Estilos para botones en drawers */
+.dark .drawer button {
+  color: inherit;
+}
+
+/* Asegurar que los elementos interactivos sean visibles */
+.dark .drawer-content a,
+.dark .drawer-content button:not([disabled]) {
+  color: var(--color-primary-500);
+}
+
+/* Estilos para el selector de tema */
+.dark .theme-selector,
+.dark .layout-selector {
+  color: var(--drawer-header-text) !important;
+}
+
+/* Estilos específicos para el ThemeConfigurator */
+.dark .flex.flex-col.h-full.justify-between h6 {
+  color: var(--config-title-text) !important;
+}
+
+.dark .flex.flex-col.h-full.justify-between span {
+  color: var(--config-description-text) !important;
+}
+
+.dark .flex.flex-col.gap-y-10.mb-6 h6 {
+  color: var(--config-title-text) !important;
+}
+
+.dark .flex.flex-col.gap-y-10.mb-6 span {
+  color: var(--config-description-text) !important;
+}
+
+/* Estilos más específicos para elementos del theme configurator */
+.dark div[role="dialog"] .flex.items-center.justify-between h6 {
+  color: var(--config-title-text) !important;
+}
+
+.dark div[role="dialog"] .flex.items-center.justify-between span {
+  color: var(--config-description-text) !important;
+}

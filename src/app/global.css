@@ -2,3 +2,23 @@
 @import '/styles/animations.css';
 
 /* Archivo global.css */
+
+/*
+ * Forzar modo oscuro para el nodo de CheckAvailability en ReactFlow
+ */
+[data-testid="check-availability-dark"],
+.react-flow__node[data-type="check-availability"],
+.react-flow__node[data-type="check_availability"],
+.react-flow__node[data-type="checkAvailability"],
+.react-flow__node-check-availability,
+.react-flow__node-check_availability,
+.react-flow__node-checkAvailability {
+  background-color: #1a1a1a !important;
+  color: #e5e7eb !important;
+}
+
+.dark [data-node-dark="true"],
+.dark [data-testid="check-availability-dark"] {
+  background-color: #1a1a1a !important;
+  color: #e5e7eb !important;
+}

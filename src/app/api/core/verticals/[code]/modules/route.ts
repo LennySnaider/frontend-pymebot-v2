@@ -44,16 +44,17 @@ export async function GET(
   { params }: RouteParams
 ) {
   try {
-    const { code } = params;
-    
+    // Esperamos para acceder a los parámetros de ruta
+    const { code } = await Promise.resolve(params);
+
     // Obtener parámetros de consulta
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
     const enabledOnly = searchParams.get('enabled') === 'true';
     const includeDisabled = searchParams.get('includeDisabled') === 'true';
-    
+
     // Establecer headers
-    const headersList = headers();
+    const headersList = await headers();
     const tenantId = headersList.get('x-tenant-id') || 'default';
     const userRole = headersList.get('x-user-role') || 'agent';
     
@@ -137,10 +138,11 @@ export async function POST(
   { params }: RouteParams
 ) {
   try {
-    const { code } = params;
-    
+    // Esperamos para acceder a los parámetros de ruta
+    const { code } = await Promise.resolve(params);
+
     // Verificar permisos (super_admin)
-    const headersList = headers();
+    const headersList = await headers();
     const role = headersList.get('x-user-role');
     
     if (role !== 'super_admin') {

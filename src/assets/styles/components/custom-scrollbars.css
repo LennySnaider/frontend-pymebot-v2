@@ -1,0 +1,112 @@
+/**
+ * frontend/src/assets/styles/components/custom-scrollbars.css
+ * Estilos personalizados para scrollbars en toda la aplicación
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Estilos base para scrollbars (afecta a todos los modos) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.6);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+
+/* Estilos específicos para modo oscuro */
+.dark ::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.4);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(75, 85, 99, 0.7);
+}
+
+/* Firefox en modo oscuro */
+.dark * {
+  scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
+}
+
+/* Scrollbars para componentes específicos */
+
+/* Contenedores de tablas */
+.table-container::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Modales y diálogos */
+.modal::-webkit-scrollbar,
+.dialog::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* ReactFlow */
+.react-flow::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.react-flow::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+}
+
+.dark .react-flow::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+/* Áreas de contenido principal */
+.content-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Menús desplegables y sidebars */
+.dropdown-menu::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Áreas de código y textareas */
+pre::-webkit-scrollbar,
+textarea::-webkit-scrollbar,
+code::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark pre::-webkit-scrollbar-thumb,
+.dark textarea::-webkit-scrollbar-thumb,
+.dark code::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+/* Scrollbars para select y datepickers */
+.select__menu-list::-webkit-scrollbar,
+.datepicker::-webkit-scrollbar {
+  width: 4px;
+}

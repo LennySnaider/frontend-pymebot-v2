@@ -11,19 +11,24 @@ import { BusinessHourExceptionRequest } from '../types';
 export async function GET(req: NextRequest) {
   try {
     // Verificar tenant
+    console.log('GET /api/business/hours/exceptions - Iniciando solicitud');
     const tenantResult = await getTenantFromRequest(req);
     
     if (tenantResult.error) {
+      console.log('GET /api/business/hours/exceptions - Error en tenant:', tenantResult.error);
       return tenantResult.error;
     }
     
     const { tenant_id } = tenantResult;
+    console.log('GET /api/business/hours/exceptions - Tenant ID:', tenant_id);
     
     // Obtener parámetros de consulta
     const searchParams = req.nextUrl.searchParams;
     const location_id = searchParams.get('location_id');
     const start_date = searchParams.get('start_date');
     const end_date = searchParams.get('end_date');
+    
+    console.log('GET /api/business/hours/exceptions - Parámetros:', { location_id, start_date, end_date });
     
     // Construir consulta
     let query = supabase
@@ -46,7 +51,7 @@ export async function GET(req: NextRequest) {
       query = query.lte('exception_date', end_date);
     }
     
-    const { data, error } = await query;
+    const { data, error, count } = await query;
     
     if (error) {
       console.error('Error al obtener excepciones de horarios:', error);
@@ -54,6 +59,12 @@ export async function GET(req: NextRequest) {
         { error: 'Error al obtener excepciones de horarios' },
         { status: 500 }
       );
+    }
+    
+    console.log(`GET /api/business/hours/exceptions - Encontradas ${data?.length || 0} excepciones`);
+    
+    if (data && data.length > 0) {
+      console.log('Primera excepción:', data[0]);
     }
     
     return NextResponse.json(data || [], { status: 200 });

@@ -1,12 +1,13 @@
 /**
  * Exportación de funciones de ejecución para los nodos de negocio
- * @version 1.2.0
- * @updated 2025-07-05
+ * @version 1.3.0
+ * @updated 2025-09-05
  */
 
-// Importar las funciones de ejecución
+// Importar las funciones de ejecución directamente desde los archivos de componentes
 import { executeRescheduleAppointment } from '@/components/view/ChatbotBuilder/nodes/RescheduleAppointmentNode';
 import { executeCheckAvailability } from '@/components/view/ChatbotBuilder/nodes/CheckAvailabilityNode';
+import { executeCancelAppointment } from '@/components/view/ChatbotBuilder/nodes/CancelAppointmentNode';
 import { executeServicesNode } from '@/components/view/ChatbotBuilder/nodes/ServicesNode';
 import { executeProductNode } from '@/components/view/ChatbotBuilder/nodes/ProductNode';
 
@@ -14,6 +15,7 @@ import { executeProductNode } from '@/components/view/ChatbotBuilder/nodes/Produ
 export {
   executeRescheduleAppointment,
   executeCheckAvailability,
+  executeCancelAppointment,
   executeServicesNode,
   executeProductNode
 };
@@ -27,7 +29,10 @@ export const nodeExecutorsMap = {
   'CheckAvailabilityNode': executeCheckAvailability,
   'check-availability': executeCheckAvailability,
   'check_availability': executeCheckAvailability,
-  
+  'CancelAppointmentNode': executeCancelAppointment,
+  'cancel-appointment': executeCancelAppointment,
+  'cancel_appointment': executeCancelAppointment,
+
   // Nodos de productos y servicios
   'ServicesNode': executeServicesNode,
   'services': executeServicesNode,

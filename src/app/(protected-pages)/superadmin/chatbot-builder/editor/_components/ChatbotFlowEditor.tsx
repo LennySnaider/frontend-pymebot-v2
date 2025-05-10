@@ -73,12 +73,15 @@ interface TemplateData {
 }
 
 // Importar todos los nodos de negocio
-import { 
-    CheckAvailabilityNode,
+import {
     BookAppointmentNode,
     LeadQualificationNode,
-    RescheduleAppointmentNode 
+    RescheduleAppointmentNode,
+    CancelAppointmentNode,
+    ServicesNode,
+    ProductNode
 } from '@/modules/chatbot_business_nodes/components'
+import CheckAvailabilityNodeDark from '@/components/view/ChatbotBuilder/nodes/CheckAvailabilityNodeDark'
 import ActionNode from '@/components/view/ChatbotBuilder/nodes/ActionNode'
 
 // Definición de tipos de nodos personalizados
@@ -98,11 +101,11 @@ const nodeTypes: NodeTypes = {
     ttsNode: TTSNode,
     sttNode: STTNode,
     endNode: EndNode,
-    
+
     // Nodos de negocio
-    'check-availability': CheckAvailabilityNode,
-    check_availability: CheckAvailabilityNode,
-    checkAvailability: CheckAvailabilityNode,
+    'check-availability': CheckAvailabilityNodeDark,
+    check_availability: CheckAvailabilityNodeDark,
+    checkAvailability: CheckAvailabilityNodeDark,
     'book-appointment': BookAppointmentNode,
     book_appointment: BookAppointmentNode,
     bookAppointment: BookAppointmentNode,
@@ -112,6 +115,20 @@ const nodeTypes: NodeTypes = {
     'reschedule-appointment': RescheduleAppointmentNode,
     reschedule_appointment: RescheduleAppointmentNode,
     rescheduleAppointment: RescheduleAppointmentNode,
+    'cancel-appointment': CancelAppointmentNode,
+    cancel_appointment: CancelAppointmentNode,
+    cancelAppointment: CancelAppointmentNode,
+
+    // Nodos de productos y servicios
+    'services': ServicesNode,
+    services_list: ServicesNode,
+    'services-list': ServicesNode,
+    servicesNode: ServicesNode,
+    'products': ProductNode,
+    products_list: ProductNode,
+    'products-list': ProductNode,
+    productNode: ProductNode,
+
     action: ActionNode,
 }
 
@@ -867,13 +884,13 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                     />
                     <Controls className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 [&>button]:text-gray-600 [&>button]:dark:text-gray-300 [&>button]:border-gray-200 [&>button]:dark:border-gray-700 [&>button]:bg-white [&>button]:dark:bg-gray-800 [&>button:hover]:bg-gray-100 [&>button:hover]:dark:bg-gray-700" />
                     <MiniMap
-                        className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
                         nodeBorderRadius={2}
-                        nodeColor={'#e5e7eb'}
-                        nodeStrokeColor={'#9ca3af'}
+                        nodeColor={mode === MODE_DARK ? '#4b5563' : '#e5e7eb'}
+                        nodeStrokeColor={mode === MODE_DARK ? '#6b7280' : '#9ca3af'}
                         maskColor={
                             mode === MODE_DARK
-                                ? 'rgba(30, 41, 59, 0.7)'
+                                ? 'rgba(17, 24, 39, 0.7)'
                                 : 'rgba(240, 240, 240, 0.6)'
                         }
                         nodeClassName={
@@ -951,7 +968,7 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                     {/* Panel de tipos de nodos */}
                     <Panel
                         position="top-right"
-                        className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow"
+                        className="bg-transparent"
                     >
                         <NodesPanel />
                     </Panel>

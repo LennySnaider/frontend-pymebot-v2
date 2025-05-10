@@ -8,7 +8,7 @@
 
 import React, { useCallback } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import Select from '@/components/ui/Select';
+import { Select, Option } from '@/components/ui/Select';
 import { PiPackageDuotone } from 'react-icons/pi';
 import { apiGetProductList } from '@/services/ProductService';
 
@@ -157,10 +157,10 @@ const ProductNode: React.FC<NodeProps<ProductNodeData>> = ({
               value={category_id || ''}
               size="sm"
             >
-              <Select.Option value="">Todas las categorías</Select.Option>
-              <Select.Option value="1">Electrónica</Select.Option>
-              <Select.Option value="2">Ropa</Select.Option>
-              <Select.Option value="3">Hogar</Select.Option>
+              <Option value="">Todas las categorías</Option>
+              <Option value="1">Electrónica</Option>
+              <Option value="2">Ropa</Option>
+              <Option value="3">Hogar</Option>
             </Select>
           </div>
           
@@ -251,10 +251,10 @@ const ProductNode: React.FC<NodeProps<ProductNodeData>> = ({
               value={sort_by}
               size="sm"
             >
-              <Select.Option value="name">Nombre</Select.Option>
-              <Select.Option value="price">Precio</Select.Option>
-              <Select.Option value="popularity">Popularidad</Select.Option>
-              <Select.Option value="newest">Más recientes</Select.Option>
+              <Option value="name">Nombre</Option>
+              <Option value="price">Precio</Option>
+              <Option value="popularity">Popularidad</Option>
+              <Option value="newest">Más recientes</Option>
             </Select>
           </div>
           
@@ -265,8 +265,8 @@ const ProductNode: React.FC<NodeProps<ProductNodeData>> = ({
               value={sort_direction}
               size="sm"
             >
-              <Select.Option value="asc">Ascendente</Select.Option>
-              <Select.Option value="desc">Descendente</Select.Option>
+              <Option value="asc">Ascendente</Option>
+              <Option value="desc">Descendente</Option>
             </Select>
           </div>
           

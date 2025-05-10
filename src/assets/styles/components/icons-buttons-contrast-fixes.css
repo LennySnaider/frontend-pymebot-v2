@@ -1,0 +1,205 @@
+/**
+ * frontend/src/assets/styles/components/icons-buttons-contrast-fixes.css
+ * Correcciones específicas para mejorar el contraste de iconos y botones en toda la aplicación
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Iconos en botones y elementos interactivos */
+.dark .button svg,
+.dark button svg,
+.dark a svg,
+.dark .interactive svg {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Iconos específicos para acciones y funcionalidades */
+.dark .button[aria-label="Descargar"] svg,
+.dark button[aria-label="Descargar"] svg,
+.dark [aria-label*="download"] svg,
+.dark [aria-label*="descargar"] svg,
+.dark svg[data-icon="download"],
+.dark svg[data-icon="descargar"] {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Iconos de búsqueda */
+.dark .search-icon svg,
+.dark [aria-label*="search"] svg,
+.dark [aria-label*="buscar"] svg,
+.dark [aria-label*="busqueda"] svg,
+.dark input[type="search"] + div svg,
+.dark .input[type="search"] + div svg {
+  color: var(--dark-text-secondary) !important;
+  fill: var(--dark-text-secondary) !important;
+}
+
+/* Iconos de filtrado */
+.dark .filter-icon svg,
+.dark [aria-label*="filter"] svg,
+.dark [aria-label*="filtrar"] svg,
+.dark svg[data-icon="filter"],
+.dark svg[data-icon="filtrar"] {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Iconos específicos para acciones comunes */
+.dark [class*="añadir"] svg,
+.dark [class*="agregar"] svg,
+.dark [class*="crear"] svg,
+.dark [class*="nuevo"] svg,
+.dark [class*="Añadir"] svg,
+.dark [class*="Agregar"] svg,
+.dark [class*="Crear"] svg,
+.dark [class*="Nuevo"] svg,
+.dark [aria-label*="añadir"] svg,
+.dark [aria-label*="agregar"] svg,
+.dark [aria-label*="crear"] svg,
+.dark [aria-label*="nuevo"] svg {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+/* Iconos en campos de búsqueda */
+.dark input[placeholder*="Búsqueda"] ~ svg,
+.dark input[placeholder*="buscar"] ~ svg,
+.dark input[placeholder*="Buscar"] ~ svg,
+.dark input[placeholder*="búsqueda"] ~ svg,
+.dark [placeholder*="Búsqueda"] ~ svg,
+.dark [placeholder*="buscar"] ~ svg,
+.dark [placeholder*="Buscar"] ~ svg,
+.dark [placeholder*="búsqueda"] ~ svg {
+  color: var(--dark-text-secondary) !important;
+  fill: var(--dark-text-secondary) !important;
+}
+
+/* Iconos en botones principales */
+.dark .button[class*="bg-primary"] svg,
+.dark button[class*="bg-primary"] svg {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+/* Iconos en header y secciones principales */
+.dark header svg,
+.dark .header svg,
+.dark nav svg {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Mejorar contraste en iconos decorativos */
+.dark .icon-decorative svg,
+.dark .decorative-icon svg,
+.dark [class*="icon-decorative"] svg,
+.dark [class*="decorative-icon"] svg {
+  color: var(--dark-text-secondary) !important;
+  fill: var(--dark-text-secondary) !important;
+}
+
+/* Estilos específicos para botón de filtro */
+.dark [aria-label="Filtrar"] button,
+.dark [aria-label="Filtrar"] .button,
+.dark button[aria-label="Filtrar"],
+.dark .button[aria-label="Filtrar"] {
+  color: var(--dark-text-primary) !important;
+  background-color: var(--button-default-bg) !important;
+  border-color: var(--button-default-border) !important;
+}
+
+.dark [aria-label="Filtrar"] svg,
+.dark button[aria-label="Filtrar"] svg,
+.dark .button[aria-label="Filtrar"] svg {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Estilos específicos para botón de descarga */
+.dark [aria-label="Descargar"] button,
+.dark [aria-label="Descargar"] .button,
+.dark button[aria-label="Descargar"],
+.dark .button[aria-label="Descargar"] {
+  color: var(--dark-text-primary) !important;
+  background-color: var(--button-default-bg) !important;
+  border-color: var(--button-default-border) !important;
+}
+
+.dark [aria-label="Descargar"] svg,
+.dark button[aria-label="Descargar"] svg,
+.dark .button[aria-label="Descargar"] svg {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Mejorar contraste en iconos de navegación */
+.dark .navigation-icon svg,
+.dark .nav-icon svg,
+.dark [class*="navigation-icon"] svg,
+.dark [class*="nav-icon"] svg {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Estilos específicos para iconos en la sección de clientes */
+.dark h1[class*="cliente"] ~ div svg,
+.dark h1[class*="Cliente"] ~ div svg,
+.dark h2[class*="cliente"] ~ div svg,
+.dark h2[class*="Cliente"] ~ div svg,
+.dark [id*="cliente"] svg,
+.dark [id*="Cliente"] svg,
+.dark [class*="cliente"] svg,
+.dark [class*="Cliente"] svg {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Estilos específicos para cámaras y acciones de búsqueda */
+.dark .search-actions svg,
+.dark .search-controls svg,
+.dark [class*="search-actions"] svg,
+.dark [class*="search-controls"] svg {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}
+
+/* Mejorar iconos en campos de entrada */
+.dark .input-icon svg,
+.dark [class*="input-icon"] svg,
+.dark .input ~ svg,
+.dark input ~ svg {
+  color: var(--dark-text-secondary) !important;
+  fill: var(--dark-text-secondary) !important;
+}
+
+/* Selector de alta especificidad para campos de búsqueda */
+html.dark input[type="search"],
+html.dark input[type="text"][placeholder*="Búsqueda"],
+html.dark input[type="text"][placeholder*="buscar"],
+html.dark input[type="text"][placeholder*="Buscar"],
+html.dark input[type="text"][placeholder*="búsqueda"] {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+}
+
+/* Estilos para el ícono de búsqueda específico */
+html.dark .search-icon,
+html.dark [aria-label="Buscar"] svg,
+html.dark [aria-label="Búsqueda"] svg,
+html.dark button[aria-label="Buscar"] svg,
+html.dark button[aria-label="Búsqueda"] svg {
+  color: var(--dark-text-secondary) !important;
+  fill: var(--dark-text-secondary) !important;
+}
+
+/* Selectores específicos para el área de clientes */
+html.dark [id*="clientes"] svg,
+html.dark [id*="client"] svg,
+html.dark [class*="clientes"] svg,
+html.dark [class*="client"] svg {
+  color: var(--dark-text-primary) !important;
+  fill: var(--dark-text-primary) !important;
+}

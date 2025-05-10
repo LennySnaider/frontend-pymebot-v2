@@ -124,3 +124,7 @@ Esta documentación ofrece una visión clara y organizada del proyecto AgentProp
 - Usar ./build-with-timeout.sh o ./incremental-build-improved.sh para compilar
 - Evitar usar swcMinify en Next.js 15.1.6
 - Mantener NODE_OPTIONS="--max-old-space-size=16384" para compilaciones
+
+## Consideraciones Adicionales
+
+- No poner datos mock

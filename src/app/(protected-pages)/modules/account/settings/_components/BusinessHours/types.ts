@@ -17,12 +17,15 @@ export interface DaySchedule {
  */
 export interface DateException {
   id?: string;
+  tenant_id?: string;
   exception_date: string; // YYYY-MM-DD
   is_closed: boolean;
   open_time?: string; // HH:MM
   close_time?: string; // HH:MM
   reason?: string;
   location_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 /**

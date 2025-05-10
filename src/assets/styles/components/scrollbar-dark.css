@@ -1,0 +1,113 @@
+/**
+ * frontend/src/assets/styles/components/scrollbar-dark.css
+ * Estilos para personalizar scrollbars en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Scrollbars para navegadores WebKit (Chrome, Safari, Edge y Opera modernos) */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 5px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 5px;
+  border: 2px solid #1a1a1a;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+.dark ::-webkit-scrollbar-corner {
+  background: #1a1a1a;
+}
+
+/* Scrollbars para Firefox */
+.dark * {
+  scrollbar-width: thin;
+  scrollbar-color: #333333 #1a1a1a;
+}
+
+/* Scrollbars para Internet Explorer */
+.dark {
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+.dark div::-ms-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark div::-ms-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 5px;
+}
+
+.dark div::-ms-scrollbar-thumb {
+  background: #333333;
+  border-radius: 5px;
+  border: 2px solid #1a1a1a;
+}
+
+.dark div::-ms-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+/* Scrollbars específicos para áreas de ReactFlow */
+.dark .react-flow__pane::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark .react-flow__pane::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+.dark .react-flow__pane::-webkit-scrollbar-thumb {
+  background: #333333;
+  border: 1px solid #1a1a1a;
+}
+
+/* Scrollbars para las tablas */
+.dark .table-container::-webkit-scrollbar,
+.dark .overflow-x-auto::-webkit-scrollbar,
+.dark .overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark .table-container::-webkit-scrollbar-track,
+.dark .overflow-x-auto::-webkit-scrollbar-track,
+.dark .overflow-y-auto::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+.dark .table-container::-webkit-scrollbar-thumb,
+.dark .overflow-x-auto::-webkit-scrollbar-thumb,
+.dark .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #333333;
+}
+
+/* Scrollbars para modals y drawers */
+.dark .modal-content::-webkit-scrollbar,
+.dark .drawer-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark .modal-content::-webkit-scrollbar-track,
+.dark .drawer-content::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.dark .modal-content::-webkit-scrollbar-thumb,
+.dark .drawer-content::-webkit-scrollbar-thumb {
+  background: #333333;
+}

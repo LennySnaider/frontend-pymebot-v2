@@ -216,7 +216,7 @@ const ChatbotBuilderPage = () => {
             />
 
             <AdaptiveCard
-                className="mb-6"
+                className="mb-6 dark:bg-gray-800 dark:border-gray-700"
                 bodyClass="p-0"
                 header={{
                     content: <h4>Plantillas de Chatbot</h4>,
@@ -277,7 +277,7 @@ const ChatbotBuilderPage = () => {
                         key={`templates-list-${refreshTrigger}`} // Forzar recreación del componente al refrescar
                     />
                 ) : (
-                    <div className="p-6 text-center text-gray-500">
+                    <div className="p-6 text-center text-gray-500 dark:text-gray-400">
                         <PiRobotDuotone className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                         <p>
                             No se pudo conectar con la base de datos de

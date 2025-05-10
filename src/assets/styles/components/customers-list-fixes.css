@@ -1,0 +1,172 @@
+/**
+ * frontend/src/assets/styles/components/customers-list-fixes.css
+ * Correcciones específicas para la sección de clientes
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Correcciones específicas para la sección de clientes */
+.dark [class*="customer"] button,
+.dark [class*="Customer"] button,
+.dark [class*="cliente"] button,
+.dark [class*="Cliente"] button,
+.dark [id*="customer"] button,
+.dark [id*="Customer"] button,
+.dark [id*="cliente"] button,
+.dark [id*="Cliente"] button,
+.dark [class*="customer-list"] button,
+.dark [class*="Customer-list"] button,
+.dark [class*="lista-cliente"] button,
+.dark [class*="Lista-cliente"] button {
+  color: var(--button-default-text) !important;
+}
+
+/* Selector específico para la pantalla de clientes */
+.dark h3 ~ div button,
+.dark [class*="customer-list"] button,
+.dark [class*="CustomerList"] button {
+  color: var(--button-default-text) !important;
+}
+
+/* Estilos para el botón de descarga en la sección de clientes */
+.dark [data-icon="cloud-download"],
+.dark a[class*="download"] button,
+.dark button[class*="download"],
+.dark a[class*="cloud"] button,
+.dark button[class*="cloud"],
+.dark .CSVLink button {
+  color: var(--button-default-text) !important;
+  background-color: var(--button-default-bg) !important;
+  border-color: var(--button-default-border) !important;
+}
+
+/* Iconos en botones de descarga */
+.dark [data-icon="cloud-download"] svg,
+.dark [class*="download"] svg,
+.dark [class*="cloud"] svg,
+.dark .CSVLink button svg,
+.dark .TbCloudDownload {
+  color: var(--button-default-text) !important;
+  fill: var(--button-default-text) !important;
+}
+
+/* Estilos para botón de añadir cliente */
+.dark [data-icon="user-plus"],
+.dark [class*="user-plus"] svg,
+.dark [class*="UserPlus"] svg,
+.dark .TbUserPlus {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Estilos para componentes de búsqueda en la sección de clientes */
+.dark input[placeholder*="rápida"] ~ *,
+.dark input[placeholder*="Rápida"] ~ *,
+.dark [placeholder*="rápida"] ~ *,
+.dark [placeholder*="Rápida"] ~ *,
+.dark input[placeholder*="rápida"] + div svg,
+.dark input[placeholder*="Rápida"] + div svg,
+.dark [placeholder*="rápida"] + div svg,
+.dark [placeholder*="Rápida"] + div svg,
+.dark .TbSearch {
+  color: #e5e7eb !important;
+  fill: #e5e7eb !important;
+}
+
+/* Estilos para botón de filtro en la sección de clientes */
+.dark [data-icon="filter"],
+.dark [class*="filter"] button,
+.dark [class*="Filter"] button,
+.dark .TbFilter,
+.dark [aria-label*="filtro"] button,
+.dark [aria-label*="Filtro"] button,
+.dark [aria-label*="filter"] button,
+.dark [aria-label*="Filter"] button {
+  color: var(--button-default-text) !important;
+  background-color: var(--button-default-bg) !important;
+  border-color: var(--button-default-border) !important;
+}
+
+/* Iconos en botones de filtro */
+.dark [data-icon="filter"] svg,
+.dark [class*="filter"] svg,
+.dark [class*="Filter"] svg,
+.dark .TbFilter {
+  color: var(--button-default-text) !important;
+  fill: var(--button-default-text) !important;
+}
+
+/* Estilos específicos para el input de búsqueda rápida */
+.dark input[placeholder*="rápida"],
+.dark input[placeholder*="Rápida"],
+.dark input[placeholder*="quick"],
+.dark input[placeholder*="Quick"],
+.dark input.search-input {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  padding-right: 2.5rem !important; /* Espacio para el icono */
+}
+
+/* Corregir altura de botones para mejor alineación */
+.dark .CSVLink button,
+.dark [variant="solid"] {
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Corregir estilos de los iconos dentro de botones */
+.dark button .text-xl,
+.dark button .text-lg,
+.dark a button .text-xl,
+.dark a button .text-lg {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Corregir texto de cabecera de clientes */
+.dark h3 {
+  color: var(--dark-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Corregir botones dentro de diálogos de filtro */
+.dark [role="dialog"] .flex.justify-end button {
+  color: var(--button-default-text) !important;
+}
+
+.dark [role="dialog"] .flex.justify-end button[variant="solid"],
+.dark [role="dialog"] .flex.justify-end button[class*="variant-solid"] {
+  color: var(--button-solid-text) !important;
+}
+
+/* Correcciones para botones cuando se usa componentes de react-icons */
+.dark button[class*="icon"],
+.dark a button[class*="icon"],
+.dark button[class*="Icon"],
+.dark a button[class*="Icon"],
+.dark button[class*="svg"],
+.dark a button[class*="svg"] {
+  color: var(--button-default-text) !important;
+}
+
+.dark button svg,
+.dark a button svg {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+/* Forzar colores específicos para botones variante solid */
+.dark button[variant="solid"],
+.dark a button[variant="solid"],
+.dark button[variant="solid"] *,
+.dark a button[variant="solid"] *,
+.dark button[class*="solid"],
+.dark a button[class*="solid"],
+.dark button[class*="solid"] *,
+.dark a button[class*="solid"] * {
+  color: var(--button-solid-text) !important;
+}

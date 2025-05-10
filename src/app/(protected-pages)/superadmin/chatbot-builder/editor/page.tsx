@@ -7,6 +7,7 @@
 
 'use client'
 
+import './styles.css'
 import React, { useRef, useEffect, useState } from 'react'
 import { useTranslation } from '@/utils/hooks/useTranslation'
 import HeaderBreadcrumbs from '@/components/shared/HeaderBreadcrumbs'
@@ -26,7 +27,7 @@ import { supabase } from '@/services/supabase/SupabaseClient'
 import { initializeChatbotDB } from '@/utils/setupChatbotTemplatesDB'
 import { v4 as uuidv4 } from 'uuid'
 import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
+import { Select, Option } from '@/components/ui/Select'
 
 // Componente del editor
 const ChatbotEditorPage = () => {
@@ -327,17 +328,17 @@ const ChatbotEditorPage = () => {
                                     className="w-full"
                                     isLoading={loadingVerticals}
                                 >
-                                    <Select.Option value="">
+                                    <Option value="">
                                         Sin vertical
-                                    </Select.Option>
+                                    </Option>
                                     {verticals.map((vertical) => (
-                                        <Select.Option
+                                        <Option
                                             key={vertical.id}
                                             value={vertical.id}
                                         >
                                             {vertical.name} (
                                             {vertical.brand_name})
-                                        </Select.Option>
+                                        </Option>
                                     ))}
                                 </Select>
                                 <div className="text-xs text-gray-500 mt-1">
@@ -455,7 +456,7 @@ const ChatbotEditorPage = () => {
                 className="mb-6 h-[calc(100vh-240px)]"
                 bodyClass="p-0 h-full"
             >
-                <div className="w-full h-full">
+                <div className="w-full h-full chatbot-editor-container">
                     <ChatbotFlowEditor
                         templateId={templateId}
                         ref={editorRef}

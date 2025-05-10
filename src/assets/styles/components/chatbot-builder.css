@@ -1,0 +1,223 @@
+/**
+ * frontend/src/assets/styles/components/chatbot-builder.css
+ * Estilos para el constructor de chatbots, incluyendo soporte para modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Estilos generales para los nodos */
+.node-wrapper {
+  position: relative;
+  min-width: 250px;
+  max-width: 350px;
+}
+
+.node-wrapper.selected .node-container {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-500-rgb), 0.3);
+}
+
+.node-container {
+  background-color: white;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.node-icon {
+  margin-right: 8px;
+  font-size: 1rem;
+}
+
+.node-title {
+  flex: 1;
+}
+
+.node-content {
+  padding: 12px;
+}
+
+.node-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group {
+  margin-bottom: 8px;
+}
+
+/* Soporte para modo oscuro */
+.dark .node-container {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #4b5563; /* gray-600 */
+  color: #e5e7eb; /* gray-200 */
+}
+
+.dark .node-content {
+  color: #d1d5db; /* gray-300 */
+}
+
+.dark .form-group label {
+  color: #9ca3af; /* gray-400 */
+}
+
+/* Estilos específicos para tipos de nodos */
+.node-message .node-header {
+  background-color: #3b82f6; /* blue-500 */
+}
+
+.node-ai .node-header {
+  background-color: #8b5cf6; /* violet-500 */
+}
+
+.node-condition .node-header {
+  background-color: #f59e0b; /* amber-500 */
+}
+
+.node-input .node-header {
+  background-color: #10b981; /* emerald-500 */
+}
+
+.node-book-appointment .node-header {
+  background-color: #10b981; /* emerald-500 */
+}
+
+.node-cancel-appointment .node-header {
+  background-color: #ef4444; /* red-500 */
+}
+
+.dark .node-handle {
+  border-color: #1f2937 !important; /* gray-800 */
+}
+
+/* Specific node styles in dark mode */
+.dark .react-flow__node-check-availability .bg-white,
+.dark .react-flow__node-check_availability .bg-white,
+.dark .react-flow__node-checkAvailability .bg-white,
+.dark .react-flow__node-check-availability [class*="bg-white"],
+.dark .react-flow__node-check_availability [class*="bg-white"],
+.dark .react-flow__node-checkAvailability [class*="bg-white"] {
+  background-color: #1f2937 !important; /* gray-800 */
+}
+
+/* ReactFlow specific overrides for dark mode */
+.dark .react-flow__node {
+  color: #e5e7eb;
+}
+
+.dark .react-flow__edge-path {
+  stroke: #6b7280; /* gray-500 */
+}
+
+.dark .react-flow__attribution {
+  background-color: rgba(31, 41, 55, 0.8); /* gray-800 with opacity */
+  color: #d1d5db; /* gray-300 */
+}
+
+.dark .react-flow__controls {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #4b5563; /* gray-600 */
+}
+
+.dark .react-flow__controls button {
+  background-color: #374151; /* gray-700 */
+  border-color: #4b5563; /* gray-600 */
+  color: #e5e7eb; /* gray-200 */
+}
+
+.dark .react-flow__controls button:hover {
+  background-color: #4b5563; /* gray-600 */
+}
+
+/* Mini-map overrides for dark mode */
+.dark .react-flow__minimap {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #4b5563; /* gray-600 */
+}
+
+.dark .react-flow__minimap-mask {
+  fill: rgba(31, 41, 55, 0.7); /* gray-800 with opacity */
+}
+
+.dark .react-flow__minimap-node {
+  fill: #4b5563; /* gray-600 */
+  stroke: #6b7280; /* gray-500 */
+}
+
+/* Form elements in nodes (darkmode specific) */
+.dark .react-flow__node .form-select,
+.dark .react-flow__node select,
+.dark .react-flow__node input,
+.dark .react-flow__node textarea {
+  background-color: #374151 !important; /* gray-700 */
+  border-color: #4b5563 !important; /* gray-600 */
+  color: #e5e7eb !important; /* gray-200 */
+}
+
+.dark .react-flow__node .form-select option,
+.dark .react-flow__node select option {
+  background-color: #1f2937; /* gray-800 */
+  color: #e5e7eb; /* gray-200 */
+}
+
+/* Específico para el nodo de verificación de disponibilidad */
+.dark .check-availability-node,
+.dark .check-availability-node * {
+  color-scheme: dark;
+}
+
+/* Fuerza el fondo oscuro */
+.dark .react-flow__node[class*="check-availability"],
+.dark .react-flow__node[class*="checkAvailability"],
+.dark .react-flow__node-check-availability,
+.dark .react-flow__node-check_availability,
+.dark .react-flow__node-checkAvailability {
+  background-color: #1f2937 !important; /* gray-800 */
+  --bg-card: #1f2937 !important;
+  --bg-card-darker: #111827 !important;
+}
+
+/* Asegurarse de que todos los elementos del nodo tengan fondo oscuro */
+.dark .check-availability-node,
+.dark .check-availability-node > div,
+.dark .react-flow__node-check-availability,
+.dark .react-flow__node-check_availability,
+.dark .react-flow__node-checkAvailability,
+.dark div[data-type="check-availability"],
+.dark div[data-type="check_availability"],
+.dark div[data-type="checkAvailability"] {
+  background-color: #1f2937 !important; /* gray-800 */
+}
+
+/* Clase específica para forzar el fondo oscuro */
+.dark .node-dark-bg {
+  background-color: #1f2937 !important; /* gray-800 */
+}
+
+.dark .check-availability-node [class*="bg-white"],
+.dark .check-availability-node [class*="bg-gray-50"] {
+  background-color: #1f2937 !important; /* gray-800 */
+}
+
+.dark .check-availability-node .bg-white {
+  background-color: #1f2937 !important; /* gray-800 */
+}
+
+.dark .check-availability-node .text-gray-800 {
+  color: #e5e7eb !important; /* gray-200 */
+}
+
+.dark .check-availability-node .bg-gray-50 {
+  background-color: #374151 !important; /* gray-700 */
+}

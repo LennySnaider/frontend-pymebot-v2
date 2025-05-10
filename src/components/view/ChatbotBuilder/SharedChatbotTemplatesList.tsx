@@ -7,11 +7,11 @@
 
 'use client'
 
-import React, { useState, useEffect } from 'react' // Removed useRef
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
-import Button from '@/components/ui/Button' // Import Button
-import Input from '@/components/ui/Input' // Import Input
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
 import Table from '@/components/ui/Table'
 import { toast } from '@/components/ui/toast'
 import {
@@ -19,9 +19,10 @@ import {
     PiPencilSimpleLineBold,
     PiTrashBold,
     PiCopyBold,
-    // PiArrowDownBold, // Removed
+    PiArrowDownBold,
     PiUploadSimpleBold,
     PiRobotBold,
+    PiDownloadSimpleBold,
 } from 'react-icons/pi'
 import { v4 as uuidv4 } from 'uuid'
 import { format, formatDistance } from 'date-fns'
@@ -83,9 +84,11 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
     )
     // const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all') // Moved
     const [search, setSearch] = useState('')
+    const [importModalOpen, setImportModalOpen] = useState(false)
+    const [jsonContent, setJsonContent] = useState('')
 
     // Referencias
-    // const fileInputRef = useRef<HTMLInputElement>(null) // Moved
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
 
     // Cargar plantillas al iniciar
@@ -334,8 +337,154 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
         showSuccess('Plantilla eliminada correctamente')
     }
 
-    // // Manejar importación de plantilla - Moved
-    // const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => { ... }
+    // Procesar la importación de una plantilla a partir de un string JSON
+    const processTemplateImport = async (jsonString: string) => {
+        try {
+            const templateData = JSON.parse(jsonString)
+            
+            // Validar que es una plantilla válida
+            if (!templateData.name || !templateData.id) {
+                showError('El contenido no contiene una plantilla válida')
+                return
+            }
+            
+            // Generar un nuevo ID para evitar conflictos
+            const originalId = templateData.id
+            const newId = uuidv4()
+            
+            // Crear plantilla con metadata actualizada
+            const importedTemplate: Template = {
+                ...templateData,
+                id: newId,
+                name: `${templateData.name} (Importada)`,
+                status: 'draft',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }
+            
+            // Si tiene react_flow_json, actualizar los IDs de los nodos para evitar conflictos
+            if (importedTemplate.react_flow_json) {
+                try {
+                    // Actualizar referencias de ID en el react_flow_json
+                    const flowData = typeof importedTemplate.react_flow_json === 'string'
+                        ? JSON.parse(importedTemplate.react_flow_json)
+                        : importedTemplate.react_flow_json
+                        
+                    if (flowData.elements) {
+                        // Mapeo de IDs antiguos a nuevos para mantener las conexiones
+                        const idMapping: Record<string, string> = {}
+                        
+                        // Generar nuevos IDs para todos los nodos y guardar el mapeo
+                        flowData.elements = flowData.elements.map((el: any) => {
+                            // Si es un nodo (no un edge/conexión)
+                            if (el.type !== 'edge' && el.id) {
+                                const newNodeId = `${el.id}-${newId.substring(0, 8)}`
+                                idMapping[el.id] = newNodeId
+                                return { ...el, id: newNodeId }
+                            }
+                            return el
+                        })
+                        
+                        // Actualizar las conexiones con los nuevos IDs
+                        flowData.elements = flowData.elements.map((el: any) => {
+                            if (el.type === 'edge') {
+                                return {
+                                    ...el,
+                                    source: idMapping[el.source] || el.source,
+                                    target: idMapping[el.target] || el.target
+                                }
+                            }
+                            return el
+                        })
+                    }
+                    
+                    // Actualizar el react_flow_json con los nuevos IDs
+                    importedTemplate.react_flow_json = flowData
+                } catch (flowError) {
+                    console.warn('Error al actualizar IDs en react_flow_json:', flowError)
+                    // Continuar con la importación aunque haya errores en la actualización de IDs
+                }
+            }
+            
+            // Guardar en localStorage
+            try {
+                const storedTemplates = JSON.parse(
+                    localStorage.getItem(LOCAL_STORAGE_KEY) || '{}'
+                )
+                storedTemplates[newId] = importedTemplate
+                localStorage.setItem(
+                    LOCAL_STORAGE_KEY,
+                    JSON.stringify(storedTemplates)
+                )
+            } catch (e) {
+                console.warn('Error al guardar en localStorage:', e)
+            }
+            
+            // Intentar guardar en Supabase
+            try {
+                const { error } = await supabase.from('chatbot_templates').insert({
+                    ...importedTemplate,
+                    id: newId
+                })
+                
+                if (error) {
+                    console.warn('Error al guardar importación en Supabase:', error)
+                } else {
+                    console.log('Plantilla importada guardada en Supabase')
+                }
+            } catch (supabaseError) {
+                console.warn('Error al llamar a Supabase para importar:', supabaseError)
+            }
+            
+            // Actualizar la lista local
+            setTemplates([importedTemplate, ...templates])
+            showSuccess('Plantilla importada correctamente')
+            return true
+        } catch (parseError) {
+            console.error('Error al parsear JSON:', parseError)
+            showError('El contenido no contiene un JSON válido')
+            return false
+        }
+    }
+
+    // Manejar importación de plantilla desde archivo
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+        
+        try {
+            const reader = new FileReader()
+            
+            reader.onload = async (e) => {
+                const jsonString = e.target?.result as string
+                const success = await processTemplateImport(jsonString)
+                
+                // Limpiar el input file
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = ''
+                }
+            }
+            
+            reader.readAsText(file)
+        } catch (error) {
+            console.error('Error al importar plantilla:', error)
+            showError('Error al importar la plantilla')
+        }
+    }
+    
+    // Manejar importación desde texto pegado
+    const handleJsonImport = async () => {
+        if (!jsonContent.trim()) {
+            showError('Por favor, ingresa el contenido JSON de la plantilla')
+            return
+        }
+        
+        const success = await processTemplateImport(jsonContent)
+        if (success) {
+            setImportModalOpen(false)
+            setJsonContent('')
+        }
+    }
 
     // Filtrar plantillas según búsqueda y filtros
     const filteredTemplates = templates.filter((template) => {
@@ -359,17 +508,17 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
     // Renderizar contenido dinámicamente
     if (loading) {
         return (
-            <div className="bg-white rounded-lg shadow p-6 text-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center border border-gray-200 dark:border-gray-700">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-gray-600">Cargando plantillas...</p>
+                <p className="text-gray-600 dark:text-gray-300">Cargando plantillas...</p>
             </div>
         )
     }
 
     if (error) {
         return (
-            <div className="bg-white rounded-lg shadow p-6">
-                <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+                <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-lg mb-4">
                     <p className="font-medium">Error</p>
                     <p>{error}</p>
                 </div>
@@ -385,103 +534,111 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
 
     // Renderizar contenido principal (diferenciado entre admin y regular)
     return (
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
             {/* Barra de filtros y búsqueda */}
-            <div className="p-4 border-b border-gray-200">
-                <div className="mt-1">
-                    <Input
-                        type="text"
-                        className="w-full" // Simplified className, ECME Input handles styling
-                        placeholder="Buscar por nombre o descripción..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between items-center">
+                    <div className="flex-grow mr-4">
+                        <Input
+                            type="text"
+                            className="w-full" // Simplified className, ECME Input handles styling
+                            placeholder="Buscar por nombre o descripción..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex space-x-2">
+                        <Button
+                            variant="solid" 
+                            color="primary"
+                            size="sm"
+                            icon={<PiPlusCircleBold />}
+                            onClick={
+                                onCreateNew ||
+                                (() => {
+                                    const path = isAdmin
+                                        ? `/concepts/superadmin/chatbot-builder/editor`
+                                        : `/concepts/chatbot/template/new`
+                                    router.push(path)
+                                })
+                            }
+                        >
+                            Nueva Plantilla
+                        </Button>
+                    </div>
                 </div>
             </div>
 
             {/* Lista de plantillas */}
             {filteredTemplates.length === 0 ? (
                 <div className="p-8 text-center">
-                    <PiRobotBold className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">
+                    <PiRobotBold className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
                         No se encontraron plantillas con los filtros
                         seleccionados.
                     </p>
-                    <Button
-                        variant="solid" // Use ECME Button variant
-                        color="primary"
-                        onClick={
-                            onCreateNew ||
-                            (() => {
-                                const path = isAdmin
-                                    ? `/concepts/superadmin/chatbot-builder/editor`
-                                    : `/concepts/chatbot/template/new`
-                                router.push(path)
-                            })
-                        }
-                    >
-                        <PiPlusCircleBold className="h-4 w-4 inline mr-1" />
-                        Crear plantilla
-                    </Button>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
+                        Utiliza los botones en la parte superior para crear o importar una plantilla.
+                    </p>
                 </div>
             ) : (
                 <div className="overflow-x-auto">
-                    <Table className="min-w-full divide-y divide-gray-200">
-                        <THead className="bg-gray-50">
-                            <Tr>
+                    <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <THead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                            <Tr className="border-gray-200 dark:border-gray-700">
                                 <Th
                                     scope="col"
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
                                 >
                                     Nombre
                                 </Th>
                                 <Th
                                     scope="col"
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
                                 >
                                     {isAdmin ? 'Industria' : 'Estado'}
                                 </Th>
                                 <Th
                                     scope="col"
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
                                 >
                                     Publicado
                                 </Th>
                                 <Th
                                     scope="col"
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
                                 >
                                     Última actualización
                                 </Th>
                                 <Th
                                     scope="col"
-                                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
                                 >
                                     Acciones
                                 </Th>
                             </Tr>
                         </THead>
-                        <TBody className="bg-white divide-y divide-gray-200">
+                        <TBody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {filteredTemplates.map((template) => (
                                 <Tr
                                     key={template.id}
-                                    className="hover:bg-gray-50"
+                                    className="hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700"
                                 >
-                                    <Td className="px-6 py-4 whitespace-nowrap">
+                                    <Td className="px-6 py-4 whitespace-nowrap border-gray-200 dark:border-gray-700">
                                         <div className="flex items-center">
                                             <div>
-                                                <div className="text-sm font-medium text-gray-900">
+                                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {template.name}
                                                 </div>
-                                                <div className="text-sm text-gray-500 truncate max-w-xs">
+                                                <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
                                                     {template.description}
                                                 </div>
                                             </div>
                                         </div>
                                     </Td>
-                                    <Td className="px-6 py-4 whitespace-nowrap">
+                                    <Td className="px-6 py-4 whitespace-nowrap border-gray-200 dark:border-gray-700">
                                         {isAdmin ? (
-                                            <div className="text-sm text-gray-500">
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">
                                                 {template.vertical_name ||
                                                     'Sin categoría'}
                                             </div>
@@ -490,8 +647,8 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                                                 className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                                     template.status ===
                                                     'published'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-amber-100 text-amber-800'
+                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                                                        : 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300'
                                                 }`}
                                             >
                                                 {template.status === 'published'
@@ -500,13 +657,13 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                                             </span>
                                         )}
                                     </Td>
-                                    <Td className="px-6 py-4 whitespace-nowrap">
+                                    <Td className="px-6 py-4 whitespace-nowrap border-gray-200 dark:border-gray-700">
                                         <div className="flex items-center space-x-2">
                                             <span
                                                 className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                                     template.status === 'published'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-gray-100 text-gray-800'
+                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                                                 }`}
                                             >
                                                 {template.status === 'published'
@@ -515,31 +672,31 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                                             </span>
                                             {isAdmin && template.status === 'draft' && (
                                                 <button
-                                                    className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                                                    className="text-xs px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
                                                     onClick={async (e) => {
                                                         e.stopPropagation();
                                                         try {
                                                             // Actualizar en Supabase
                                                             const { error } = await supabase
                                                                 .from('chatbot_templates')
-                                                                .update({ 
+                                                                .update({
                                                                     status: 'published',
                                                                     updated_at: new Date().toISOString()
                                                                 })
                                                                 .eq('id', template.id);
-                                                            
+
                                                             if (error) throw error;
-                                                            
+
                                                             // Actualizar en localStorage
                                                             try {
                                                                 const storedTemplates = JSON.parse(
                                                                     localStorage.getItem(LOCAL_STORAGE_KEY) || '{}'
                                                                 );
-                                                                
+
                                                                 if (storedTemplates[template.id]) {
                                                                     storedTemplates[template.id].status = 'published';
                                                                     storedTemplates[template.id].updated_at = new Date().toISOString();
-                                                                    
+
                                                                     localStorage.setItem(
                                                                         LOCAL_STORAGE_KEY,
                                                                         JSON.stringify(storedTemplates)
@@ -548,16 +705,16 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                                                             } catch (localStorageError) {
                                                                 console.warn('Error al actualizar localStorage:', localStorageError);
                                                             }
-                                                            
+
                                                             // Actualizar estado local
-                                                            setTemplates(templates.map(t => 
-                                                                t.id === template.id 
-                                                                    ? {...t, status: 'published'} 
+                                                            setTemplates(templates.map(t =>
+                                                                t.id === template.id
+                                                                    ? {...t, status: 'published'}
                                                                     : t
                                                             ));
-                                                            
+
                                                             showSuccess('Plantilla publicada correctamente');
-                                                            
+
                                                         } catch (err) {
                                                             console.error('Error al publicar plantilla:', err);
                                                             showError('Error al publicar la plantilla');
@@ -569,14 +726,14 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                                             )}
                                         </div>
                                     </Td>
-                                    <Td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <Td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700">
                                         {formatDistance(
                                             new Date(template.updated_at),
                                             new Date(),
                                             { addSuffix: true, locale: es },
                                         )}
                                     </Td>
-                                    <Td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <Td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium border-gray-200 dark:border-gray-700">
                                         <div className="flex justify-end space-x-2">
                                             <Button
                                                 shape="circle"
@@ -604,57 +761,61 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                                                 }
                                                 title="Clonar"
                                             />
-                                            {!isAdmin && (
-                                                <Button
-                                                    shape="circle"
-                                                    size="sm"
-                                                    variant="plain"
-                                                    icon={
-                                                        <PiUploadSimpleBold />
+                                            <Button
+                                                shape="circle"
+                                                size="sm"
+                                                variant="plain"
+                                                icon={<PiUploadSimpleBold />}
+                                                onClick={() => setImportModalOpen(true)}
+                                                title="Importar"
+                                            />
+                                            <Button
+                                                shape="circle"
+                                                size="sm"
+                                                variant="plain"
+                                                icon={<PiDownloadSimpleBold />}
+                                                onClick={() => {
+                                                    // Exportar plantilla
+                                                    try {
+                                                        const dataStr =
+                                                            JSON.stringify(
+                                                                template,
+                                                                null,
+                                                                2,
+                                                            )
+                                                        const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`
+
+                                                        const exportName = `${template.name.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.json`
+
+                                                        const linkElement =
+                                                            document.createElement(
+                                                                'a',
+                                                            )
+                                                        linkElement.setAttribute(
+                                                            'href',
+                                                            dataUri,
+                                                        )
+                                                        linkElement.setAttribute(
+                                                            'download',
+                                                            exportName,
+                                                        )
+                                                        linkElement.click()
+
+                                                        showSuccess(
+                                                            'Plantilla exportada correctamente',
+                                                        )
+                                                    } catch (err) {
+                                                        console.error(
+                                                            'Error al exportar:',
+                                                            err,
+                                                        )
+                                                        showError(
+                                                            'Error al exportar la plantilla',
+                                                        )
                                                     }
-                                                    onClick={() => {
-                                                        // Exportar plantilla
-                                                        try {
-                                                            const dataStr =
-                                                                JSON.stringify(
-                                                                    template,
-                                                                    null,
-                                                                    2,
-                                                                )
-                                                            const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`
-
-                                                            const exportName = `${template.name.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.json`
-
-                                                            const linkElement =
-                                                                document.createElement(
-                                                                    'a',
-                                                                )
-                                                            linkElement.setAttribute(
-                                                                'href',
-                                                                dataUri,
-                                                            )
-                                                            linkElement.setAttribute(
-                                                                'download',
-                                                                exportName,
-                                                            )
-                                                            linkElement.click()
-
-                                                            showSuccess(
-                                                                'Plantilla exportada correctamente',
-                                                            )
-                                                        } catch (err) {
-                                                            console.error(
-                                                                'Error al exportar:',
-                                                                err,
-                                                            )
-                                                            showError(
-                                                                'Error al exportar la plantilla',
-                                                            )
-                                                        }
-                                                    }}
-                                                    title="Exportar"
-                                                />
-                                            )}
+                                                }}
+                                                title="Exportar"
+                                            />
                                             <Button
                                                 shape="circle"
                                                 size="sm"
@@ -682,22 +843,22 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                 <div className="fixed inset-0 z-50 overflow-y-auto">
                     <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         <div className="fixed inset-0 transition-opacity">
-                            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                            <div className="absolute inset-0 bg-gray-500 dark:bg-gray-800 opacity-75"></div>
                         </div>
                         <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>
                         &#8203;
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-200 dark:border-gray-700">
+                            <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                                 <div className="sm:flex sm:items-start">
-                                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                                        <PiTrashBold className="h-6 w-6 text-red-600" />
+                                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                                        <PiTrashBold className="h-6 w-6 text-red-600 dark:text-red-400" />
                                     </div>
                                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                        <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                                             Eliminar plantilla
                                         </h3>
                                         <div className="mt-2">
-                                            <p className="text-sm text-gray-500">
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                                 ¿Estás seguro de que deseas
                                                 eliminar esta plantilla? Esta
                                                 acción no se puede deshacer.
@@ -706,7 +867,7 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-gray-700">
                                 <Button
                                     type="button"
                                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
@@ -716,8 +877,88 @@ const SharedChatbotTemplatesList: React.FC<SharedChatbotTemplatesListProps> = ({
                                 </Button>
                                 <Button
                                     type="button"
-                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                                     onClick={() => setDeleteConfirmOpen(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Input file oculto para importar plantillas */}
+            <input 
+                type="file" 
+                ref={fileInputRef}
+                className="hidden" 
+                accept=".json" 
+                onChange={handleFileChange}
+            />
+
+            {/* Modal de importación */}
+            {importModalOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                    <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 transition-opacity">
+                            <div className="absolute inset-0 bg-gray-500 dark:bg-gray-800 opacity-75"></div>
+                        </div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>
+                        &#8203;
+                        <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-200 dark:border-gray-700">
+                            <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div className="sm:flex sm:items-start">
+                                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 sm:mx-0 sm:h-10 sm:w-10">
+                                        <PiUploadSimpleBold className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
+                                            Importar Plantilla
+                                        </h3>
+                                        <div className="mt-2">
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                                Pega el contenido JSON de la plantilla o selecciona un archivo
+                                            </p>
+                                            <div className="flex flex-col space-y-4">
+                                                <textarea
+                                                    className="w-full h-40 p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                                                    placeholder="Pega el JSON aquí..."
+                                                    value={jsonContent}
+                                                    onChange={(e) => setJsonContent(e.target.value)}
+                                                />
+                                                <div className="text-center">
+                                                    <span className="text-gray-500 dark:text-gray-400">- o -</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-700"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                >
+                                                    Seleccionar archivo JSON
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-gray-700">
+                                <Button
+                                    type="button"
+                                    color="primary"
+                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                    onClick={handleJsonImport}
+                                >
+                                    Importar
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="default"
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                                    onClick={() => {
+                                        setImportModalOpen(false)
+                                        setJsonContent('')
+                                    }}
                                 >
                                     Cancelar
                                 </Button>

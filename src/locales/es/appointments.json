@@ -1,0 +1,132 @@
+{
+  "appointments": {
+    "settings": {
+      "title": "Configuración de Horarios del Negocio",
+      "description": "Configure los horarios de atención, excepciones y tipos de citas para su negocio.",
+      "fetch_error": "Ocurrió un error al cargar la configuración",
+      "save_error": "Ocurrió un error al guardar la configuración",
+      "save_success": "Configuración guardada correctamente",
+      "tabs": {
+        "business_hours": "Horarios de Atención",
+        "exceptions": "Excepciones",
+        "appointment_settings": "Configuración de Citas",
+        "appointment_types": "Tipos de Citas",
+        "locations": "Ubicaciones"
+      },
+      "business_hours": {
+        "title": "Horarios de Atención",
+        "description": "Configure los días y horarios en que su negocio está abierto para atender citas.",
+        "open": "Abierto",
+        "closed": "Cerrado",
+        "open_time": "Hora de apertura",
+        "close_time": "Hora de cierre"
+      },
+      "exceptions": {
+        "title": "Excepciones de Horario",
+        "description": "Configure días específicos con horarios especiales o días cerrados por feriados.",
+        "add": "Agregar excepción",
+        "date": "Fecha",
+        "status": "Estado",
+        "hours": "Horario",
+        "reason": "Motivo",
+        "closed": "Cerrado",
+        "open": "Abierto",
+        "no_data": "No hay excepciones configuradas",
+        "date_required": "La fecha es obligatoria",
+        "hours_required": "Los horarios son obligatorios si el negocio está abierto",
+        "select_date": "Seleccione una fecha",
+        "reason_placeholder": "Por ejemplo: Feriado, Día especial, etc.",
+        "open_time": "Hora de apertura",
+        "close_time": "Hora de cierre",
+        "save_success": "Excepción guardada correctamente",
+        "delete_success": "Excepción eliminada correctamente",
+        "delete_error": "Ocurrió un error al eliminar la excepción"
+      },
+      "appointment_settings": {
+        "title": "Configuración de Citas",
+        "description": "Configure los parámetros generales para la programación de citas.",
+        "duration": "Duración predeterminada",
+        "duration_help": "Duración predeterminada para todas las citas",
+        "buffer": "Tiempo de descanso entre citas",
+        "buffer_help": "Tiempo adicional entre citas para preparación",
+        "max_daily": "Citas máximas por día",
+        "max_daily_help": "Deje en blanco para ilimitadas",
+        "unlimited": "Ilimitadas",
+        "min_notice": "Tiempo mínimo de anticipación",
+        "min_notice_help": "Cuánto tiempo antes se debe agendar una cita",
+        "max_future": "Días máximos de anticipación",
+        "max_future_help": "Cuánto tiempo en el futuro se pueden agendar citas",
+        "require_approval": "Requiere aprobación",
+        "require_approval_help": "Las citas deben ser aprobadas manualmente",
+        "reminder_time": "Tiempo de recordatorio",
+        "reminder_time_help": "Cuánto tiempo antes de la cita enviar recordatorio",
+        "notification_email": "Email para notificaciones",
+        "notification_email_help": "Reciba notificaciones de nuevas citas en este email",
+        "minutes": "minutos",
+        "hours": "horas",
+        "days": "días"
+      },
+      "types": {
+        "title": "Tipos de Cita",
+        "description": "Configure los diferentes tipos de cita que ofrece su negocio.",
+        "add": "Añadir Tipo",
+        "edit": "Editar Tipo",
+        "minutes": "min",
+        "no_data": "No hay tipos de cita configurados",
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "update_success": "Tipo de cita actualizado con éxito",
+        "create_success": "Tipo de cita creado con éxito",
+        "delete_success": "Tipo de cita eliminado con éxito",
+        "delete_error": "Error al eliminar el tipo de cita",
+        "delete_conflict": "No se puede eliminar porque tiene citas asignadas",
+        "fields": {
+          "name": "Nombre",
+          "description": "Descripción",
+          "duration": "Duración",
+          "color": "Color",
+          "buffer": "Tiempo entre citas",
+          "status": "Estado",
+          "max_daily": "Máximo diario",
+          "booking_url": "Enlace personalizado",
+          "requires_payment": "Requiere pago",
+          "payment_amount": "Monto",
+          "is_active": "Activo"
+        },
+        "placeholders": {
+          "name": "Ej. Consulta inicial",
+          "description": "Descripción breve del tipo de cita",
+          "booking_url": "Ej. consulta-inicial",
+          "unlimited": "Sin límite"
+        },
+        "errors": {
+          "name_required": "El nombre es obligatorio",
+          "duration_required": "La duración debe ser mayor que cero",
+          "buffer_non_negative": "El tiempo entre citas no puede ser negativo",
+          "max_non_negative": "El máximo no puede ser negativo",
+          "payment_required": "El monto es obligatorio si requiere pago"
+        },
+        "fetch_error": "Error al obtener los tipos de cita",
+        "save_error": "Error al guardar el tipo de cita"
+      }
+    }
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "success": "Éxito",
+    "error": "Error",
+    "loading": "Cargando",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "yes": "Sí",
+    "no": "No",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "details": "Detalles"
+  }
+}

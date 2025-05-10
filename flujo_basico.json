@@ -1,0 +1,84 @@
+{
+  "name": "Flujo Basico",
+  "description": "Flujo simple para probar la funcionalidad",
+  "status": "draft",
+  "react_flow_json": {
+    "nodes": [
+      {
+        "id": "start-node",
+        "type": "startNode",
+        "position": {"x": 50, "y": 150},
+        "data": {"label": "Inicio"}
+      },
+      {
+        "id": "messageNode-1",
+        "type": "messageNode",
+        "position": {"x": 250, "y": 150},
+        "data": {
+          "label": "Bienvenida",
+          "message": "Hola, bienvenido al asistente.",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputNode-1",
+        "type": "inputNode",
+        "position": {"x": 500, "y": 150},
+        "data": {
+          "label": "Nombre",
+          "question": "Por favor escribe tu nombre",
+          "variableName": "nombre_usuario",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "aiNode-1",
+        "type": "aiNode",
+        "position": {"x": 750, "y": 150},
+        "data": {
+          "label": "Respuesta",
+          "prompt": "Responde amablemente saludando al usuario {{nombre_usuario}}",
+          "model": "gpt-4o",
+          "temperature": 0.7,
+          "maxTokens": 150
+        }
+      },
+      {
+        "id": "endNode-1",
+        "type": "endNode",
+        "position": {"x": 1050, "y": 150},
+        "data": {
+          "label": "Fin",
+          "message": "Gracias por usar el asistente"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-1",
+        "source": "start-node",
+        "target": "messageNode-1",
+        "animated": true
+      },
+      {
+        "id": "edge-2",
+        "source": "messageNode-1",
+        "target": "inputNode-1",
+        "animated": true
+      },
+      {
+        "id": "edge-3",
+        "source": "inputNode-1",
+        "target": "aiNode-1",
+        "animated": true
+      },
+      {
+        "id": "edge-4",
+        "source": "aiNode-1",
+        "target": "endNode-1",
+        "animated": true
+      }
+    ]
+  },
+  "version": 1
+}

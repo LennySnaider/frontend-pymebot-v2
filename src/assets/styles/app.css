@@ -3,4 +3,23 @@
 @import './components/index.css';
 @import './template/index.css';
 @import './vendors/index.css';
+@import './components/dark-variables.css';
+@import './components/custom-scrollbars.css';
+@import './components/dark-nodes.css';
+@import './components/chatbot-builder.css';
+@import './components/table-dark.css';
+@import './components/reactflow-dark.css';
+@import './components/scrollbar-dark.css';
+@import './components/ui-dark-fixes.css';
+@import './components/thead-dark-fixes.css';
+@import './components/menu-dark-fixes.css';
+@import './components/drawer-dark-fixes.css';
+@import './components/text-dark-fixes.css';
+@import './components/theme-configurator-fixes.css';
+@import './components/inputs-buttons-dark-fixes.css';
+@import './components/icons-buttons-contrast-fixes.css';
+@import './components/customers-list-fixes.css';
+@import './components/tags-dark-fixes.css';
+@import './components/specific-tags-fixes.css';
+@import './components/css-fixes.css';
 

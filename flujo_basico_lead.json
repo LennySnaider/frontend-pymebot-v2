@@ -1,0 +1,309 @@
+{
+  "name": "Flujo Básico Lead",
+  "description": "Flujo básico para captura y calificación de leads usando solo nodos fundamentales",
+  "status": "draft",
+  "react_flow_json": {
+    "nodes": [
+      {
+        "id": "start-node",
+        "type": "startNode",
+        "position": {"x": 50, "y": 200},
+        "data": {"label": "Inicio"}
+      },
+      {
+        "id": "messageNode-welcome",
+        "type": "messageNode",
+        "position": {"x": 250, "y": 200},
+        "data": {
+          "label": "Bienvenida",
+          "message": "👋 Hola, soy el asistente virtual de AgentProp. ¿En qué puedo ayudarte hoy?",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputNode-nombre",
+        "type": "inputNode",
+        "position": {"x": 450, "y": 200},
+        "data": {
+          "label": "Nombre",
+          "question": "Para brindarte una mejor atención, ¿podrías decirme tu nombre?",
+          "variableName": "nombre_usuario",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "inputNode-email",
+        "type": "inputNode",
+        "position": {"x": 650, "y": 200},
+        "data": {
+          "label": "Email",
+          "question": "Gracias {{nombre_usuario}}. ¿Cuál es tu correo electrónico?",
+          "variableName": "email_usuario",
+          "inputType": "email"
+        }
+      },
+      {
+        "id": "inputNode-phone",
+        "type": "inputNode",
+        "position": {"x": 850, "y": 200},
+        "data": {
+          "label": "Teléfono",
+          "question": "¿Y tu número de teléfono?",
+          "variableName": "telefono_usuario",
+          "inputType": "tel"
+        }
+      },
+      {
+        "id": "messageNode-calificacion-intro",
+        "type": "messageNode",
+        "position": {"x": 1050, "y": 200},
+        "data": {
+          "label": "Intro Calificación",
+          "message": "Gracias por tus datos, {{nombre_usuario}}. Para poder ayudarte mejor, necesito hacerte algunas preguntas sobre lo que estás buscando.",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputNode-q1",
+        "type": "inputNode",
+        "position": {"x": 1250, "y": 200},
+        "data": {
+          "label": "Pregunta 1",
+          "question": "¿Estás buscando una propiedad para comprar o rentar?",
+          "variableName": "compra_renta",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "inputNode-q2",
+        "type": "inputNode",
+        "position": {"x": 1450, "y": 200},
+        "data": {
+          "label": "Pregunta 2",
+          "question": "¿Qué tipo de propiedad estás buscando? (casa, departamento, oficina, etc.)",
+          "variableName": "tipo_propiedad",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "inputNode-q3",
+        "type": "inputNode",
+        "position": {"x": 1650, "y": 200},
+        "data": {
+          "label": "Pregunta 3",
+          "question": "¿Cuál es tu presupuesto aproximado?",
+          "variableName": "presupuesto",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "messageNode-lead-qualified",
+        "type": "messageNode",
+        "position": {"x": 1850, "y": 200},
+        "data": {
+          "label": "Lead Calificado",
+          "message": "¡Excelente {{nombre_usuario}}! Basado en tus respuestas, tenemos varias propiedades que podrían interesarte. Me gustaría que uno de nuestros asesores te contacte para mostrarte opciones personalizadas.",
+          "delay": 1
+        }
+      },
+      {
+        "id": "inputNode-agendar",
+        "type": "inputNode",
+        "position": {"x": 2050, "y": 200},
+        "data": {
+          "label": "Confirmación de Cita",
+          "question": "¿Te gustaría agendar una cita con uno de nuestros asesores? (sí/no)",
+          "variableName": "confirma_cita",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "condicion-cita",
+        "type": "conditionalNode",
+        "position": {"x": 2250, "y": 200},
+        "data": {
+          "label": "Condición",
+          "condition": "{{confirma_cita}}",
+          "equals": "sí",
+          "caseSensitive": false
+        }
+      },
+      {
+        "id": "inputNode-fecha",
+        "type": "inputNode",
+        "position": {"x": 2450, "y": 100},
+        "data": {
+          "label": "Fecha",
+          "question": "¿Para qué fecha te gustaría agendar la cita? (formato: DD/MM/YYYY)",
+          "variableName": "fecha_cita",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "inputNode-hora",
+        "type": "inputNode",
+        "position": {"x": 2650, "y": 100},
+        "data": {
+          "label": "Hora",
+          "question": "¿A qué hora prefieres? Tenemos disponibilidad entre 9 AM y 6 PM",
+          "variableName": "hora_cita",
+          "inputType": "text"
+        }
+      },
+      {
+        "id": "messageNode-cita-confirmada",
+        "type": "messageNode",
+        "position": {"x": 2850, "y": 100},
+        "data": {
+          "label": "Cita Confirmada",
+          "message": "¡Perfecto! Tu cita ha sido agendada para el {{fecha_cita}} a las {{hora_cita}}. Te enviaremos un correo con los detalles y uno de nuestros asesores se comunicará contigo pronto.",
+          "delay": 1
+        }
+      },
+      {
+        "id": "messageNode-no-cita",
+        "type": "messageNode",
+        "position": {"x": 2450, "y": 300},
+        "data": {
+          "label": "Sin Cita",
+          "message": "No hay problema. Uno de nuestros asesores se pondrá en contacto contigo pronto para proporcionarte información sobre propiedades que podrían interesarte.",
+          "delay": 1
+        }
+      },
+      {
+        "id": "messageNode-despedida",
+        "type": "messageNode",
+        "position": {"x": 3050, "y": 200},
+        "data": {
+          "label": "Despedida",
+          "message": "Gracias por usar nuestro asistente virtual. Si tienes más preguntas o necesitas ayuda adicional, no dudes en contactarnos. ¡Que tengas un excelente día!",
+          "delay": 1
+        }
+      },
+      {
+        "id": "end-node",
+        "type": "endNode",
+        "position": {"x": 3250, "y": 200},
+        "data": {"label": "Fin"}
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-start-welcome",
+        "source": "start-node",
+        "target": "messageNode-welcome",
+        "animated": true
+      },
+      {
+        "id": "edge-welcome-nombre",
+        "source": "messageNode-welcome",
+        "target": "inputNode-nombre",
+        "animated": true
+      },
+      {
+        "id": "edge-nombre-email",
+        "source": "inputNode-nombre",
+        "target": "inputNode-email",
+        "animated": true
+      },
+      {
+        "id": "edge-email-phone",
+        "source": "inputNode-email",
+        "target": "inputNode-phone",
+        "animated": true
+      },
+      {
+        "id": "edge-phone-calificacion",
+        "source": "inputNode-phone",
+        "target": "messageNode-calificacion-intro",
+        "animated": true
+      },
+      {
+        "id": "edge-calificacion-q1",
+        "source": "messageNode-calificacion-intro",
+        "target": "inputNode-q1",
+        "animated": true
+      },
+      {
+        "id": "edge-q1-q2",
+        "source": "inputNode-q1",
+        "target": "inputNode-q2",
+        "animated": true
+      },
+      {
+        "id": "edge-q2-q3",
+        "source": "inputNode-q2",
+        "target": "inputNode-q3",
+        "animated": true
+      },
+      {
+        "id": "edge-q3-qualified",
+        "source": "inputNode-q3",
+        "target": "messageNode-lead-qualified",
+        "animated": true
+      },
+      {
+        "id": "edge-qualified-agendar",
+        "source": "messageNode-lead-qualified",
+        "target": "inputNode-agendar",
+        "animated": true
+      },
+      {
+        "id": "edge-agendar-condicion",
+        "source": "inputNode-agendar",
+        "target": "condicion-cita",
+        "animated": true
+      },
+      {
+        "id": "edge-condicion-true",
+        "source": "condicion-cita",
+        "target": "inputNode-fecha",
+        "animated": true,
+        "sourceHandle": "true"
+      },
+      {
+        "id": "edge-condicion-false",
+        "source": "condicion-cita",
+        "target": "messageNode-no-cita",
+        "animated": true,
+        "sourceHandle": "false"
+      },
+      {
+        "id": "edge-fecha-hora",
+        "source": "inputNode-fecha",
+        "target": "inputNode-hora",
+        "animated": true
+      },
+      {
+        "id": "edge-hora-confirmacion",
+        "source": "inputNode-hora",
+        "target": "messageNode-cita-confirmada",
+        "animated": true
+      },
+      {
+        "id": "edge-confirmacion-despedida",
+        "source": "messageNode-cita-confirmada",
+        "target": "messageNode-despedida",
+        "animated": true
+      },
+      {
+        "id": "edge-nocita-despedida",
+        "source": "messageNode-no-cita",
+        "target": "messageNode-despedida",
+        "animated": true
+      },
+      {
+        "id": "edge-despedida-fin",
+        "source": "messageNode-despedida",
+        "target": "end-node",
+        "animated": true
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 0.5
+    }
+  },
+  "version": 1
+}

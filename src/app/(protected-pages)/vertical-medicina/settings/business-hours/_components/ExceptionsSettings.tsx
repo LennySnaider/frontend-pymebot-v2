@@ -6,6 +6,9 @@ import { DateException } from '../types';
 import useTranslation from '@/utils/hooks/useTranslation';
 
 const ExceptionsSettings = () => {
+  // Marcador especial para saber qué versión del componente está en uso
+  console.log('🟢 MARCADOR DE COMPONENTE: ExceptionsSettings v3 (vertical-medicina)');
+  
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [exceptions, setExceptions] = useState<DateException[]>([]);
@@ -312,9 +315,14 @@ const ExceptionsSettings = () => {
                 {t('appointments.settings.exceptions.open_time')}
               </label>
               <TimeInput
-                timeInputProps={{
-                  value: newException.open_time || '',
-                  onChange: (value) => handleInputChange('open_time', value),
+                value={newException.open_time || ''}
+                onChange={(value) => {
+                  // Cuando recibimos un valor desde TimeInput, es un objeto Date
+                  // pero necesitamos convertirlo a string en formato HH:MM
+                  const timeString = value 
+                    ? `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}`
+                    : '00:00';
+                  handleInputChange('open_time', timeString);
                 }}
               />
             </div>
@@ -323,9 +331,14 @@ const ExceptionsSettings = () => {
                 {t('appointments.settings.exceptions.close_time')}
               </label>
               <TimeInput
-                timeInputProps={{
-                  value: newException.close_time || '',
-                  onChange: (value) => handleInputChange('close_time', value),
+                value={newException.close_time || ''}
+                onChange={(value) => {
+                  // Cuando recibimos un valor desde TimeInput, es un objeto Date
+                  // pero necesitamos convertirlo a string en formato HH:MM
+                  const timeString = value 
+                    ? `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}`
+                    : '00:00';
+                  handleInputChange('close_time', timeString);
                 }}
               />
             </div>

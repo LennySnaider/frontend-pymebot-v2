@@ -1,0 +1,90 @@
+/**
+ * frontend/src/assets/styles/components/reactflow-dark.css
+ * Estilos específicos para ReactFlow en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Fondo principal del área de ReactFlow */
+.dark .react-flow {
+  background-color: #121212;
+}
+
+/* Fondo del viewport (área visible) */
+.dark .react-flow__viewport {
+  background-color: #121212;
+}
+
+/* Fondo del pane (área de desplazamiento) */
+.dark .react-flow__pane {
+  background-color: #121212;
+}
+
+/* Background cuadriculado en modo oscuro */
+.dark .react-flow__background {
+  --bg-color: #333333 !important;
+  --bg-size: 16px !important;
+}
+
+/* Controles en modo oscuro */
+.dark .react-flow__controls {
+  background-color: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+.dark .react-flow__controls button {
+  background-color: #282828 !important;
+  border-color: #333333 !important;
+  color: #e5e7eb !important;
+}
+
+.dark .react-flow__controls button:hover {
+  background-color: #373737 !important;
+}
+
+/* Mini-mapa en modo oscuro */
+.dark .react-flow__minimap {
+  background-color: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+/* Máscara del mini-mapa */
+.dark .react-flow__minimap-mask {
+  fill: rgba(26, 26, 26, 0.7) !important;
+}
+
+/* Nodos en el mini-mapa */
+.dark .react-flow__minimap-node {
+  fill: #333333 !important;
+  stroke: #444444 !important;
+}
+
+/* Selector de nodos */
+.dark .react-flow__selection {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Marcador de conexión */
+.dark .react-flow__connection-path {
+  stroke: #3b82f6 !important;
+}
+
+/* Estilos para bordes en modo oscuro */
+.dark .react-flow__edge-path {
+  stroke: #3b82f6 !important;
+}
+
+.dark .react-flow__edge-path-selector {
+  stroke: transparent !important;
+}
+
+.dark .react-flow__edge-text {
+  fill: #e5e7eb !important;
+}
+
+/* Estilos para handles */
+.dark .react-flow__handle {
+  background-color: #3b82f6 !important;
+  border-color: #1a1a1a !important;
+}

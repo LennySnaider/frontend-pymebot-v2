@@ -2,15 +2,16 @@
  * frontend/src/components/view/ChatbotBuilder/nodes/BookAppointmentNode.tsx
  * Nodo de chatbot para reservar citas
  * 
- * @version 1.0.0
- * @updated 2025-06-11
+ * @version 1.1.0
+ * @updated 2025-09-05 - Añadido soporte para modo oscuro
  */
 
 import React, { useCallback } from 'react';
 import { Handle, Position } from 'reactflow';
 import Checkbox from '@/components/ui/Checkbox';
-import Select from '@/components/ui/Select';
+import { Select, Option } from '@/components/ui/Select';
 import { PiCalendarCheckBold } from 'react-icons/pi';
+import { Tooltip } from '@/components/ui/Tooltip';
 import QRCodeService from '@/services/QRCodeService';
 import SalesFunnelService from '@/services/SalesFunnelService';
 
@@ -25,12 +26,13 @@ interface BookAppointmentNodeProps {
     onUpdateNodeData: (nodeId: string, data: any) => void;
   };
   selected: boolean;
+  isConnectable?: boolean;
 }
 
 /**
  * Componente para el nodo de reserva de cita
  */
-const BookAppointmentNode: React.FC<BookAppointmentNodeProps> = ({ id, data, selected }) => {
+const BookAppointmentNode: React.FC<BookAppointmentNodeProps> = ({ id, data, selected, isConnectable }) => {
   const { 
     update_lead_stage = true, 
     new_lead_stage = 'confirmed', 
@@ -57,63 +59,100 @@ const BookAppointmentNode: React.FC<BookAppointmentNodeProps> = ({ id, data, sel
   }, [id, data, onUpdateNodeData]);
   
   return (
-    <div className={`node-wrapper ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} />
-      
-      <div className="node-container">
-        <div className="node-header bg-green-500">
-          <PiCalendarCheckBold className="node-icon" />
-          <div className="node-title">Agendar Cita</div>
-        </div>
-        
-        <div className="node-content">
-          <div className="node-form">
-            <div className="form-group">
-              <Checkbox
-                checked={update_lead_stage}
-                onChange={e => handleUpdateLeadStageChange(e.target.checked)}
-              >
-                Actualizar Etapa del Lead
-              </Checkbox>
-            </div>
-            
-            {update_lead_stage && (
-              <div className="form-group ml-6">
-                <label>Nueva Etapa:</label>
-                <Select
-                  value={new_lead_stage}
-                  onChange={handleNewLeadStageChange}
-                >
-                  <Select.Option value="qualification">Calificación</Select.Option>
-                  <Select.Option value="opportunity">Oportunidad</Select.Option>
-                  <Select.Option value="confirmed">Confirmado</Select.Option>
-                </Select>
-              </div>
-            )}
-            
-            <div className="form-group">
-              <Checkbox
-                checked={send_confirmation}
-                onChange={e => handleSendConfirmationChange(e.target.checked)}
-              >
-                Enviar Confirmación
-              </Checkbox>
-            </div>
-            
-            <div className="form-group">
-              <Checkbox
-                checked={create_follow_up_task}
-                onChange={e => handleCreateFollowUpTaskChange(e.target.checked)}
-              >
-                Crear Tarea de Seguimiento
-              </Checkbox>
-            </div>
+    <div className={`rounded-md border-2 ${selected ? 'border-primary' : 'border-gray-200 dark:border-gray-600'} bg-white dark:bg-gray-800 p-3 shadow-md min-w-[250px] max-w-[320px]`}>
+      {/* Título del nodo */}
+      <div className="mb-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+        <div className="flex items-center">
+          <div className="h-6 w-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-2">
+            <PiCalendarCheckBold className="h-4 w-4 text-green-500" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+              Agendar Cita
+            </p>
           </div>
         </div>
       </div>
+
+      {/* Contenido del nodo */}
+      <div className="rounded-md bg-gray-50 dark:bg-gray-700 p-2 mb-2">
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center">
+            <Checkbox
+              checked={update_lead_stage}
+              onChange={e => handleUpdateLeadStageChange(e.target.checked)}
+            >
+              <span className="ml-2 dark:text-gray-300">Actualizar Etapa del Lead</span>
+            </Checkbox>
+            <Tooltip content="Actualiza automáticamente la etapa del lead en el funnel de ventas" className="ml-1">
+              <span className="text-gray-400 dark:text-gray-500 cursor-help">ⓘ</span>
+            </Tooltip>
+          </div>
+          
+          {update_lead_stage && (
+            <div className="ml-6">
+              <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Nueva Etapa:</label>
+              <Select
+                value={new_lead_stage}
+                onChange={handleNewLeadStageChange}
+                size="sm"
+              >
+                <Option value="qualification">Calificación</Option>
+                <Option value="opportunity">Oportunidad</Option>
+                <Option value="confirmed">Confirmado</Option>
+              </Select>
+            </div>
+          )}
+          
+          <div className="flex items-center">
+            <Checkbox
+              checked={send_confirmation}
+              onChange={e => handleSendConfirmationChange(e.target.checked)}
+            >
+              <span className="ml-2 dark:text-gray-300">Enviar Confirmación</span>
+            </Checkbox>
+            <Tooltip content="Envía un email con detalles de la cita y código QR" className="ml-1">
+              <span className="text-gray-400 dark:text-gray-500 cursor-help">ⓘ</span>
+            </Tooltip>
+          </div>
+          
+          <div className="flex items-center">
+            <Checkbox
+              checked={create_follow_up_task}
+              onChange={e => handleCreateFollowUpTaskChange(e.target.checked)}
+            >
+              <span className="ml-2 dark:text-gray-300">Crear Tarea de Seguimiento</span>
+            </Checkbox>
+            <Tooltip content="Crea una tarea para dar seguimiento después de la cita" className="ml-1">
+              <span className="text-gray-400 dark:text-gray-500 cursor-help">ⓘ</span>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="w-3 h-3 bg-blue-500 border-2 border-white dark:border-gray-800"
+        isConnectable={isConnectable}
+      />
       
-      <Handle type="source" position={Position.Bottom} id="success" />
-      <Handle type="source" position={Position.Bottom} id="failure" style={{ left: '75%' }} />
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        id="success"
+        className="w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800"
+        style={{ top: '40%' }}
+        isConnectable={isConnectable}
+      />
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        id="failure" 
+        className="w-3 h-3 bg-red-500 border-2 border-white dark:border-gray-800"
+        style={{ top: '60%' }}
+        isConnectable={isConnectable}
+      />
     </div>
   );
 };

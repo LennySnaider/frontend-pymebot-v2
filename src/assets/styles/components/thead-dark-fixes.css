@@ -1,0 +1,103 @@
+/**
+ * frontend/src/assets/styles/components/thead-dark-fixes.css
+ * Correcciones específicas para los encabezados de tabla en modo oscuro
+ * @version 1.0.0
+ * @updated 2025-09-05
+ */
+
+/* Aplicar estilo correcto a los bordes de thead en modo oscuro */
+.dark thead,
+.dark thead > tr,
+.dark thead > tr > th,
+.dark thead > tr > td,
+.dark th,
+.dark [class*="Table"] thead,
+.dark [class*="table"] thead,
+.dark .ant-table-thead,
+.dark .table-header,
+.dark .table-default thead,
+.dark .ant-table-wrapper thead {
+  --tw-border-opacity: 1 !important;
+  border-color: #333333 !important;
+  border-bottom-color: #333333 !important;
+  border-top-color: #333333 !important;
+  border-left-color: #333333 !important;
+  border-right-color: #333333 !important;
+}
+
+/* Aplicar a componentes basados en Tailwind */
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-b-gray-200,
+.dark .border-t-gray-200,
+.dark .border-l-gray-200,
+.dark .border-r-gray-200,
+.dark [class*="border-gray-200"],
+.dark [class*="border-gray-300"] {
+  border-color: #333333 !important;
+}
+
+/* Corregir estilos inline con CSS vars */
+.dark [style*="border-color: var(--gray-200)"],
+.dark [style*="border-color:var(--gray-200)"],
+.dark [style*="border-bottom-color: var(--gray-200)"],
+.dark [style*="border-top-color: var(--gray-200)"],
+.dark [style*="border-left-color: var(--gray-200)"],
+.dark [style*="border-right-color: var(--gray-200)"] {
+  border-color: #333333 !important;
+}
+
+/* Estilos especiales para selectores específicos */
+.dark .table-default > thead,
+.dark .table > thead,
+.dark .table-virtual > thead {
+  border-color: #333333 !important;
+}
+
+/* Corregir líneas divisoras en tablas */
+.dark .divide-gray-200 > * + *,
+.dark .divide-y > * + *,
+.dark .divide-x > * + * {
+  border-color: #333333 !important;
+}
+
+/* Colores específicos para tablas con fondos diferenciados */
+.dark .bg-gray-50 th,
+.dark .ant-table-thead th,
+.dark [class*="Table-head"] th,
+.dark .bg-gray-100 th {
+  border-color: #333333 !important;
+  border-bottom-color: #333333 !important;
+  --tw-border-opacity: 1 !important;
+}
+
+/* Aplicar a cualquier elemento con atributo de estilo */
+.dark [style*="--gray-200"],
+.dark [style*="--border-color-200"],
+.dark [style*="--border-color-base"],
+.dark [style*="--border-color-light"] {
+  --gray-200: #333333 !important;
+  --border-color-200: #333333 !important;
+  --border-color-base: #333333 !important;
+  --border-color-light: #333333 !important;
+}
+
+/* Estilos específicos para el componente SharedChatbotTemplatesList */
+.dark .ant-table-wrapper .ant-table-thead > tr > th {
+  background-color: #1e1e1e !important;
+  border-bottom: 1px solid #333333 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Asegurar que los colores de borde de tabla sean correctos */
+html.dark .table,
+html.dark .table-default,
+html.dark .table-border,
+html.dark .table-flex,
+html.dark [class*="table-"],
+html.dark [class*="Table"] {
+  --tw-border-color: #333333 !important;
+  --tw-divide-color: #333333 !important;
+  --table-border-color: #333333 !important;
+  --thead-border-color: #333333 !important;
+}

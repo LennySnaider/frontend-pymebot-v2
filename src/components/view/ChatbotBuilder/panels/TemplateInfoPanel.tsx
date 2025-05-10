@@ -223,7 +223,7 @@ const TemplateInfoPanel: React.FC<TemplateInfoPanelProps> = ({
     }
 
     return (
-        <div className="w-80 h-full bg-white border-l border-gray-200 overflow-y-auto shadow-md">
+        <div className="w-80 h-full bg-white border-l border-gray-200 overflow-y-auto shadow-md chatbot-builder-template-panel">
             <div className="sticky top-0 bg-white z-10 border-b border-gray-200">
                 <div className="flex justify-between items-center p-4">
                     <h3 className="text-lg font-medium text-gray-800">
