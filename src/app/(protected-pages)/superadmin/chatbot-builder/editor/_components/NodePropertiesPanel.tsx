@@ -167,6 +167,28 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 </span>
                             </div>
                         </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'waitForResponse',
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa hasta recibir respuesta" : "Continúa automáticamente"}
+                                </span>
+                            </div>
+                        </FormItem>
                     </>
                 )}
 
