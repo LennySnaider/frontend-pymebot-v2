@@ -238,7 +238,80 @@ const ChatBody = () => {
 
                 console.log('Respuesta recibida del servidor:', response)
 
-                // Siempre mostramos una respuesta al usuario, aunque sea de error
+                // Manejo mejorado de la respuesta del servidor
+                console.log('Analizando respuesta del servidor:', response);
+
+                // Obtener el contenido del mensaje con mejor manejo de múltiples formatos
+                let messageContent = 'Lo siento, ha ocurrido un problema con mi conexión.';
+
+                // Verificar si tenemos una respuesta válida del servidor
+                if (response && typeof response === 'object') {
+                    // Priorizar respuesta directa
+                    if (response.response && typeof response.response === 'string') {
+                        messageContent = response.response;
+                        console.log('Usando respuesta directa del servidor:', messageContent);
+                    }
+                    // Verificar si hay datos originales (passed through desde el API)
+                    else if (response.originalData) {
+                        console.log('Encontrados datos originales en la respuesta');
+
+                        // Verificar si son mensajes múltiples
+                        if (response.originalData.is_multi_message &&
+                            Array.isArray(response.originalData.messages) &&
+                            response.originalData.messages.length > 0) {
+
+                            messageContent = response.originalData.messages[0];
+                            console.log('Usando primer mensaje de array:', messageContent);
+
+                            // Mostrar mensajes adicionales si existen
+                            if (response.originalData.messages.length > 1) {
+                                console.log('Procesando mensajes adicionales:',
+                                    response.originalData.messages.slice(1));
+
+                                // Crear y programar los mensajes adicionales
+                                const additionalMessages = response.originalData.messages.slice(1).map(
+                                    (msg: string, idx: number) => {
+                                        // Crear un objeto de mensaje para cada mensaje adicional
+                                        return {
+                                            id: uniqueId(`chat-conversation-additional-${idx}-`),
+                                            sender: {
+                                                id: '2',
+                                                name: 'BuilderBot',
+                                                avatarImageUrl: '/img/avatars/thumb-2.jpg',
+                                            },
+                                            content: msg,
+                                            timestamp: new Date(Date.now() + (idx + 1) * 200), // Agregar un pequeño retraso
+                                            type: 'regular',
+                                            isMyMessage: false,
+                                        };
+                                    }
+                                );
+
+                                // Programar la adición de mensajes adicionales con un ligero retraso
+                                additionalMessages.forEach((msg: Message, idx: number) => {
+                                    setTimeout(() => {
+                                        console.log(`Agregando mensaje adicional #${idx + 1}:`, msg.content);
+                                        handlePushMessage(msg);
+
+                                        // Scroll al fondo después del último mensaje
+                                        if (idx === additionalMessages.length - 1) {
+                                            setTimeout(scrollToBottom, 100);
+                                        }
+                                    }, (idx + 1) * 500); // 500ms de retraso entre mensajes
+                                });
+                            }
+
+                            // Fin del manejo de mensajes múltiples
+                        }
+                        // Verificar respuesta directa en originalData
+                        else if (response.originalData.response) {
+                            messageContent = response.originalData.response;
+                            console.log('Usando respuesta de originalData:', messageContent);
+                        }
+                    }
+                }
+
+                // Siempre mostramos una respuesta al usuario
                 const botMessage: Message = {
                     id: uniqueId('chat-conversation-'),
                     sender: {
@@ -246,9 +319,7 @@ const ChatBody = () => {
                         name: 'BuilderBot',
                         avatarImageUrl: '/img/avatars/thumb-2.jpg', // Use bot avatar
                     },
-                    content:
-                        response.response ||
-                        'Lo siento, ha ocurrido un problema con mi conexión.',
+                    content: messageContent,
                     timestamp: dayjs().toDate(),
                     type: 'regular',
                     isMyMessage: false,

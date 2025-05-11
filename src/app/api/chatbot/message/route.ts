@@ -63,10 +63,57 @@ export async function POST(req: NextRequest) {
             
             // Intentar obtener la respuesta como JSON
             const data = await response.json()
-            
+
+            // Manejo mejorado de la respuesta para soportar mensajes múltiples
+            let responseText = '';
+
+            // Si tenemos una respuesta en formato de array de mensajes
+            if (data.is_multi_message && Array.isArray(data.messages) && data.messages.length > 0) {
+                // MODIFICADO: Combinar mensajes en uno solo para solucionar problema de UI
+                if (data.messages.length > 1) {
+                    // Combinar mensajes con saltos de línea para garantizar que se muestren
+                    responseText = data.messages.join('\n\n');
+                    console.log('Combinando mensajes múltiples en uno solo:', responseText);
+                } else {
+                    // Si hay solo un mensaje, usarlo directamente
+                    responseText = data.messages[0];
+                    console.log('Detectado un solo mensaje en array:', responseText);
+                }
+            }
+            // Si tenemos una respuesta normal
+            else if (data.response) {
+                // MODIFICADO: Verificar si hay mensaje de despedida para combinarlo
+                if (data.endMessage ||
+                    (data.originalData?.state?.endMessage) ||
+                    (data.state?.endMessage)) {
+
+                    const farewell = data.endMessage ||
+                                     data.originalData?.state?.endMessage ||
+                                     data.state?.endMessage;
+
+                    // Combinar respuesta principal con despedida
+                    responseText = `${data.response}\n\n${farewell}`;
+                    console.log('Combinando respuesta con despedida:', responseText);
+                } else {
+                    // Usar solo la respuesta si no hay despedida
+                    responseText = data.response;
+                    console.log('Usando respuesta simple sin despedida:', responseText);
+                }
+            }
+            // Fallback solo si no hay ninguna respuesta válida
+            else {
+                console.warn('Sin respuesta del backend, usando fallback');
+                responseText = 'Lo siento, estoy teniendo problemas para procesar tu solicitud.';
+            }
+
             return NextResponse.json({
                 success: true,
-                response: data.response || 'Mensaje procesado',
+                response: responseText,
+                // Pasar explícitamente mensajes múltiples si existen
+                messages: data.messages || [],
+                is_multi_message: data.is_multi_message || false,
+                // Pasar todos los datos originales para debugging
+                originalData: data,
                 metadata: {
                     source: 'backend_proxy_simplificado',
                     status: response.status
