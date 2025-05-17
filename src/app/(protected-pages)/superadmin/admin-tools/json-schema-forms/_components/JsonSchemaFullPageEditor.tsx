@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/app/(protected-pages)/superadmin/admin-tools/json-schema-forms/_components/JsonSchemaFullPageEditor.tsx
  * Editor de esquemas JSON en página completa en lugar de modal para mejor visualización.

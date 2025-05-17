@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/SimplifiedChatbotConfig.tsx
  * Componente simplificado para configurar chatbots por parte del tenant

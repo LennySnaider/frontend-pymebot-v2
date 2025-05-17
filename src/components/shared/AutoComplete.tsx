@@ -1,3 +1,5 @@
+'use client'
+
 import { ReactNode, ChangeEvent, useRef, useState, useEffect } from 'react'
 import {
     autoUpdate,

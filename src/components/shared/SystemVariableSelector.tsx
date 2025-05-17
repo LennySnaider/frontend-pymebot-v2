@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * agentprop/src/components/shared/SystemVariableSelector.tsx
  * Componente para seleccionar variables del sistema

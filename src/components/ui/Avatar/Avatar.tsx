@@ -1,10 +1,12 @@
+'use client'
+
 /**
  * frontend/src/components/ui/Avatar/Avatar.tsx
  * Componente para mostrar avatares de usuario, imágenes de perfil o logos.
  * Incluye gestión avanzada de errores y estados de carga de imagen.
  * 
  * @version 2.1.0
- * @updated 2025-04-16
+ * @updated 2025-05-18
  */
 
 import { useState, useEffect, useRef, SyntheticEvent } from 'react'

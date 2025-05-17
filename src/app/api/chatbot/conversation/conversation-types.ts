@@ -174,6 +174,27 @@ export interface UnifiedMessage {
 }
 
 /**
+ * Interfaz para datos específicos de nodos de mensaje
+ */
+export interface MessageNodeData {
+    // Mensaje a mostrar al usuario
+    message: string;
+    
+    // Si true, el flujo se detiene esperando respuesta del usuario
+    // Si false, el flujo continúa automáticamente al siguiente nodo (auto-flow)
+    waitForResponse?: boolean;
+    
+    // Tiempo de espera antes de mostrar el mensaje (en segundos)
+    delay?: number;
+    
+    // Etiqueta descriptiva del nodo
+    label?: string;
+    
+    // Otras propiedades opcionales específicas del tipo de mensaje
+    [key: string]: any;
+}
+
+/**
  * Interfaz para configuración de un nodo del chatbot
  */
 export interface ChatbotNodeConfig {
@@ -187,6 +208,7 @@ export interface ChatbotNodeConfig {
     title: string;
     
     // Datos de configuración específicos del tipo de nodo
+    // Para nodos de mensajes, incluyendo TEXT y messageNode, debería incluir waitForResponse
     data: Record<string, any>;
     
     // Conexiones a otros nodos
@@ -233,4 +255,23 @@ export interface UserAction {
     
     // Metadatos adicionales
     metadata?: Record<string, any>;
+}
+
+/**
+ * Interfaz para representar una sesión de conversación
+ * Adaptada para coincidir con el esquema de base de datos verificado
+ */
+export interface ConversationSession {
+    id: string
+    user_channel_id: string
+    channel_type: string
+    session_id: string
+    tenant_id: string
+    active_chatbot_activation_id?: string
+    current_node_id?: string
+    state_data?: Record<string, any>
+    status: string
+    last_interaction_at: string
+    created_at: string
+    metadata?: Record<string, any>
 }

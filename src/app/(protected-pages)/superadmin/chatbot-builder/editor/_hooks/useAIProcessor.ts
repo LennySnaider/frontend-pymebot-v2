@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/app/(protected-pages)/modules/superadmin/chatbot-builder/editor/_hooks/useAIProcessor.ts
  * Hook para procesar prompts de IA y obtener respuestas

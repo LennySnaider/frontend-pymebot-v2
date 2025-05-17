@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Componente para visualizar el nivel de volumen del audio
  * @version 1.0.0

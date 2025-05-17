@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/ChatbotActivationWizard.tsx
  * Componente de asistente para activar nuevas plantillas de chatbot

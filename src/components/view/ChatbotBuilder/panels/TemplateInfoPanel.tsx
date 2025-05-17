@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/panels/TemplateInfoPanel.tsx
  * Panel para configurar información general de la plantilla de chatbot

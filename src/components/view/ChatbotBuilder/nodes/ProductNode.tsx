@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/nodes/ProductNode.tsx
  * Nodo de chatbot para mostrar productos disponibles

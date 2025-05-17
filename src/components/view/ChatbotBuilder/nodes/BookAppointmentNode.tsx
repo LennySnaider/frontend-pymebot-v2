@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/nodes/BookAppointmentNode.tsx
  * Nodo de chatbot para reservar citas

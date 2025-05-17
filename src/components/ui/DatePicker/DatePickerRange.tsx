@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+'use client'
+
 import { useState, useRef } from 'react'
 import dayjs from 'dayjs'
 import useControllableState from '../hooks/useControllableState'

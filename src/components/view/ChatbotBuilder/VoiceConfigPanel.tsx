@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/VoiceConfigPanel.tsx
  * Panel de configuración para chatbots con capacidades de voz

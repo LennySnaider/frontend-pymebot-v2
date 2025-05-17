@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect } from 'react'
 import Logo from '@/components/template/Logo'
 import Menu from '@/components/ui/Menu'

@@ -160,31 +160,59 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
     // Nuevas acciones para las plantillas
     setTemplates: (templates) =>
         set(() => {
-            // Aseguramos que solo una plantilla está activa
-            const updatedTemplates = templates.map((template, index) => ({
+            // Identificar si hay una plantilla de lead para establecerla como activa
+            const leadTemplate = templates.find(t =>
+                t.name && t.name.toLowerCase().includes('lead') &&
+                t.name.toLowerCase().includes('flujo')
+            );
+
+            // Si hay una plantilla de lead o alguna ya marcada como activa, respetarla
+            // De lo contrario, marcar la primera como activa
+            const existingActive = templates.find(t => t.isActive === true);
+
+            const updatedTemplates = templates.map((template) => ({
                 ...template,
-                isActive: index === 0 ? true : false,
-            }))
+                isActive: existingActive ? template.id === existingActive.id :
+                         (leadTemplate ? template.id === leadTemplate.id :
+                         templates.indexOf(template) === 0)
+            }));
+
+            // Determinar qué templateId usar como activo
+            const activeTemplate = updatedTemplates.find(t => t.isActive);
+            const activeId = activeTemplate ? activeTemplate.id :
+                        (updatedTemplates.length > 0 ? updatedTemplates[0].id : '');
+
+            console.log(`Plantillas cargadas: ${updatedTemplates.length}. Plantilla activa ID: ${activeId}`);
+            if (activeTemplate) {
+                console.log(`Plantilla activa: ${activeTemplate.name}`);
+            }
 
             return {
                 templates: updatedTemplates,
-                activeTemplateId:
-                    updatedTemplates.length > 0 ? updatedTemplates[0].id : '',
+                activeTemplateId: activeId,
             }
         }),
     setActiveTemplate: (templateId) =>
         set(() => {
+            console.log(`Configurando nueva plantilla activa: ${templateId}`);
+
+            // Marcar solo la plantilla seleccionada como activa
             const updatedTemplates = get().templates.map((template) => ({
                 ...template,
                 isActive: template.id === templateId,
-            }))
+            }));
+
+            const activatedTemplate = updatedTemplates.find(t => t.id === templateId);
+            if (activatedTemplate) {
+                console.log(`Plantilla "${activatedTemplate.name}" activada correctamente`);
+            }
 
             return {
                 templates: updatedTemplates,
                 activeTemplateId: templateId,
             }
         }),
-    // Implementación de la acción fetchTemplates compatible con SSR
+    // Implementación de la acción fetchTemplates compatible con backend
     fetchTemplates: async () => {
         try {
             // Solo ejecutar fetch en el cliente, nunca en el servidor
@@ -192,14 +220,24 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 console.log('Obteniendo plantillas desde API (cliente)...');
 
                 try {
-                    // Primer intento: obtener plantillas reales del backend
-                    const response = await fetch('/api/chatbot/public-templates', {
+                    // Intentar obtener plantillas del backend
+                    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3090';
+                    
+                    // Obtener tenant_id de las cookies o usar el default
+                    const cookieStore = document.cookie.split('; ').find(row => row.startsWith('tenant_id='));
+                    const tenantId = cookieStore ? cookieStore.split('=')[1] : process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'default';
+                    
+                    console.log('Frontend: Tenant ID obtenido:', tenantId);
+                    console.log('Frontend: URL backend:', BACKEND_URL);
+                    
+                    const url = `${BACKEND_URL}/api/text/templates?tenant_id=${tenantId}`;
+                    console.log('Frontend: Llamando a:', url);
+                    
+                    const response = await fetch(url, {
                         method: 'GET',
                         headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache'
-                        },
-                        credentials: 'include' // Incluir cookies para el tenant_id
+                            'Content-Type': 'application/json'
+                        }
                     });
 
                     if (response.ok) {
@@ -210,12 +248,44 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                             console.log('Plantillas obtenidas desde API:', templates);
 
                             if (templates.length > 0) {
-                                // NO agregamos ninguna plantilla personalizada
-                                // SOLO usamos exactamente lo que viene del servidor
-                                console.log('Usando SOLO las plantillas obtenidas del servidor:', templates.map(t => t.name).join(', '));
+                                // Formatear las plantillas para el frontend
+                                const formattedTemplates = templates.map((template: any) => ({
+                                    id: template.id,
+                                    name: template.name,
+                                    description: template.description || 'Sin descripción',
+                                    isActive: template.isActive || false,
+                                    isEnabled: true,
+                                    avatarUrl: '/img/avatars/thumb-2.jpg',
+                                    tokensEstimated: template.tokensEstimated || 500,
+                                    category: template.category || 'general',
+                                    flowId: template.flowId || null
+                                }));
 
-                                get().setTemplates(templates);
-                                return templates;
+                                // Si ninguna está activa, activar la primera
+                                if (!formattedTemplates.some((t: ChatTemplate) => t.isActive) && formattedTemplates.length > 0) {
+                                    // Buscar primero el "Flujo basico lead"
+                                    const leadTemplate = formattedTemplates.find((t: ChatTemplate) => 
+                                        t.name.toLowerCase().includes('flujo') && 
+                                        t.name.toLowerCase().includes('basico') && 
+                                        t.name.toLowerCase().includes('lead')
+                                    );
+                                    
+                                    if (leadTemplate) {
+                                        leadTemplate.isActive = true;
+                                    } else {
+                                        formattedTemplates[0].isActive = true;
+                                    }
+                                }
+
+                                get().setTemplates(formattedTemplates);
+
+                                // También establecer activeTemplateId si hay alguna activa
+                                const activeTemplate = formattedTemplates.find((t: ChatTemplate) => t.isActive);
+                                if (activeTemplate) {
+                                    get().setActiveTemplate(activeTemplate.id);
+                                }
+
+                                return;
                             }
                         }
                     } else {
@@ -226,16 +296,17 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 }
             }
 
-            // Si estamos en el servidor o hubo un error, no mostrar ninguna plantilla
-            // IMPORTANTE: NO usar plantillas predeterminadas
-            console.log('No se pudieron obtener plantillas del servidor. No se usará ninguna plantilla predeterminada.');
-
-            // Devolvemos array vacío para forzar error explícito
+            // Si estamos en el servidor o hubo un error, devolver array vacío
+            console.log('No se pudieron cargar plantillas del backend. Mostrando mensaje de error.');
+            
+            // No establecer plantillas predeterminadas, dejar el array vacío
             get().setTemplates([]);
-            return [];
+            
+            return;
         } catch (error) {
             console.error('Error general al configurar plantillas en store:', error)
-            return [];
+            get().setTemplates([]);
+            return;
         }
     },
 }))

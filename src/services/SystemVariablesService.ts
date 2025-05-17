@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * agentprop/src/services/SystemVariablesService.ts
  * Servicio para gestionar las variables del sistema

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/core/permissions/LimitChecker.tsx
  * Componente para verificar límites del plan en UI

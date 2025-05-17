@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/panels/node-configs/TTSNodeConfig.tsx
  * Configurador para nodos de síntesis de voz (Text-to-Speech)
@@ -304,6 +306,23 @@ const TTSNodeConfig: React.FC<TTSNodeConfigProps> = ({ data, onChange, nodeId })
                 </div>
             )}
             
+            {/* IMPORTANTE: Checkbox para controlar el flujo - TODOS los nodos deben tenerlo */}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <label className="flex items-center cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={data.waitForResponse !== false}
+                        onChange={(e) => onChange('waitForResponse', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Esperar respuesta</span>
+                </label>
+                <p className="mt-1 text-xs text-gray-500">
+                    Si está activado, el flujo se pausará esperando respuesta del usuario.
+                    Si está desactivado, el flujo continuará automáticamente al siguiente nodo.
+                </p>
+            </div>
+
             {connectedToAI && sourceNodeId && (
                 <div className="rounded-md bg-gray-50 p-2 mb-4">
                     <p className="text-xs text-gray-500 mb-1">Conectado a:</p>

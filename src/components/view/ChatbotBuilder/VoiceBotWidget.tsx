@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/VoiceBotWidget.tsx
  * Widget independiente para implementar Voice Bot en cualquier página

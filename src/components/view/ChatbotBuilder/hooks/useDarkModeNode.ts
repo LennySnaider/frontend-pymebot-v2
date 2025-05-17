@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/hooks/useDarkModeNode.ts
  * Hook para asegurar que los nodos de ReactFlow tengan correctamente aplicado el modo oscuro

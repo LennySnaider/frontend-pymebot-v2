@@ -215,11 +215,17 @@ const NewActivationPage = () => {
     const filteredTemplates = templates.filter(template => {
         const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             template.description.toLowerCase().includes(searchTerm.toLowerCase())
-        
+
         const matchesVertical = verticalFilter === 'all' || template.vertical_id === verticalFilter
-        
+
         return matchesSearch && matchesVertical
     })
+
+    // Verificar si hay plantillas para cada categoría para determinar si mostrar la sección
+    const hasVentasTemplates = filteredTemplates.some(template => template.vertical_name === 'Ventas')
+    const hasServicioTemplates = filteredTemplates.some(template => template.vertical_name === 'Servicio al cliente')
+    const hasMarketingTemplates = filteredTemplates.some(template => template.vertical_name === 'Marketing')
+    const hasOtherTemplates = filteredTemplates.some(template => !template.vertical_name || !['Ventas', 'Servicio al cliente', 'Marketing'].includes(template.vertical_name))
     
     return (
         <>
@@ -265,10 +271,10 @@ const NewActivationPage = () => {
                             </div>
                         </div>
                         
-                        <div className="bg-white p-6 rounded-xl shadow-sm">
+                        <div className="bg-white p-6 rounded-xl shadow-sm max-w-7xl mx-auto">
                             <div className="mb-6">
                                 <h3 className="text-lg font-medium text-gray-800 mb-3">Plantillas disponibles</h3>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                                     {/* Búsqueda */}
                                     <div className="col-span-1">
@@ -306,7 +312,7 @@ const NewActivationPage = () => {
                                         </select>
                                     </div>
                                 </div>
-                                
+
                                 {loading ? (
                                     <div className="text-center py-8">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -323,44 +329,207 @@ const NewActivationPage = () => {
                                         </p>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {filteredTemplates.map((template) => (
-                                            <div 
-                                                key={template.id}
-                                                className={`border rounded-lg overflow-hidden cursor-pointer transition-all ${
-                                                    selectedTemplateId === template.id 
-                                                        ? 'border-primary shadow-md ring-2 ring-primary ring-opacity-20' 
-                                                        : 'border-gray-200 hover:border-primary/50'
-                                                }`}
-                                                onClick={() => setSelectedTemplateId(template.id)}
-                                            >
-                                                <div className="p-4">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <h4 className="font-medium text-gray-800">
-                                                            {template.name}
-                                                        </h4>
-                                                        {selectedTemplateId === template.id && (
-                                                            <div className="bg-primary text-white rounded-full p-1">
-                                                                <LuCheck className="h-4 w-4" />
+                                    <div className="space-y-8">
+                                        {/* Categoría: Ventas */}
+                                        {hasVentasTemplates && (
+                                            <div>
+                                                <h4 className="text-base font-medium text-gray-700 mb-3 border-b pb-2 border-gray-200">Ventas</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {filteredTemplates
+                                                    .filter(template => template.vertical_name === 'Ventas')
+                                                    .map((template) => (
+                                                        <div
+                                                            key={template.id}
+                                                            className={`border rounded-lg overflow-hidden cursor-pointer transition-all ${
+                                                                selectedTemplateId === template.id
+                                                                    ? 'border-primary shadow-md ring-2 ring-primary ring-opacity-20'
+                                                                    : 'border-gray-200 hover:border-primary/50'
+                                                            }`}
+                                                            onClick={() => setSelectedTemplateId(template.id)}
+                                                        >
+                                                            <div className="p-4">
+                                                                <div className="flex justify-between items-start mb-2">
+                                                                    <h4 className="font-medium text-gray-800">
+                                                                        {template.name}
+                                                                    </h4>
+                                                                    {selectedTemplateId === template.id && (
+                                                                        <div className="bg-primary text-white rounded-full p-1">
+                                                                            <LuCheck className="h-4 w-4" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                                                                    {template.description}
+                                                                </p>
+                                                                <div className="flex items-center justify-between">
+                                                                    {template.vertical_name && (
+                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                            {template.vertical_name}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="text-xs text-gray-400">
+                                                                        {new Date(template.created_at).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                                                        {template.description}
-                                                    </p>
-                                                    <div className="flex items-center justify-between">
-                                                        {template.vertical_name && (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                                {template.vertical_name}
-                                                            </span>
-                                                        )}
-                                                        <span className="text-xs text-gray-400">
-                                                            {new Date(template.created_at).toLocaleDateString()}
-                                                        </span>
-                                                    </div>
-                                                </div>
+                                                        </div>
+                                                    ))}
                                             </div>
-                                        ))}
+                                            </div>
+                                        )}
+
+                                        {/* Categoría: Servicio al cliente */}
+                                        {hasServicioTemplates && (
+                                            <div>
+                                                <h4 className="text-base font-medium text-gray-700 mb-3 border-b pb-2 border-gray-200">Servicio al cliente</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {filteredTemplates
+                                                    .filter(template => template.vertical_name === 'Servicio al cliente')
+                                                    .map((template) => (
+                                                        <div
+                                                            key={template.id}
+                                                            className={`border rounded-lg overflow-hidden cursor-pointer transition-all ${
+                                                                selectedTemplateId === template.id
+                                                                    ? 'border-primary shadow-md ring-2 ring-primary ring-opacity-20'
+                                                                    : 'border-gray-200 hover:border-primary/50'
+                                                            }`}
+                                                            onClick={() => setSelectedTemplateId(template.id)}
+                                                        >
+                                                            <div className="p-4">
+                                                                <div className="flex justify-between items-start mb-2">
+                                                                    <h4 className="font-medium text-gray-800">
+                                                                        {template.name}
+                                                                    </h4>
+                                                                    {selectedTemplateId === template.id && (
+                                                                        <div className="bg-primary text-white rounded-full p-1">
+                                                                            <LuCheck className="h-4 w-4" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                                                                    {template.description}
+                                                                </p>
+                                                                <div className="flex items-center justify-between">
+                                                                    {template.vertical_name && (
+                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                            {template.vertical_name}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="text-xs text-gray-400">
+                                                                        {new Date(template.created_at).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                            </div>
+                                        )}
+
+                                        {/* Categoría: Marketing */}
+                                        {hasMarketingTemplates && (
+                                            <div>
+                                                <h4 className="text-base font-medium text-gray-700 mb-3 border-b pb-2 border-gray-200">Marketing</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {filteredTemplates
+                                                    .filter(template => template.vertical_name === 'Marketing')
+                                                    .map((template) => (
+                                                        <div
+                                                            key={template.id}
+                                                            className={`border rounded-lg overflow-hidden cursor-pointer transition-all ${
+                                                                selectedTemplateId === template.id
+                                                                    ? 'border-primary shadow-md ring-2 ring-primary ring-opacity-20'
+                                                                    : 'border-gray-200 hover:border-primary/50'
+                                                            }`}
+                                                            onClick={() => setSelectedTemplateId(template.id)}
+                                                        >
+                                                            <div className="p-4">
+                                                                <div className="flex justify-between items-start mb-2">
+                                                                    <h4 className="font-medium text-gray-800">
+                                                                        {template.name}
+                                                                    </h4>
+                                                                    {selectedTemplateId === template.id && (
+                                                                        <div className="bg-primary text-white rounded-full p-1">
+                                                                            <LuCheck className="h-4 w-4" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                                                                    {template.description}
+                                                                </p>
+                                                                <div className="flex items-center justify-between">
+                                                                    {template.vertical_name && (
+                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                            {template.vertical_name}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="text-xs text-gray-400">
+                                                                        {new Date(template.created_at).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                            </div>
+                                        )}
+
+                                        {/* Categoría: Otros */}
+                                        {hasOtherTemplates && (
+                                            <div>
+                                                <h4 className="text-base font-medium text-gray-700 mb-3 border-b pb-2 border-gray-200">Otros</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {filteredTemplates
+                                                    .filter(template => !template.vertical_name || !['Ventas', 'Servicio al cliente', 'Marketing'].includes(template.vertical_name))
+                                                    .map((template) => (
+                                                        <div
+                                                            key={template.id}
+                                                            className={`border rounded-lg overflow-hidden cursor-pointer transition-all ${
+                                                                selectedTemplateId === template.id
+                                                                    ? 'border-primary shadow-md ring-2 ring-primary ring-opacity-20'
+                                                                    : 'border-gray-200 hover:border-primary/50'
+                                                            }`}
+                                                            onClick={() => setSelectedTemplateId(template.id)}
+                                                        >
+                                                            <div className="p-4">
+                                                                <div className="flex justify-between items-start mb-2">
+                                                                    <h4 className="font-medium text-gray-800">
+                                                                        {template.name}
+                                                                    </h4>
+                                                                    {selectedTemplateId === template.id && (
+                                                                        <div className="bg-primary text-white rounded-full p-1">
+                                                                            <LuCheck className="h-4 w-4" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                                                                    {template.description}
+                                                                </p>
+                                                                <div className="flex items-center justify-between">
+                                                                    {template.vertical_name && (
+                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                            {template.vertical_name}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="text-xs text-gray-400">
+                                                                        {new Date(template.created_at).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                            </div>
+                                        )}
+
+                                        {/* Mensaje cuando no hay resultados en ninguna categoría tras filtrar */}
+                                        {!hasVentasTemplates && !hasServicioTemplates && !hasMarketingTemplates && !hasOtherTemplates && filteredTemplates.length > 0 && (
+                                            <div className="text-center py-6 bg-gray-50 rounded-md">
+                                                <p className="text-sm text-gray-500">
+                                                    No se encontraron plantillas que coincidan con los criterios de búsqueda.
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

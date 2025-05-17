@@ -128,6 +128,23 @@ const ConditionalNodeConfig: React.FC<ConditionalNodeConfigProps> = ({
                 </p>
             </div>
 
+            {/* IMPORTANTE: Checkbox para controlar el flujo - TODOS los nodos deben tenerlo */}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <label className="flex items-center cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={data.waitForResponse !== false}
+                        onChange={(e) => onChange('waitForResponse', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Esperar respuesta</span>
+                </label>
+                <p className="mt-1 text-xs text-gray-500">
+                    Si está activado, el flujo se pausará esperando respuesta del usuario.
+                    Si está desactivado, el flujo continuará automáticamente al siguiente nodo.
+                </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
                 <div className="bg-green-50 rounded-md p-3">
                     <h4 className="font-medium text-green-800 text-sm mb-1">
@@ -136,6 +153,7 @@ const ConditionalNodeConfig: React.FC<ConditionalNodeConfigProps> = ({
                     <p className="text-xs text-green-700">
                         Seguirá el camino conectado al conector verde en la
                         parte inferior izquierda.
+                        {data.waitForResponse !== false ? ' Esperará respuesta del usuario.' : ' Continuará automáticamente.'}
                     </p>
                 </div>
                 <div className="bg-red-50 rounded-md p-3">
@@ -145,6 +163,7 @@ const ConditionalNodeConfig: React.FC<ConditionalNodeConfigProps> = ({
                     <p className="text-xs text-red-700">
                         Seguirá el camino conectado al conector rojo en la parte
                         inferior derecha.
+                        {data.waitForResponse !== false ? ' Esperará respuesta del usuario.' : ' Continuará automáticamente.'}
                     </p>
                 </div>
             </div>

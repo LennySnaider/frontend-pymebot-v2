@@ -75,7 +75,25 @@ const ChatHeader = () => {
   }, []);
 
   // Abrir/cerrar el modal de configuración
+  // Obtener templates y función para cargarlos del store
+  const templates = useChatStore((state) => state.templates || [])
+  const fetchTemplates = useChatStore((state) => state.fetchTemplates)
+
+  // Cargar templates si no están cargados
+  useEffect(() => {
+    if (templates.length === 0) {
+      console.log('No hay plantillas cargadas, cargando desde API...');
+      fetchTemplates();
+    }
+  }, [templates.length, fetchTemplates]);
+
   const toggleConfigModal = () => {
+    // Si vamos a abrir el modal, asegurarnos de que tengamos plantillas
+    if (!isConfigModalOpen && templates.length === 0) {
+      console.log('Cargando plantillas antes de abrir modal...');
+      fetchTemplates();
+    }
+
     setIsConfigModalOpen(!isConfigModalOpen)
   }
 
@@ -108,14 +126,7 @@ const ChatHeader = () => {
         {/* Selector de plantillas */}
         <TemplateSelector onTemplateChange={handleTemplateChange} />
 
-        {/* Herramientas de diagnóstico */}
-        <div className="flex space-x-1">
-          {/* Test de mensajes */}
-          <MessageTester />
-
-          {/* Depurador de plantillas */}
-          <TemplateDebugger />
-        </div>
+        {/* Herramientas de diagnóstico removidas */}
 
         {/* Botón de configuración */}
         <Button
@@ -136,6 +147,7 @@ const ChatHeader = () => {
           onClose={() => setIsConfigModalOpen(false)} 
         />
       )}
+      
     </div>
   )
 }

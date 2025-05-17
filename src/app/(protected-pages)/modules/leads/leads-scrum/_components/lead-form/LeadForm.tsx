@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * LeadForm.tsx
  * Componente principal del formulario de leads que integra todos los componentes

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Componente para mostrar mensajes en la vista previa del chatbot
  * @version 2.0.0
@@ -12,6 +14,19 @@ export interface MessageType {
   timestamp: string;
   hasAudio?: boolean;
   audioUrl?: string;
+  // Para mensajes con botones interactivos
+  buttons?: Array<{
+    text: string;
+    value?: string;
+  }>;
+  // Para mensajes con listas interactivas
+  listTitle?: string;
+  listItems?: Array<{
+    text: string;
+    description?: string;
+    value?: string;
+  }>;
+  buttonText?: string;
 }
 
 interface ChatMessageProps {
@@ -109,7 +124,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       >
         <div>
           {formattedContent}
-          
+
           {/* Icono de audio para mensajes TTS */}
           {message.hasAudio && isVoiceBot && (
             <div className="flex items-center justify-end mt-1 text-green-500 dark:text-green-400 gap-1">
@@ -123,7 +138,45 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
               )}
             </div>
           )}
-          
+
+          {/* Botones interactivos */}
+          {message.senderId === 'agent' && message.buttons && message.buttons.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {message.buttons.map((button, index) => (
+                <button
+                  key={index}
+                  className="w-full py-1.5 px-3 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/30 dark:hover:bg-purple-800/50 rounded-md text-purple-700 dark:text-purple-300 text-sm border border-purple-200 dark:border-purple-700 transition-colors"
+                >
+                  {button.text || `Botón ${index + 1}`}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Lista interactiva */}
+          {message.senderId === 'agent' && message.listItems && message.listItems.length > 0 && (
+            <div className="mt-3">
+              <button
+                className="w-full py-1.5 px-3 bg-orange-100 hover:bg-orange-200 dark:bg-orange-900/30 dark:hover:bg-orange-800/50 rounded-md text-orange-700 dark:text-orange-300 text-sm border border-orange-200 dark:border-orange-700 transition-colors flex justify-between items-center"
+              >
+                <span>{message.buttonText || 'Ver opciones'}</span>
+                <span>▼</span>
+              </button>
+
+              {/* Vista previa de la lista - indicación simplificada */}
+              <div className="mt-2 bg-gray-50 dark:bg-gray-700/50 rounded-md p-2 border border-gray-200 dark:border-gray-700">
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {message.listTitle || 'Selecciona una opción:'}
+                  </div>
+                  <div>
+                    {message.listItems.length} opciones disponibles
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div
             className={`text-right text-xs mt-1 ${
               message.senderId === 'agent'

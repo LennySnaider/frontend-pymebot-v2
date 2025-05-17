@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/app/(protected-pages)/superadmin/admin-tools/json-schema-forms/_components/JsonSchemaLibrary.tsx
  * Componente para gestionar la biblioteca de esquemas JSON disponibles en el sistema.

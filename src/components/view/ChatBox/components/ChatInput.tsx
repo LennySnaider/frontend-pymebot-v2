@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useRef } from 'react'
 import Button from '@/components/ui/Button'
 import Upload from '@/components/ui/Upload'

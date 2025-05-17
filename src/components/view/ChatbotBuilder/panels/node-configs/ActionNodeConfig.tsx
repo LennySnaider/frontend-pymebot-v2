@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/panels/node-configs/ActionNodeConfig.tsx
  * Configurador para nodos de acción de backend
@@ -158,18 +160,24 @@ const ActionNodeConfig: React.FC<ActionNodeConfigProps> = ({ data, onChange }) =
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                     Tipo de acción
                 </label>
-                <select
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20"
-                    value={data.actionType || ''}
-                    onChange={(e) => handleActionTypeChange(e.target.value)}
-                >
-                    <option value="">Seleccionar una acción</option>
-                    {availableActions.map((action) => (
-                        <option key={action.id} value={action.id}>
-                            {action.name}
-                        </option>
-                    ))}
-                </select>
+                <div className="rounded-md border border-gray-300 shadow-sm overflow-hidden">
+                    <div className="max-h-40 overflow-y-auto p-2 grid grid-cols-1 gap-2">
+                        {availableActions.map((action) => (
+                            <button
+                                key={action.id}
+                                type="button"
+                                onClick={() => handleActionTypeChange(action.id)}
+                                className={`text-left px-3 py-2 rounded-md ${
+                                    data.actionType === action.id
+                                        ? 'bg-blue-50 border-blue-300 text-blue-700 border'
+                                        : 'hover:bg-gray-50 border border-gray-200'
+                                }`}
+                            >
+                                <span className="font-medium text-sm">{action.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 {selectedAction && (
                     <p className="mt-1 text-xs text-gray-500">
                         {selectedAction.description}
@@ -191,18 +199,31 @@ const ActionNodeConfig: React.FC<ActionNodeConfigProps> = ({ data, onChange }) =
                                         )}
                                     </label>
                                     <div className="flex items-center">
-                                        <select
-                                            className="text-xs border-gray-300 rounded-md shadow-sm mr-2"
-                                            value={param.type}
-                                            onChange={(e) => handleParamTypeChange(
-                                                index, 
-                                                e.target.value as 'text' | 'variable' | 'number'
-                                            )}
-                                        >
-                                            <option value="text">Texto</option>
-                                            <option value="variable">Variable</option>
-                                            <option value="number">Número</option>
-                                        </select>
+                                        <div className="flex mr-2 border border-gray-300 rounded-md overflow-hidden">
+                                            {[
+                                                { value: 'text', label: 'T' },
+                                                { value: 'variable', label: 'V' },
+                                                { value: 'number', label: 'N' }
+                                            ].map((option) => (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() => handleParamTypeChange(
+                                                        index,
+                                                        option.value as 'text' | 'variable' | 'number'
+                                                    )}
+                                                    className={`text-xs px-2 py-1 ${
+                                                        param.type === option.value
+                                                            ? 'bg-blue-50 text-blue-700 font-medium'
+                                                            : 'bg-white text-gray-700'
+                                                    }`}
+                                                    title={option.value === 'text' ? 'Texto' :
+                                                           option.value === 'variable' ? 'Variable' : 'Número'}
+                                                >
+                                                    {option.label}
+                                                </button>
+                                            ))}
+                                        </div>
                                         <button
                                             type="button"
                                             className="text-red-500 hover:text-red-700"
@@ -261,15 +282,26 @@ const ActionNodeConfig: React.FC<ActionNodeConfigProps> = ({ data, onChange }) =
                                 onChange={(e) => setCustomParamValue(e.target.value)}
                                 placeholder="Valor"
                             />
-                            <select
-                                className="col-span-1 text-xs border-gray-300 rounded-md shadow-sm"
-                                value={customParamType}
-                                onChange={(e) => setCustomParamType(e.target.value as any)}
-                            >
-                                <option value="text">Texto</option>
-                                <option value="variable">Variable</option>
-                                <option value="number">Número</option>
-                            </select>
+                            <div className="col-span-1 flex border border-gray-300 rounded-md overflow-hidden">
+                                {[
+                                    { value: 'text', label: 'Texto' },
+                                    { value: 'variable', label: 'Variable' },
+                                    { value: 'number', label: 'Número' }
+                                ].map((option) => (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => setCustomParamType(option.value as any)}
+                                        className={`text-xs flex-1 py-1 ${
+                                            customParamType === option.value
+                                                ? 'bg-blue-50 text-blue-700 font-medium'
+                                                : 'bg-white text-gray-700'
+                                        }`}
+                                    >
+                                        {option.label.substring(0, 1)}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                         <button
                             type="button"
@@ -303,11 +335,29 @@ const ActionNodeConfig: React.FC<ActionNodeConfigProps> = ({ data, onChange }) =
                 </p>
             </div>
 
+            {/* IMPORTANTE: Checkbox para controlar el flujo - TODOS los nodos deben tenerlo */}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <label className="flex items-center cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={data.waitForResponse !== false}
+                        onChange={(e) => onChange('waitForResponse', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Esperar respuesta</span>
+                </label>
+                <p className="mt-1 text-xs text-gray-500">
+                    Si está activado, el flujo se pausará esperando respuesta del usuario.
+                    Si está desactivado, el flujo continuará automáticamente al siguiente nodo.
+                </p>
+            </div>
+
             <div className="bg-cyan-50 rounded-md p-3">
                 <h4 className="font-medium text-cyan-800 text-sm mb-1">Información</h4>
                 <p className="text-xs text-cyan-700">
                     Este nodo ejecuta acciones en el backend (consultar disponibilidad, crear cita, etc.)
                     Los parámetros pueden ser texto estático o variables del estado de la conversación.
+                    {data.waitForResponse !== false ? ' El flujo esperará respuesta del usuario.' : ' El flujo continuará automáticamente después de la acción.'}
                 </p>
             </div>
         </div>

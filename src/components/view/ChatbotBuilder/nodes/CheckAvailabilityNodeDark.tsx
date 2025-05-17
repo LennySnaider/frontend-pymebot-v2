@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/nodes/CheckAvailabilityNodeDark.tsx
  * Nodo de chatbot para verificar disponibilidad de citas - Versión optimizada para modo oscuro

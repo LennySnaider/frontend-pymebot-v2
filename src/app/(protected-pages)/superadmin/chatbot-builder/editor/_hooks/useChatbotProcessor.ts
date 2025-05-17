@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/app/(protected-pages)/modules/superadmin/chatbot-builder/editor/_hooks/useChatbotProcessor.ts
  * Hook personalizado para procesar los nodos del chatbot

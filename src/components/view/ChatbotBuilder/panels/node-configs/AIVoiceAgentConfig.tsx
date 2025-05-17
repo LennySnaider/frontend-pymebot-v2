@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/panels/node-configs/AIVoiceAgentConfig.tsx
  * Configurador para nodos combinados de IA y Voz
@@ -595,6 +597,23 @@ const AIVoiceAgentConfig: React.FC<AIVoiceAgentConfigProps> = ({
                         />
                         <p className="mt-1 text-xs text-gray-500">
                             Limita el tiempo máximo que puede durar la respuesta de voz.
+                        </p>
+                    </div>
+
+                    {/* IMPORTANTE: Checkbox para controlar el flujo - TODOS los nodos deben tenerlo */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                        <label className="flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={data.waitForResponse !== false}
+                                onChange={(e) => onChange('waitForResponse', e.target.checked)}
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Esperar respuesta</span>
+                        </label>
+                        <p className="mt-1 text-xs text-gray-500">
+                            Si está activado, el flujo se pausará esperando respuesta del usuario.
+                            Si está desactivado, el flujo continuará automáticamente al siguiente nodo.
                         </p>
                     </div>
                 </div>

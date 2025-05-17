@@ -403,11 +403,55 @@ const SettingsBusiness: React.FC = () => {
                 updated_at: new Date().toISOString(),
             })
 
-            toast.push(
-                <Notification title={tCore('success')} type="success">
-                    {t('business.saveSuccess')}
-                </Notification>,
-            )
+            // Sincronizar las variables del sistema
+            try {
+                console.log('Sincronizando variables del sistema para tenant:', tenantId);
+                
+                // Construir URL correcta para la API de sincronización
+                const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3090';
+                const syncUrl = `${apiUrl}/api/variables/sync/${tenantId}`;
+                
+                const syncResponse = await fetch(syncUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Necesitamos obtener el token de autenticación
+                        'Authorization': `Bearer ${session?.user?.access_token || ''}`,
+                    },
+                });
+
+                if (!syncResponse.ok) {
+                    // Si la sincronización falla, lo registramos pero no bloqueamos el guardado
+                    console.error('Error al sincronizar variables del sistema:', await syncResponse.text());
+                    
+                    // Mostrar un mensaje informativo pero no de error
+                    toast.push(
+                        <Notification title="Información" type="info">
+                            Los datos se guardaron correctamente, pero las variables del chatbot no se actualizaron automáticamente. 
+                            Puedes sincronizarlas manualmente desde el panel administrativo.
+                        </Notification>,
+                    );
+                } else {
+                    const syncResult = await syncResponse.json();
+                    console.log('Variables del sistema sincronizadas:', syncResult);
+                    
+                    toast.push(
+                        <Notification title={tCore('success')} type="success">
+                            {t('business.saveSuccess')} Variables del chatbot actualizadas correctamente.
+                        </Notification>,
+                    );
+                }
+            } catch (syncError) {
+                // Si falla la sincronización, no es crítico
+                console.error('Error al sincronizar variables del sistema:', syncError);
+                
+                // Mostrar un mensaje informativo pero no de error
+                toast.push(
+                    <Notification title={tCore('success')} type="success">
+                        {t('business.saveSuccess')} (Las variables del chatbot se sincronizarán automáticamente más tarde)
+                    </Notification>,
+                );
+            }
         } catch (error) {
             console.error('Error al guardar info del tenant:', error)
             toast.push(

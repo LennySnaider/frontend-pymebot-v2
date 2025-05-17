@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useContext } from 'react'
 import { useConfig } from '../ConfigProvider'
 import { CollapseContextProvider } from './context/collapseContext'

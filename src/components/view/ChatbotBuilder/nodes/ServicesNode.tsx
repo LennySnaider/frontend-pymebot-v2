@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/nodes/ServicesNode.tsx
  * Nodo de chatbot para mostrar servicios disponibles

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * agentprop/src/utils/notifications.tsx
  * Utilidades para mostrar notificaciones consistentes en la aplicación

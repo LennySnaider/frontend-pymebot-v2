@@ -1,3 +1,5 @@
+'use client'
+
 import { useRef, useState, useEffect, ReactNode } from 'react'
 import classNames from 'classnames'
 import useDebounce from '@/utils/hooks/useDebounce'

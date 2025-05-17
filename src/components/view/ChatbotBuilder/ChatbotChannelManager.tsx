@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/ChatbotChannelManager.tsx
  * Componente para gestionar los canales de comunicación del chatbot

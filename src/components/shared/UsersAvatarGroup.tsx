@@ -1,3 +1,5 @@
+'use client'
+
 import { useMemo } from 'react'
 import Tooltip from '@/components/ui/Tooltip'
 import Avatar from '@/components/ui/Avatar'

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/VoiceChatInterface.tsx
  * Componente que implementa la interfaz de usuario para el chatbot con capacidades de voz

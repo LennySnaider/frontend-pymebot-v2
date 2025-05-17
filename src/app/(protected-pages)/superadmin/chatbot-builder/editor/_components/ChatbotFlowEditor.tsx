@@ -43,6 +43,8 @@ import InputNode from './nodes/InputNode'
 import EndNode from './nodes/EndNode'
 import TTSNode from './nodes/TTSNode'
 import STTNode from './nodes/STTNode'
+import ButtonsNode from './nodes/ButtonsNode'
+import ListNode from './nodes/ListNode'
 import ChatbotPreview from './ChatbotPreview'
 import { Button, Dialog } from '@/components/ui'
 import { notifications } from '@/utils/notifications'
@@ -101,6 +103,10 @@ const nodeTypes: NodeTypes = {
     ttsNode: TTSNode,
     sttNode: STTNode,
     endNode: EndNode,
+
+    // Nuevos nodos interactivos
+    buttonsNode: ButtonsNode,
+    listNode: ListNode,
 
     // Nodos de negocio
     'check-availability': CheckAvailabilityNodeDark,
@@ -377,6 +383,25 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                     setTemplateData(data[0])
                     setUnsavedChanges(false)
 
+                    // Invalidar caché del sistema para que los cambios se reflejen inmediatamente
+                    try {
+                        // Notificar al sistema que la plantilla fue actualizada
+                        await fetch('/api/chatbot/invalidate-cache', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                template_id: data[0].id,
+                                action: 'update'
+                            })
+                        });
+                        console.log('Caché de plantilla invalidada correctamente');
+                    } catch (cacheError) {
+                        console.warn('No se pudo invalidar el caché de la plantilla:', cacheError);
+                        // No falla el guardado, solo es una advertencia
+                    }
+
                     // Mostrar notificación de éxito
                     notifications.success(
                         options?.status === 'published' // Usar el estado de las opciones para el mensaje
@@ -584,6 +609,10 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                     return 'Text-to-Speech'
                 case 'sttNode':
                     return 'Speech-to-Text'
+                case 'buttonsNode':
+                    return 'Botones Interactivos'
+                case 'listNode':
+                    return 'Lista Interactiva'
                 case 'endNode':
                     return 'Fin Conversación'
                 default:
@@ -647,6 +676,34 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                         variableName: 'transcripcion',
                         language: 'Español',
                         duration: 30,
+                    }
+                case 'buttonsNode':
+                    return {
+                        message: 'Selecciona una opción:',
+                        buttons: [
+                            { text: 'Opción 1', value: 'opcion_1' },
+                            { text: 'Opción 2', value: 'opcion_2' },
+                            { text: 'Opción 3', value: 'opcion_3' }
+                        ],
+                        waitForResponse: true,
+                        variableName: 'respuesta_boton',
+                        delay: 0
+                    }
+                case 'listNode':
+                    return {
+                        message: 'Selecciona una opción de la lista:',
+                        listTitle: 'Opciones disponibles',
+                        listItems: [
+                            { text: 'Opción 1', description: 'Descripción de la opción 1', value: 'opcion_1' },
+                            { text: 'Opción 2', description: 'Descripción de la opción 2', value: 'opcion_2' },
+                            { text: 'Opción 3', description: 'Descripción de la opción 3', value: 'opcion_3' },
+                            { text: 'Opción 4', description: 'Descripción de la opción 4', value: 'opcion_4' },
+                            { text: 'Opción 5', description: 'Descripción de la opción 5', value: 'opcion_5' }
+                        ],
+                        buttonText: 'Ver opciones',
+                        waitForResponse: true,
+                        variableName: 'respuesta_lista',
+                        delay: 0
                     }
                 case 'endNode':
                     return {

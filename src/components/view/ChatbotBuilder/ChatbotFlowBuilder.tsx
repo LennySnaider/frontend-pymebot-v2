@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/ChatbotFlowBuilder.tsx
  * Componente principal para el constructor visual de flujos de chatbot basado en React Flow

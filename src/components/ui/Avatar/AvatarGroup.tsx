@@ -1,3 +1,5 @@
+'use client'
+
 import { Children, cloneElement, Fragment } from 'react'
 import classNames from 'classnames'
 import Avatar from './Avatar'

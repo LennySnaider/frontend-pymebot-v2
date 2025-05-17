@@ -1,3 +1,5 @@
+'use client'
+
 import { useMemo, lazy, type JSX } from 'react'
 import type { CommonProps } from '@/@types/common'
 import type { LazyExoticComponent } from 'react'

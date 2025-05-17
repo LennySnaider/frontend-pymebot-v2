@@ -123,6 +123,23 @@ const STTNodeConfig: React.FC<STTNodeConfigProps> = ({ data, onChange }) => {
                 )}
             </div>
 
+            {/* IMPORTANTE: Checkbox para controlar el flujo - TODOS los nodos deben tenerlo */}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <label className="flex items-center cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={data.waitForResponse !== false}
+                        onChange={(e) => onChange('waitForResponse', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Esperar respuesta</span>
+                </label>
+                <p className="mt-1 text-xs text-gray-500">
+                    Si está activado, el flujo se pausará esperando respuesta del usuario.
+                    Si está desactivado, el flujo continuará automáticamente al siguiente nodo.
+                </p>
+            </div>
+
             <div className="bg-yellow-50 rounded-md p-3">
                 <h4 className="font-medium text-yellow-800 text-sm mb-1">
                     Consideraciones importantes
@@ -134,6 +151,7 @@ const STTNodeConfig: React.FC<STTNodeConfigProps> = ({ data, onChange }) => {
                     </li>
                     <li>Formatos soportados: MP3, WAV, OGG, FLAC, MP4</li>
                     <li>Tamaño máximo recomendado: 10 minutos de audio</li>
+                    <li>{data.waitForResponse !== false ? 'El flujo esperará hasta completar la transcripción.' : 'El flujo continuará automáticamente después de iniciar la transcripción.'}</li>
                 </ul>
             </div>
         </div>

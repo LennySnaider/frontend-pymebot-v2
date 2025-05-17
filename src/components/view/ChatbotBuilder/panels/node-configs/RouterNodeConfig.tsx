@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/panels/node-configs/RouterNodeConfig.tsx
  * Configurador para nodos de enrutamiento entre plantillas
@@ -87,18 +89,47 @@ const RouterNodeConfig: React.FC<RouterNodeConfigProps> = ({ data, onChange }) =
                         {error}
                     </div>
                 ) : (
-                    <select
-                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20"
-                        value={data.targetTemplateId || ''}
-                        onChange={(e) => onChange('targetTemplateId', e.target.value)}
-                    >
-                        <option value="">Seleccionar una plantilla</option>
-                        {templates.map((template) => (
-                            <option key={template.id} value={template.id}>
-                                {template.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="rounded-md border border-gray-300 shadow-sm overflow-hidden">
+                        <div className="max-h-40 overflow-y-auto p-2 grid grid-cols-1 gap-2">
+                            {templates.length === 0 && (
+                                <div className="p-2 text-sm text-gray-500">
+                                    No hay plantillas disponibles
+                                </div>
+                            )}
+
+                            {templates.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => onChange('targetTemplateId', '')}
+                                    className={`text-left px-3 py-2 rounded-md ${
+                                        !data.targetTemplateId
+                                            ? 'bg-blue-50 border-blue-300 text-blue-700 border'
+                                            : 'hover:bg-gray-50 border border-gray-200'
+                                    }`}
+                                >
+                                    <span className="font-medium text-sm">Seleccionar una plantilla</span>
+                                </button>
+                            )}
+
+                            {templates.map((template) => (
+                                <button
+                                    key={template.id}
+                                    type="button"
+                                    onClick={() => onChange('targetTemplateId', template.id)}
+                                    className={`text-left px-3 py-2 rounded-md ${
+                                        data.targetTemplateId === template.id
+                                            ? 'bg-blue-50 border-blue-300 text-blue-700 border'
+                                            : 'hover:bg-gray-50 border border-gray-200'
+                                    }`}
+                                >
+                                    <span className="font-medium text-sm">{template.name}</span>
+                                    {template.description && (
+                                        <p className="text-xs text-gray-500 mt-1">{template.description}</p>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 )}
                 <p className="mt-1 text-xs text-gray-500">
                     La plantilla a la que se redirigirá la conversación.
@@ -121,6 +152,23 @@ const RouterNodeConfig: React.FC<RouterNodeConfigProps> = ({ data, onChange }) =
                 </p>
             </div>
             
+            {/* IMPORTANTE: Checkbox para controlar el flujo - TODOS los nodos deben tenerlo */}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <label className="flex items-center cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={data.waitForResponse !== false}
+                        onChange={(e) => onChange('waitForResponse', e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Esperar respuesta</span>
+                </label>
+                <p className="mt-1 text-xs text-gray-500">
+                    Si está activado, el flujo se pausará esperando respuesta del usuario.
+                    Si está desactivado, el flujo continuará automáticamente al siguiente nodo.
+                </p>
+            </div>
+
             <div className="bg-amber-50 rounded-md p-3">
                 <h4 className="font-medium text-amber-800 text-sm mb-2">Información importante</h4>
                 <ul className="text-xs text-amber-700 space-y-1 list-disc pl-4">
@@ -128,6 +176,7 @@ const RouterNodeConfig: React.FC<RouterNodeConfigProps> = ({ data, onChange }) =
                     <li>El estado de la conversación (variables) se mantiene al cambiar de plantilla.</li>
                     <li>Solo puedes enrutar a plantillas que estén publicadas.</li>
                     <li>Si el tenant no tiene activada la plantilla de destino, seguirá el camino de "Error".</li>
+                    <li>{data.waitForResponse !== false ? 'El flujo esperará respuesta del usuario.' : 'El flujo continuará automáticamente después del enrutamiento.'}</li>
                 </ul>
             </div>
 

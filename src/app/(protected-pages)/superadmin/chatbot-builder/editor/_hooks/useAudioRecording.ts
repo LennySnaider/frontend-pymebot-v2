@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Hook para manejar la grabación de audio con Web Audio API
  * @version 1.0.0

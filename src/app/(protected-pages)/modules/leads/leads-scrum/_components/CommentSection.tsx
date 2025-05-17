@@ -1,3 +1,5 @@
+'use client'
+
 // frontend/src/app/(protected-pages)/modules/leads/leads-scrum/_components/CommentSection.tsx
 import { useState } from 'react'
 import Avatar from '@/components/ui/Avatar'

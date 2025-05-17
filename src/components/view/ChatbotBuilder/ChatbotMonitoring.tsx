@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/ChatbotMonitoring.tsx
  * Componente para monitorear el rendimiento y uso de chatbots

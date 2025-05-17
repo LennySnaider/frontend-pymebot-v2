@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/panels/NodeConfigPanel.tsx
  * Panel de configuración para los diferentes tipos de nodos en el constructor de chatbot
@@ -18,6 +20,8 @@ import StartNodeConfig from './node-configs/StartNodeConfig'
 import TTSNodeConfig from './node-configs/TTSNodeConfig'
 import STTNodeConfig from './node-configs/STTNodeConfig'
 import AIVoiceAgentConfig from './node-configs/AIVoiceAgentConfig'
+import ButtonsNodeConfig from './node-configs/ButtonsNodeConfig'
+import ListNodeConfig from './node-configs/ListNodeConfig'
 
 interface NodeConfigPanelProps {
     node: Node
@@ -91,6 +95,10 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
             case 'ai-voice-agent':
             case 'ai_voice_agent':
                 return <AIVoiceAgentConfig {...commonProps} />
+            case 'buttonsNode':
+                return <ButtonsNodeConfig {...commonProps} />
+            case 'listNode':
+                return <ListNodeConfig {...commonProps} />
             default:
                 return (
                     <div className="p-4 text-gray-500">

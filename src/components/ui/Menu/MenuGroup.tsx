@@ -1,3 +1,5 @@
+'use client'
+
 import { useContext } from 'react'
 import classNames from 'classnames'
 import { GroupContextProvider } from './context/groupContext'

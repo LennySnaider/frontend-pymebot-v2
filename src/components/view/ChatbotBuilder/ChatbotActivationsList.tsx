@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/ChatbotActivationsList.tsx
  * Componente para listar y gestionar activaciones de chatbot para un tenant

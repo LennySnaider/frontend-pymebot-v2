@@ -577,18 +577,35 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                             />
                         </FormItem>
                         <FormItem label="Tipo de entrada">
-                            <Radio.Group
-                                value={node.data.inputType || 'text'}
-                                onChange={(value) =>
-                                    handlePropertyChange('inputType', value)
-                                }
-                            >
-                                <Radio value="text">Texto</Radio>
-                                <Radio value="number">Número</Radio>
-                                <Radio value="email">Email</Radio>
-                                <Radio value="phone">Teléfono</Radio>
-                                <Radio value="date">Fecha</Radio>
-                            </Radio.Group>
+                            <div className="grid grid-cols-2 gap-2">
+                                {[
+                                    { value: 'text', label: 'Texto' },
+                                    { value: 'number', label: 'Número' },
+                                    { value: 'email', label: 'Email' },
+                                    { value: 'phone', label: 'Teléfono' },
+                                    { value: 'date', label: 'Fecha' }
+                                ].map(option => (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => handlePropertyChange('inputType', option.value)}
+                                        className={`text-left px-3 py-2 rounded-md border ${
+                                            node.data.inputType === option.value
+                                                ? 'bg-green-50 border-green-300 text-green-700 font-medium'
+                                                : 'bg-white border-gray-300 text-gray-700'
+                                        }`}
+                                    >
+                                        <div className="flex items-center">
+                                            <div className={`w-3 h-3 rounded-full mr-2 ${
+                                                node.data.inputType === option.value
+                                                    ? 'bg-green-500'
+                                                    : 'border border-gray-300'
+                                            }`}></div>
+                                            <span className="text-sm">{option.label}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </FormItem>
                     </>
                 )}
@@ -905,6 +922,529 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                     )
                                 }
                             />
+                        </FormItem>
+                    </>
+                )}
+
+                {node.type === 'buttonsNode' && (
+                    <>
+                        <FormItem label="Mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message || ''}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'message',
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            const textarea =
+                                                document.activeElement as HTMLTextAreaElement
+                                            if (
+                                                textarea &&
+                                                textarea.tagName === 'TEXTAREA'
+                                            ) {
+                                                const start =
+                                                    textarea.selectionStart
+                                                const end =
+                                                    textarea.selectionEnd
+                                                const newValue =
+                                                    node.data.message.substring(
+                                                        0,
+                                                        start,
+                                                    ) +
+                                                    variable +
+                                                    node.data.message.substring(
+                                                        end,
+                                                    )
+                                                handlePropertyChange(
+                                                    'message',
+                                                    newValue,
+                                                )
+                                            } else {
+                                                handlePropertyChange(
+                                                    'message',
+                                                    (node.data.message || '') +
+                                                        variable,
+                                                )
+                                            }
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'delay',
+                                            parseInt(e.target.value),
+                                        )
+                                    }
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">
+                                    milisegundos
+                                </span>
+                            </div>
+                        </FormItem>
+                        <FormItem label="Nombre de variable">
+                            <Input
+                                value={node.data.variableName || ''}
+                                onChange={(e) =>
+                                    handlePropertyChange(
+                                        'variableName',
+                                        e.target.value,
+                                    )
+                                }
+                                placeholder="respuesta_boton"
+                            />
+                        </FormItem>
+                        <FormItem label="Botones">
+                            <div className="mb-2 text-xs text-gray-500 bg-gray-50 p-2 rounded-md">
+                                <p><strong>Nota:</strong> El texto ingresado se muestra al usuario. Un valor interno se genera automáticamente para la lógica del flujo.</p>
+                            </div>
+                            <div className="space-y-2">
+                                {node.data.buttons?.map(
+                                    (
+                                        button: {
+                                            text: string
+                                            value?: string
+                                        },
+                                        index: number,
+                                    ) => (
+                                        <div key={index} className="flex gap-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs text-gray-500 mb-1">Texto:</label>
+                                                <Input
+                                                    value={button.text || ''}
+                                                    onChange={(e) => {
+                                                        const newText = e.target.value;
+                                                        const newButtons = [
+                                                            ...node.data.buttons,
+                                                        ];
+                                                        // Actualizar el texto visible
+                                                        newButtons[index].text = newText;
+                                                        
+                                                        // Generar automáticamente el valor interno basado en el texto
+                                                        // convertir a minúsculas, quitar espacios y caracteres especiales
+                                                        const valueFromText = newText
+                                                            .toLowerCase()
+                                                            .replace(/[^\w\s]/gi, '')
+                                                            .replace(/\s+/g, '_');
+                                                        
+                                                        newButtons[index].value = valueFromText || `opcion_${index + 1}`;
+                                                        
+                                                        handlePropertyChange(
+                                                            'buttons',
+                                                            newButtons,
+                                                        );
+                                                    }}
+                                                    placeholder="Texto del botón"
+                                                />
+                                            </div>
+                                            <Button
+                                                size="xs"
+                                                variant="plain"
+                                                color="red"
+                                                onClick={() => {
+                                                    if (node.data.buttons.length <= 1) {
+                                                        return; // Evitar eliminar el último botón
+                                                    }
+                                                    const newButtons =
+                                                        node.data.buttons.filter(
+                                                            (
+                                                                _: unknown,
+                                                                i: number,
+                                                            ) => i !== index,
+                                                        )
+                                                    handlePropertyChange(
+                                                        'buttons',
+                                                        newButtons,
+                                                    )
+                                                }}
+                                            >
+                                                <PiTrashDuotone />
+                                            </Button>
+                                        </div>
+                                    ),
+                                )}
+                                {(!node.data.buttons || node.data.buttons.length < 3) && (
+                                    <Button
+                                        size="xs"
+                                        variant="default"
+                                        color="purple"
+                                        onClick={() => {
+                                            const newButtons = [
+                                                ...(node.data.buttons || []),
+                                            ];
+                                            const nextButtonNum = newButtons.length + 1;
+                                            const buttonText = `Opción ${nextButtonNum}`;
+                                            // Generar valor interno limpio
+                                            const buttonValue = `opcion_${nextButtonNum}`;
+                                            
+                                            newButtons.push({
+                                                text: buttonText,
+                                                value: buttonValue,
+                                            });
+                                            handlePropertyChange(
+                                                'buttons',
+                                                newButtons,
+                                            );
+                                        }}
+                                    >
+                                        Añadir botón ({(node.data.buttons || []).length}/3)
+                                    </Button>
+                                )}
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'waitForResponse',
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa hasta seleccionar botón" : "Continúa automáticamente"}
+                                </span>
+                            </div>
+                        </FormItem>
+                    </>
+                )}
+
+                {node.type === 'listNode' && (
+                    <>
+                        <FormItem label="Mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message || ''}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'message',
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            const textarea =
+                                                document.activeElement as HTMLTextAreaElement
+                                            if (
+                                                textarea &&
+                                                textarea.tagName === 'TEXTAREA'
+                                            ) {
+                                                const start =
+                                                    textarea.selectionStart
+                                                const end =
+                                                    textarea.selectionEnd
+                                                const newValue =
+                                                    node.data.message.substring(
+                                                        0,
+                                                        start,
+                                                    ) +
+                                                    variable +
+                                                    node.data.message.substring(
+                                                        end,
+                                                    )
+                                                handlePropertyChange(
+                                                    'message',
+                                                    newValue,
+                                                )
+                                            } else {
+                                                handlePropertyChange(
+                                                    'message',
+                                                    (node.data.message || '') +
+                                                        variable,
+                                                )
+                                            }
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'delay',
+                                            parseInt(e.target.value),
+                                        )
+                                    }
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">
+                                    milisegundos
+                                </span>
+                            </div>
+                        </FormItem>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                            <FormItem label="Título de la lista">
+                                <Input
+                                    value={node.data.listTitle || ''}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'listTitle',
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Opciones disponibles"
+                                />
+                            </FormItem>
+                            <FormItem label="Texto del botón">
+                                <Input
+                                    value={node.data.buttonText || ''}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'buttonText',
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Ver opciones"
+                                />
+                            </FormItem>
+                        </div>
+                        <FormItem label="Nombre de variable">
+                            <Input
+                                value={node.data.variableName || ''}
+                                onChange={(e) =>
+                                    handlePropertyChange(
+                                        'variableName',
+                                        e.target.value,
+                                    )
+                                }
+                                placeholder="respuesta_lista"
+                            />
+                        </FormItem>
+                        <FormItem label="Opciones de la lista">
+                            <div className="mb-2 text-xs text-gray-500 bg-gray-50 p-2 rounded-md">
+                                <p><strong>Nota:</strong> Cada opción tiene un texto (mostrado al usuario) y una descripción opcional. Un valor interno se genera automáticamente.</p>
+                            </div>
+                            <div className="space-y-2">
+                                {node.data.listItems?.map(
+                                    (
+                                        item: {
+                                            text: string
+                                            description?: string
+                                            value?: string
+                                        },
+                                        index: number,
+                                    ) => (
+                                        <div key={index} className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-xs font-medium">Opción {index + 1}</span>
+                                                <div className="flex space-x-1">
+                                                    <Button
+                                                        size="xs"
+                                                        variant="plain"
+                                                        disabled={index === 0}
+                                                        onClick={() => {
+                                                            if (index === 0) return;
+                                                            const newItems = [...node.data.listItems];
+                                                            const temp = newItems[index];
+                                                            newItems[index] = newItems[index - 1];
+                                                            newItems[index - 1] = temp;
+                                                            handlePropertyChange('listItems', newItems);
+                                                        }}
+                                                    >
+                                                        ↑
+                                                    </Button>
+                                                    <Button
+                                                        size="xs"
+                                                        variant="plain"
+                                                        disabled={index === node.data.listItems.length - 1}
+                                                        onClick={() => {
+                                                            if (index === node.data.listItems.length - 1) return;
+                                                            const newItems = [...node.data.listItems];
+                                                            const temp = newItems[index];
+                                                            newItems[index] = newItems[index + 1];
+                                                            newItems[index + 1] = temp;
+                                                            handlePropertyChange('listItems', newItems);
+                                                        }}
+                                                    >
+                                                        ↓
+                                                    </Button>
+                                                    <Button
+                                                        size="xs"
+                                                        variant="plain"
+                                                        color="red"
+                                                        onClick={() => {
+                                                            if (node.data.listItems.length <= 1) {
+                                                                return; // Evitar eliminar el último elemento
+                                                            }
+                                                            const newItems =
+                                                                node.data.listItems.filter(
+                                                                    (
+                                                                        _: unknown,
+                                                                        i: number,
+                                                                    ) => i !== index,
+                                                                );
+                                                            handlePropertyChange(
+                                                                'listItems',
+                                                                newItems,
+                                                            );
+                                                        }}
+                                                    >
+                                                        <PiTrashDuotone />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div>
+                                                    <label className="block text-xs text-gray-500 mb-1">Texto:</label>
+                                                    <Input
+                                                        value={item.text || ''}
+                                                        onChange={(e) => {
+                                                            const newText = e.target.value;
+                                                            const newItems = [
+                                                                ...node.data.listItems,
+                                                            ];
+                                                            // Actualizar el texto visible
+                                                            newItems[index].text = newText;
+
+                                                            // Generar automáticamente el valor interno basado en el texto
+                                                            // convertir a minúsculas, quitar espacios y caracteres especiales
+                                                            const valueFromText = newText
+                                                                .toLowerCase()
+                                                                .replace(/[^\w\s]/gi, '')
+                                                                .replace(/\s+/g, '_');
+                                                            
+                                                            newItems[index].value = valueFromText || `opcion_${index + 1}`;
+                                                            
+                                                            handlePropertyChange(
+                                                                'listItems',
+                                                                newItems,
+                                                            );
+                                                        }}
+                                                        placeholder="Texto de la opción"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs text-gray-500 mb-1">Descripción:</label>
+                                                    <Input
+                                                        value={item.description || ''}
+                                                        onChange={(e) => {
+                                                            const newItems = [
+                                                                ...node.data.listItems,
+                                                            ];
+                                                            newItems[index].description =
+                                                                e.target.value;
+                                                            handlePropertyChange(
+                                                                'listItems',
+                                                                newItems,
+                                                            );
+                                                        }}
+                                                        placeholder="Descripción (opcional)"
+                                                        className="text-xs"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ),
+                                )}
+                                {(!node.data.listItems || node.data.listItems.length < 10) && (
+                                    <Button
+                                        size="xs"
+                                        variant="default"
+                                        color="orange"
+                                        onClick={() => {
+                                            const newItems = [
+                                                ...(node.data.listItems || []),
+                                            ];
+                                            const nextItemNum = newItems.length + 1;
+                                            const itemText = `Opción ${nextItemNum}`;
+                                            const itemDesc = `Descripción de la opción ${nextItemNum}`;
+                                            // Generar valor interno limpio
+                                            const itemValue = `opcion_${nextItemNum}`;
+                                            
+                                            newItems.push({
+                                                text: itemText,
+                                                description: itemDesc,
+                                                value: itemValue,
+                                            });
+                                            handlePropertyChange(
+                                                'listItems',
+                                                newItems,
+                                            );
+                                        }}
+                                    >
+                                        Añadir opción ({(node.data.listItems || []).length}/10)
+                                    </Button>
+                                )}
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'waitForResponse',
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa hasta seleccionar opción" : "Continúa automáticamente"}
+                                </span>
+                            </div>
                         </FormItem>
                     </>
                 )}

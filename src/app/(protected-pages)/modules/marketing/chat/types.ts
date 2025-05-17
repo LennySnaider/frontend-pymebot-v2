@@ -30,6 +30,10 @@ export type Message = {
     type: 'regular' | 'reply' | 'deleted' | 'divider'
     isMyMessage: boolean
     showAvatar?: boolean
+    buttons?: Array<{
+        body: string
+        id?: string
+    }>
 }
 
 export type SelectedChat = {

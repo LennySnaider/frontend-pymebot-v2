@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/app/(protected-pages)/modules/superadmin/chatbot-builder/editor/_components/chatbot-preview/ChatInterface.tsx
  * Componente moderno para la interfaz de chat inspirado en asistentes de voz modernos

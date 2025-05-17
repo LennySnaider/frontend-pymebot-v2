@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback } from 'react'
 import type { TimeSlot } from '../types' // Ajustar ruta si es necesario
 

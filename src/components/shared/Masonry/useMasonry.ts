@@ -1,3 +1,5 @@
+'use client'
+
 import { Children, ReactNode, isValidElement, useMemo } from 'react'
 
 import useColumnsCount from './useCoulmnsCount'

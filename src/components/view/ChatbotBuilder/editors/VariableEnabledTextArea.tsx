@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * agentprop/src/components/view/ChatbotBuilder/editors/VariableEnabledTextArea.tsx
  * Componente de textarea con soporte para variables del sistema

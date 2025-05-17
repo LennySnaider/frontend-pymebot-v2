@@ -1,3 +1,5 @@
+'use client'
+
 import type { ForwardRefExoticComponent, RefAttributes } from 'react'
 import _Avatar, { AvatarProps } from './Avatar'
 import AvatarGroup from './AvatarGroup'

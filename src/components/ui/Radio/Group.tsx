@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+'use client'
+
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import classNames from 'classnames'
 import { RadioGroupContextProvider } from './context'

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Hook para manejar la ejecución del motor del chatbot
  * @version 1.0.0
@@ -14,6 +16,10 @@ export interface ChatbotContext {
   variables: Record<string, string | number | boolean>
   currentNodeId: string | null
   processedNodes: Set<string>
+  activeNodeType?: 'buttonsNode' | 'listNode' | string
+  activeNodeId?: string
+  activeNodeButtons?: Array<{ text: string, value?: string }>
+  activeNodeListItems?: Array<{ text: string, description?: string, value?: string }>
 }
 
 interface UseChatbotEngineOptions {
@@ -141,7 +147,14 @@ export function useChatbotEngine({
           senderId: 'agent',
           timestamp: new Date().toISOString(),
         })
-        moveToNextNode(node.id)
+
+        // Si el mensaje tiene la propiedad waitForResponse o espera, esperar input del usuario
+        if (node.data?.waitForResponse) {
+          console.log('Mensaje configurado para esperar respuesta del usuario')
+          onStartTextInput()
+        } else {
+          moveToNextNode(node.id)
+        }
         break
 
       case 'aiNode':
@@ -179,6 +192,66 @@ export function useChatbotEngine({
         })
 
         onStartTextInput()
+        break
+
+      case 'buttonsNode':
+        // Preparar mensaje con botones
+        const messageWithButtons = {
+          content: node.data?.message || 'Selecciona una opción:',
+          senderId: 'agent',
+          timestamp: new Date().toISOString(),
+          buttons: Array.isArray(node.data?.buttons) ? node.data.buttons : []
+        }
+
+        onAddMessage(messageWithButtons)
+
+        // Si está configurado para esperar respuesta
+        if (node.data?.waitForResponse) {
+          console.log('Nodo de botones configurado para esperar respuesta del usuario')
+
+          // Almacenar información adicional en el contexto para el manejo de la respuesta
+          updateContext(prev => ({
+            ...prev,
+            activeNodeType: 'buttonsNode',
+            activeNodeId: node.id,
+            activeNodeButtons: messageWithButtons.buttons
+          }))
+
+          onStartTextInput() // Simular la selección de botón con input de texto en el preview
+        } else {
+          moveToNextNode(node.id)
+        }
+        break
+
+      case 'listNode':
+        // Preparar mensaje con lista
+        const messageWithList = {
+          content: node.data?.message || 'Selecciona una opción de la lista:',
+          senderId: 'agent',
+          timestamp: new Date().toISOString(),
+          listTitle: node.data?.listTitle,
+          listItems: Array.isArray(node.data?.listItems) ? node.data.listItems : [],
+          buttonText: node.data?.buttonText || 'Ver opciones'
+        }
+
+        onAddMessage(messageWithList)
+
+        // Si está configurado para esperar respuesta
+        if (node.data?.waitForResponse) {
+          console.log('Nodo de lista configurado para esperar respuesta del usuario')
+
+          // Almacenar información adicional en el contexto para el manejo de la respuesta
+          updateContext(prev => ({
+            ...prev,
+            activeNodeType: 'listNode',
+            activeNodeId: node.id,
+            activeNodeListItems: messageWithList.listItems
+          }))
+
+          onStartTextInput() // Simular la selección de lista con input de texto en el preview
+        } else {
+          moveToNextNode(node.id)
+        }
         break
 
       case 'conditionNode':
@@ -395,9 +468,55 @@ export function useChatbotEngine({
       }
     }
 
-    // Continuar con el siguiente nodo
+    // Determinar el siguiente nodo basado en el tipo de nodo activo y la respuesta del usuario
     setTimeout(() => {
       if (context.currentNodeId) {
+        // Si tenemos un nodo de botones activo
+        if (context.activeNodeType === 'buttonsNode' && Array.isArray(context.activeNodeButtons)) {
+          // Tratar de buscar el botón que coincide con la entrada del usuario
+          const buttonIndex = context.activeNodeButtons.findIndex(button =>
+            button.text.toLowerCase() === userInput.toLowerCase() ||
+            (button.value && button.value.toLowerCase() === userInput.toLowerCase())
+          );
+
+          // Si encontramos un botón que coincide y tenemos suficientes handles
+          if (buttonIndex >= 0) {
+            // Usar el handle correspondiente al botón
+            moveToNextNode(context.currentNodeId, `handle-${buttonIndex}`);
+            return;
+          }
+
+          // Si no encontramos coincidencia pero tenemos botones, usar el primero por defecto
+          if (context.activeNodeButtons.length > 0) {
+            console.log('No se encontró coincidencia exacta con botones, usando la primera opción por defecto');
+            moveToNextNode(context.currentNodeId, 'handle-0');
+            return;
+          }
+        }
+        // Si tenemos un nodo de lista activo
+        else if (context.activeNodeType === 'listNode' && Array.isArray(context.activeNodeListItems)) {
+          // Tratar de buscar el item que coincide con la entrada del usuario
+          const itemIndex = context.activeNodeListItems.findIndex(item =>
+            item.text.toLowerCase() === userInput.toLowerCase() ||
+            (item.value && item.value.toLowerCase() === userInput.toLowerCase())
+          );
+
+          // Si encontramos un item que coincide y está dentro de los 5 primeros (los que tienen handles)
+          if (itemIndex >= 0 && itemIndex < 5) {
+            // Usar el handle correspondiente al item
+            moveToNextNode(context.currentNodeId, `handle-${itemIndex}`);
+            return;
+          }
+
+          // Si no encontramos coincidencia pero tenemos items, usar el primero por defecto
+          if (context.activeNodeListItems.length > 0) {
+            console.log('No se encontró coincidencia exacta con items de lista, usando la primera opción por defecto');
+            moveToNextNode(context.currentNodeId, 'handle-0');
+            return;
+          }
+        }
+
+        // En caso de no tener un tipo específico o no encontrar coincidencias, usar comportamiento estándar
         moveToNextNode(context.currentNodeId)
       }
     }, 100)

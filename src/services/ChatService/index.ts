@@ -14,8 +14,8 @@ import apiSendChatMessage from './apiSendChatMessage'
 import apiFetchConversations from './apiFetchConversations'
 import apiFetchChatHistory from './apiFetchChatHistory'
 import apiClearChatHistory from './apiClearChatHistory'
-import apiGetChatTemplates from './apiGetChatTemplates'
 import apiSetActiveTemplate from './apiSetActiveTemplate'
+import apiActivateTemplate from './apiActivateTemplate'
 import { getOrCreateSessionId, getOrCreateUserId } from './utils'
 
 // Re-exportar todas las funciones API
@@ -34,8 +34,8 @@ export {
     apiClearChatHistory,
     
     // Funciones para plantillas de chatbot
-    apiGetChatTemplates,
     apiSetActiveTemplate,
+    apiActivateTemplate,
     
     // Utilidades
     getOrCreateSessionId,
@@ -47,5 +47,4 @@ export const sendChatMessage = apiSendChatMessage
 export const fetchConversations = apiFetchConversations
 export const fetchChatHistory = apiFetchChatHistory
 export const clearChatHistory = apiClearChatHistory
-export const getChatTemplates = apiGetChatTemplates
 export const setActiveTemplate = apiSetActiveTemplate

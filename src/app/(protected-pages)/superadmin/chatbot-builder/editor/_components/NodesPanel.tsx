@@ -28,7 +28,9 @@ import {
     PiCaretLeftBold,
     PiCaretDownBold,
     PiPackageDuotone,
-    PiRulerDuotone
+    PiRulerDuotone,
+    PiSquaresFourDuotone,
+    PiListNumbersDuotone
 } from 'react-icons/pi'
 import { Drawer, Button } from '@/components/ui'
 
@@ -53,6 +55,18 @@ const NODE_CATEGORIES = [
                 label: 'Entrada',
                 description: 'Solicitar información al usuario',
                 icon: <PiKeyboardDuotone className="text-green-500" />,
+            },
+            {
+                type: 'buttonsNode',
+                label: 'Botones',
+                description: 'Mostrar botones interactivos (máx. 3)',
+                icon: <PiSquaresFourDuotone className="text-purple-500" />,
+            },
+            {
+                type: 'listNode',
+                label: 'Lista',
+                description: 'Mostrar una lista de opciones (máx. 10)',
+                icon: <PiListNumbersDuotone className="text-orange-500" />,
             },
             {
                 type: 'conditionNode',

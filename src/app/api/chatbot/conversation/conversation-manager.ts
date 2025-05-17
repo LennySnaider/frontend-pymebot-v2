@@ -7,6 +7,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import { SessionStatus, ContentType, TransferType, ChatbotNodeType } from './conversation-types'
+import crypto from 'crypto'
 
 /**
  * Interfaz para representar una sesión de conversación
@@ -15,6 +16,7 @@ export interface ConversationSession {
     id: string
     user_channel_id: string
     channel_type: string
+    session_id: string
     tenant_id: string
     active_chatbot_activation_id?: string
     current_node_id?: string
@@ -46,6 +48,10 @@ export interface SessionUpdates extends Partial<ConversationSession> {
     // Campos específicos que permiten actualizaciones parciales
     state_updates?: Record<string, any> // Para actualizar solo ciertos campos del state_data
     metadata_updates?: Record<string, any> // Para actualizar solo ciertos campos del metadata
+    
+    // Campos internos que se mapearán a state_data
+    status?: SessionStatus
+    current_node_id?: string
 }
 
 /**
@@ -157,6 +163,7 @@ export class ConversationManager {
     ): Promise<ConversationSession> {
         // Primero, buscar la activación predeterminada si no se proporcionó una
         let effectiveActivationId = activationId
+        let defaultTemplateId = null
         
         if (!effectiveActivationId) {
             try {
@@ -188,14 +195,70 @@ export class ConversationManager {
                         effectiveActivationId = activation.id
                     }
                 }
+                
+                // Si todavía no tenemos activación, buscar una plantilla para crear una activación automática
+                if (!effectiveActivationId) {
+                    // Buscar una plantilla, priorizando aquellas con nombres específicos
+                    const { data: templates } = await this.supabase
+                        .from('chatbot_templates')
+                        .select('id, name')
+                        .eq('status', 'published')
+                        .eq('is_deleted', false)
+                        .order('created_at', { ascending: false })
+                    
+                    if (templates && templates.length > 0) {
+                        // Intentar encontrar una plantilla con 'default' o 'básico' en el nombre
+                        const defaultTemplate = templates.find(t => 
+                            t.name.toLowerCase().includes('default') || 
+                            t.name.toLowerCase().includes('básico') ||
+                            t.name.toLowerCase().includes('basico')
+                        ) || templates[0]; // Si no hay coincidencia, usar la primera disponible
+                        
+                        defaultTemplateId = defaultTemplate.id;
+                        console.log(`Usando plantilla predeterminada: ${defaultTemplate.name} (${defaultTemplateId})`)
+                    }
+                }
             } catch (error) {
-                // Si hay errores al buscar la activación, simplemente continuar con null
+                // Si hay errores al buscar la activación, registrar para depuración
                 console.warn('No se pudo determinar una activación por defecto:', error)
+            }
+            
+            // Si encontramos una plantilla predeterminada pero no una activación, crear una activación automática
+            if (!effectiveActivationId && defaultTemplateId) {
+                try {
+                    console.log(`Creando activación automática para tenant ${tenantId} con plantilla ${defaultTemplateId}`)
+                    
+                    // Crear una nueva activación para esta plantilla
+                    const { data: newActivation, error } = await this.supabase
+                        .from('tenant_chatbot_activations')
+                        .insert({
+                            tenant_id: tenantId,
+                            template_id: defaultTemplateId,
+                            is_active: true,
+                            template_version: 1,
+                            activated_at: new Date().toISOString()
+                        })
+                        .select()
+                        .single()
+                    
+                    if (error) {
+                        console.error('Error al crear activación automática:', error)
+                    } else if (newActivation) {
+                        effectiveActivationId = newActivation.id
+                        console.log(`Activación automática creada con éxito: ${effectiveActivationId}`)
+                    }
+                } catch (activationError) {
+                    console.error('Error al crear activación automática:', activationError)
+                }
             }
         }
         
+        // Si después de todos los intentos no tenemos una activación, mostrar error detallado
         if (!effectiveActivationId) {
-            throw new Error(`No se pudo determinar una activación para el tenant ${tenantId}`)
+            console.error(`No se pudo determinar una activación para el tenant ${tenantId}. ` +
+                          `Usuario: ${userChannelId}, Canal: ${channelType}, TemplateID Default: ${defaultTemplateId || 'ninguno'}`)
+            throw new Error(`No se pudo determinar una activación para el tenant ${tenantId}. ` +
+                          `Por favor, active una plantilla de chatbot en la configuración.`)
         }
         
         console.log(`Creando nueva sesión para usuario ${userChannelId} en canal ${channelType}, activación ${effectiveActivationId}`);
@@ -221,12 +284,68 @@ export class ConversationManager {
                         .single()
                     
                     if (template?.react_flow_json) {
-                        // Buscar el nodo inicial (type: start)
-                        const nodes = template.react_flow_json.nodes || []
-                        const startNode = nodes.find(node => node.type === ChatbotNodeType.START)
+                        // Buscar el nodo inicial y luego el primer nodo conectado a él
+                        const nodes = template.react_flow_json.nodes || [];
+                        const edges = template.react_flow_json.edges || [];
                         
-                        if (startNode) {
-                            effectiveNodeId = startNode.id
+                        console.log('Nodos disponibles:', nodes.map(n => ({ id: n.id, type: n.type, label: n.data?.label || n.id })));
+                        
+                        // Construir mapa de conexiones
+                        const connectionMap = {};
+                        for (const edge of edges) {
+                            const { source, sourceHandle, target } = edge;
+                            if (!connectionMap[source]) connectionMap[source] = {};
+                            const handle = sourceHandle || 'next';
+                            connectionMap[source][handle] = target;
+                        }
+                        
+                        // Basado en el archivo JSON del flujo, buscar el nodo exacto 'start-node'
+                        // y el nodo 'messageNode-welcome'
+                        const startNode = nodes.find(node => node.id === 'start-node');
+                        const welcomeNode = nodes.find(node => node.id === 'messageNode-welcome');
+                        
+                        // Si encontramos exactamente estos nodos (usando los IDs de Flujo_basico_lead.json)
+                        if (startNode && welcomeNode) {
+                            console.log('Usando nodos específicos de Flujo básico lead');
+                            effectiveNodeId = welcomeNode.id;
+                            console.log(`Usando directamente el nodo de bienvenida: ${effectiveNodeId}`);
+                        }
+                        // Si no, buscar por criterios más generales
+                        else {
+                            // Buscar nodos iniciales por varios criterios
+                            const initialNodes = [
+                                nodes.find(node => node.id === 'start'),
+                                nodes.find(node => node.id === 'inicio'),
+                                nodes.find(node => node.id === 'start-node'),
+                                nodes.find(node => node.type === ChatbotNodeType.START),
+                                nodes.find(node => node.type === 'startNode'),
+                                nodes.find(node => node.data?.label === 'Inicio'),
+                                nodes.find(node => node.data?.label?.toLowerCase().includes('inicio')),
+                                nodes.find(node => node.data?.label?.toLowerCase().includes('start'))
+                            ].filter(Boolean);
+                        
+                            if (initialNodes.length > 0) {
+                                const initialNode = initialNodes[0];
+                                console.log(`Encontrado nodo inicial: ${initialNode.id} (${initialNode.data?.label || initialNode.type})`);
+                                
+                                // Buscar el primer nodo conectado a este nodo inicial
+                                const connections = connectionMap[initialNode.id] || {};
+                                const firstConnectedNodeId = connections['next'] || connections['continuo'] || Object.values(connections)[0];
+                                
+                                if (firstConnectedNodeId) {
+                                    // Usar el nodo conectado como el nodo actual (el verdadero inicio de la conversación)
+                                    effectiveNodeId = firstConnectedNodeId;
+                                    console.log(`Usando el primer nodo conectado al nodo inicial: ${effectiveNodeId}`);
+                                } else {
+                                    // No hay conexiones, usar el nodo inicial directamente
+                                    effectiveNodeId = initialNode.id;
+                                    console.log(`No hay conexiones desde el nodo inicial, usándolo directamente: ${effectiveNodeId}`);
+                                }
+                            } else if (nodes.length > 0) {
+                                // Como último recurso, usar el primer nodo disponible
+                                effectiveNodeId = nodes[0].id;
+                                console.log(`No se encontró nodo inicial por convención, usando el primer nodo: ${effectiveNodeId}`);
+                            }
                         }
                     }
                 }
@@ -241,12 +360,13 @@ export class ConversationManager {
             effectiveNodeId = 'start'
         }
         
-        // Crear la sesión
+        // Crear la sesión con el esquema verificado
         const { data, error } = await this.supabase
             .from('conversation_sessions')
             .insert({
                 user_channel_id: userChannelId,
                 channel_type: channelType,
+                session_id: crypto.randomUUID(), // Generar un session_id único
                 tenant_id: tenantId,
                 active_chatbot_activation_id: effectiveActivationId,
                 current_node_id: effectiveNodeId,
@@ -254,6 +374,7 @@ export class ConversationManager {
                 status: status,
                 last_interaction_at: new Date().toISOString(),
                 created_at: new Date().toISOString(),
+                // No incluimos updated_at ya que no existe en la tabla
                 metadata: metadata || {}
             })
             .select()
@@ -286,32 +407,49 @@ export class ConversationManager {
         }
         
         // Preparar los datos a actualizar
-        const updateData: Record<string, any> = { ...updates }
+        const updateData: Record<string, any> = {}
         
-        // Eliminar campos especiales que no son directamente actualizables
-        delete updateData.state_updates
-        delete updateData.metadata_updates
+        // Actualizar el status/is_active si es necesario
+        if (updates.status) {
+            updateData.status = updates.status
+        }
         
-        // Si hay actualizaciones de estado, mezclarlas con el estado actual
+        // Campos que se mapean directamente
+        if (updates.current_node_id) {
+            updateData.current_node_id = updates.current_node_id
+        }
+        
+        // Preparar actualizaciones para state_data
+        let hasStateUpdates = false
+        let newStateData = { ...currentSession.state_data || {} }
+        
+        // Actualizaciones de estado
         if (updates.state_updates && Object.keys(updates.state_updates).length > 0) {
-            updateData.state_data = {
-                ...(currentSession.state_data || {}),
-                ...updates.state_updates
-            }
+            Object.assign(newStateData, updates.state_updates)
+            hasStateUpdates = true
         }
         
-        // Si hay actualizaciones de metadatos, mezclarlas con los metadatos actuales
+        // Actualizaciones de metadatos
+        let newMetadata = { ...currentSession.metadata || {} }
+        let hasMetadataUpdates = false
+        
         if (updates.metadata_updates && Object.keys(updates.metadata_updates).length > 0) {
-            updateData.metadata = {
-                ...(currentSession.metadata || {}),
-                ...updates.metadata_updates
-            }
+            Object.assign(newMetadata, updates.metadata_updates)
+            hasMetadataUpdates = true
         }
         
-        // Asegurar que last_interaction_at se actualiza
-        if (!updateData.last_interaction_at) {
-            updateData.last_interaction_at = new Date().toISOString()
+        // Si hay actualizaciones de estado, asignarlas
+        if (hasStateUpdates) {
+            updateData.state_data = newStateData
         }
+        
+        // Si hay actualizaciones de metadatos, asignarlos
+        if (hasMetadataUpdates) {
+            updateData.metadata = newMetadata
+        }
+        
+        // Asegurar que last_interaction_at se actualiza en lugar de updated_at
+        updateData.last_interaction_at = new Date().toISOString()
         
         // Realizar la actualización
         const { data, error } = await this.supabase

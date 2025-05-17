@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * FixedChatbotEditor.tsx - Versión arreglada del editor de plantillas
  * Este componente es una versión simplificada y corregida del editor de plantillas

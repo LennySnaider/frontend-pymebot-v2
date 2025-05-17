@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'

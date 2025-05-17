@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/shared/SimpleLocationSelector.tsx
  * Componente simplificado para selección de ubicación en México

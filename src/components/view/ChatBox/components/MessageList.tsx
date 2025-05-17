@@ -23,6 +23,7 @@ export type MessageListProps = {
     bubbleClass?: string
     messageListClass?: string
     ref?: Ref<ScrollBarRef>
+    onButtonClick?: (buttonText: string) => void
 }
 
 const MessageList = (props: MessageListProps) => {
@@ -36,6 +37,7 @@ const MessageList = (props: MessageListProps) => {
         messageListClass,
         bubbleClass,
         ref,
+        onButtonClick,
     } = props
 
     return (
@@ -54,6 +56,7 @@ const MessageList = (props: MessageListProps) => {
                                 avatarGap={avatarGap}
                                 bubbleClass={bubbleClass}
                                 {...message}
+                                onButtonClick={onButtonClick}
                                 {...(customRenderer
                                     ? {
                                           customRenderer: () =>

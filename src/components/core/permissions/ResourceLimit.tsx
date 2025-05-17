@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/core/permissions/ResourceLimit.tsx
  * Componente para mostrar el uso de recursos y límites en UI

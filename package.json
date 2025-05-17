@@ -33,7 +33,7 @@
     "@types/webshot-node": "^0.18.4",
     "@visx/pattern": "^3.13.0-alpha.0",
     "ai": "^4.3.15",
-    "axios": "^1.7.7",
+    "axios": "^1.9.0",
     "chart.js": "^4.4.8",
     "classnames": "^2.5.1",
     "d3-dsv": "^3.0.1",

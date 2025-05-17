@@ -1,21 +1,23 @@
+'use client'
+
 import { createContext } from 'react'
 
 export type MenuContextProps = {
     getItemProps: (
-        userProps?: React.HTMLProps<HTMLElement>,
-    ) => Record<string, unknown>
-    activeIndex: number | null
-    setActiveIndex: React.Dispatch<React.SetStateAction<number | null>>
-    setHasFocusInside: React.Dispatch<React.SetStateAction<boolean>>
-    isOpen: boolean
+        key?: string
+    ) => {
+        'data-key'?: string
+        onClick?: (e: MouseEvent) => void
+        className?: string
+    }
+    activeKeys?: []
+    onSelect?: (eventKey: string, e: MouseEvent) => void
 }
 
 const MenuContext = createContext<MenuContextProps>({
-    getItemProps: () => ({}),
-    activeIndex: null,
-    setActiveIndex: () => {},
-    setHasFocusInside: () => {},
-    isOpen: false,
+    getItemProps: () => ({
+        className: '',
+    }),
 })
 
 export const MenuContextProvider = MenuContext.Provider

@@ -5,7 +5,7 @@ import appConfig from '@/configs/app.config'
 import type { AxiosError } from 'axios'
 
 const AxiosBase = axios.create({
-    timeout: 90000, // Aumentado a 90 segundos para permitir uploads grandes
+    timeout: 180000, // Aumentado a 180 segundos (3 minutos) para evitar timeouts en procesos largos
     baseURL: appConfig.apiPrefix,
     withCredentials: true,
     // Añadir límites de tamaño mayores para uploads

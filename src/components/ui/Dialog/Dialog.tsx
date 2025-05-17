@@ -1,3 +1,5 @@
+'use client'
+
 import Modal from 'react-modal'
 import classNames from 'classnames'
 import CloseButton from '../CloseButton'
@@ -12,6 +14,11 @@ export interface DialogProps extends ReactModal.Props {
     height?: string | number
     onClose?: (e: MouseEvent<HTMLSpanElement>) => void
     width?: number
+}
+
+// Configurar appElement para React Modal (solo en el cliente)
+if (typeof window !== 'undefined') {
+    Modal.setAppElement('body');
 }
 
 const Dialog = (props: DialogProps) => {

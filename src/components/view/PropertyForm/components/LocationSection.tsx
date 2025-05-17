@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/shared/Location/LocationSection.tsx
  * Componente para selección encadenada de ubicación en México (Estado, Municipio, Colonia, CP)

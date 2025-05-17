@@ -17,14 +17,23 @@ const MessageNode = ({ data, selected }: NodeProps) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <PiChatCircleDuotone className="text-blue-500 text-xl mr-2" />
-          <span className="font-semibold text-gray-900 dark:text-gray-100">{data.label || 'Mensaje'}</span>
+          <span className="font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+            {data.label || 'Mensaje'}
+            {data.mode === 'auto' && (
+              <span className="ml-2 text-xs bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-100 px-1.5 py-0.5 rounded-full">
+                AUTO
+              </span>
+            )}
+          </span>
         </div>
         {/* Indicador visual de flujo continuo o pausa */}
-        {data.waitForResponse ? (
-          <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded-full">Espera</span>
-        ) : (
-          <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">Auto</span>
-        )}
+        <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+          data.waitForResponse
+            ? 'bg-amber-100 text-amber-800'
+            : 'bg-green-100 text-green-800'
+        }`}>
+          {data.waitForResponse ? 'Espera' : 'Continuo'}
+        </span>
       </div>
       <div className="mt-2 bg-gray-50 dark:bg-gray-700 p-2 rounded text-sm text-gray-700 dark:text-gray-300 max-w-[250px] break-words">
         {data.message || 'Escribe un mensaje...'}

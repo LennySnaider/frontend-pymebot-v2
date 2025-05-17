@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/app/(protected-pages)/modules/appointments/_components/hooks/useAppointmentForm.ts
  * Hook para manejar el estado y lógica del formulario de programación de citas

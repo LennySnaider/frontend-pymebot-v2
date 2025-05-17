@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/ChatbotDashboard.tsx
  * Componente principal para la gestión de chatbots por parte del tenant

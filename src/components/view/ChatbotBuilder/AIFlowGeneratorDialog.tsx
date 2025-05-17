@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import { Button, Dialog, Input, Select, Checkbox, Tag } from '@/components/ui'
 import { notifications } from '@/utils/notifications'

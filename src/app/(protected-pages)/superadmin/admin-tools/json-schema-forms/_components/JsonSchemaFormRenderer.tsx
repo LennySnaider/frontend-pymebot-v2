@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/app/(protected-pages)/superadmin/admin-tools/json-schema-forms/_components/JsonSchemaFormRenderer.tsx
  * Componente para renderizar formularios dinámicos basados en esquemas JSON.

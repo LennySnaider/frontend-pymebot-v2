@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/VoicePreview.tsx
  * Componente de previsualización para chatbots con capacidades de voz

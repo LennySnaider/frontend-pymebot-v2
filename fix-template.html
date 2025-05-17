@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Template Configuration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fix Template Configuration</h1>
+    
+    <p>Este script arregla el problema del template ID en el chat.</p>
+    
+    <h2>Opción 1: Limpiar configuración incorrecta</h2>
+    <button onclick="clearBadConfig()">Limpiar configuración incorrecta</button>
+    
+    <h2>Opción 2: Configurar Template ID correcto</h2>
+    <button onclick="setCorrectTemplate()">Configurar Template ID correcto</button>
+    
+    <h2>Opción 3: Hacer ambas cosas</h2>
+    <button onclick="fixAll()">Arreglar todo</button>
+    
+    <div id="status"></div>
+    
+    <h2>Manual - Para ejecutar en la consola del navegador:</h2>
+    <pre><code>// Paso 1: Limpiar configuración incorrecta
+localStorage.removeItem('selectedTemplateId');
+
+// Paso 2: Configurar el ID correcto (si lo necesitas)
+localStorage.setItem('selectedTemplateId', '0654268d-a65a-4e59-83a2-e99d4d393273');</code></pre>
+    
+    <script>
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.innerHTML = `<p class="${isError ? 'error' : 'success'}">${message}</p>`;
+        }
+        
+        function clearBadConfig() {
+            try {
+                // Eliminar configuración incorrecta
+                localStorage.removeItem('selectedTemplateId');
+                
+                // Verificar si hay otras claves relacionadas
+                const keysToCheck = ['chatStore', 'activeTemplateId', 'currentTemplate'];
+                keysToCheck.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    if (value && value.includes('default-lead-flow-id')) {
+                        console.log(`Limpiando ${key} que contiene valor incorrecto`);
+                        localStorage.removeItem(key);
+                    }
+                });
+                
+                showStatus('✓ Configuración incorrecta eliminada');
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, true);
+            }
+        }
+        
+        function setCorrectTemplate() {
+            try {
+                const correctTemplateId = '0654268d-a65a-4e59-83a2-e99d4d393273';
+                localStorage.setItem('selectedTemplateId', correctTemplateId);
+                showStatus(`✓ Template ID configurado: ${correctTemplateId}`);
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, true);
+            }
+        }
+        
+        function fixAll() {
+            clearBadConfig();
+            // No configurar un template específico, dejar que el sistema encuentre el correcto
+            showStatus('✓ Configuración arreglada. El sistema buscará automáticamente la plantilla activa.');
+        }
+    </script>
+    
+    <h2>Próximos pasos</h2>
+    <ol>
+        <li>Ejecuta "Arreglar todo" en este script</li>
+        <li>Ve a la página del chat: <a href="http://localhost:3001/modules/marketing/chat" target="_blank">http://localhost:3001/modules/marketing/chat</a></li>
+        <li>Recarga la página (Ctrl+F5 o Cmd+R)</li>
+        <li>Escribe "hola" para probar</li>
+    </ol>
+</body>
+</html>

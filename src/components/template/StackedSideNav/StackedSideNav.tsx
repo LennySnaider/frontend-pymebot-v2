@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import {
     SPLITTED_SIDE_NAV_MINI_WIDTH,

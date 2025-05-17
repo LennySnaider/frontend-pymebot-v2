@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/verticals/medicina/features/MedicalFormBuilder.tsx
  * Componente para crear y editar formularios médicos personalizados utilizando JSONSchemaEditor.

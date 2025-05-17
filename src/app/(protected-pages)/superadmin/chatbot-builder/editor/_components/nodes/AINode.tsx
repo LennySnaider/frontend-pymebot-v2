@@ -18,13 +18,20 @@ const AINode = ({ data, selected }: NodeProps) => {
         >
             <div className="flex items-center">
                 <PiRobotDuotone className="text-purple-500 text-xl mr-2" />
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <span className="font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                     {data.label || 'Respuesta AI'}
+                    {data.mode === 'auto' && (
+                        <span className="ml-2 text-xs bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-100 px-1.5 py-0.5 rounded-full">
+                            AUTO
+                        </span>
+                    )}
                 </span>
             </div>
             <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                Modelo: {data.model || 'gpt-4o'} • Temp:{' '}
-                {data.temperature || '0.7'}
+                {data.mode === 'auto'
+                    ? `Modo: Auto • Modelo: ${data.model || 'gpt-4o'}`
+                    : `Modelo: ${data.model || 'gpt-4o'} • Temp: ${data.temperature || '0.7'}`
+                }
             </div>
             <div className="mt-2 bg-purple-50 dark:bg-purple-900/30 p-2 rounded text-sm text-gray-700 dark:text-gray-300 max-w-[250px] max-h-[80px] break-words overflow-hidden">
                 {data.prompt || 'Escribe un prompt para la IA...'}

@@ -1,3 +1,5 @@
+'use client'
+
 // frontend/src/app/(protected-pages)/modules/leads/leads-scrum/_components/LeadEditForm.tsx
 /**
  * Componente para editar información de leads con un formulario por pasos.

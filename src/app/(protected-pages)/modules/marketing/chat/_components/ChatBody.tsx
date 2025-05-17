@@ -21,20 +21,13 @@ import { useChatStore } from '../_store/chatStore'
 // Importamos de forma dinámica para evitar problemas de SSR
 import dynamic from 'next/dynamic'
 
-// Cargamos los servicios solo en el cliente
-let apiGetConversation: any;
-let apiSendChatMessage: any;
+// Cargamos los servicios solo en el cliente - Variables inicializadas con null
+let apiGetConversation: any = null;
+let apiSendChatMessage: any = null;
 
-// En el navegador, cargamos los módulos
-if (typeof window !== 'undefined') {
-  Promise.all([
-    import('@/services/ChatService'),
-    import('@/services/ChatService/apiSendChatMessage')
-  ]).then(([ChatService, sendMessage]) => {
-    apiGetConversation = ChatService.apiGetConversation;
-    apiSendChatMessage = sendMessage.default;
-  });
-}
+// Técnica más segura: usar useEffect para cargar servicios
+// Esta aproximación evita código fuera de componentes que podría ejecutarse en el servidor
+// En caso de error durante la carga, no bloqueará el renderizado inicial
 import classNames from '@/utils/classNames'
 import useResponsive from '@/utils/hooks/useResponsive'
 import dayjs from 'dayjs'
@@ -79,6 +72,7 @@ const ChatBody = () => {
         (state) => state.setContactInfoDrawer,
     )
     const activeTemplateId = useChatStore((state) => state.activeTemplateId) // Añadimos el activeTemplateId
+    const templates = useChatStore((state) => state.templates) // Obtener las templates para debug
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, setIsFetchingConversation] = useState(false)
     // Local conversation state removed
@@ -122,15 +116,25 @@ const ChatBody = () => {
     useEffect(() => {
         // Precargar la función apiGetConversation
         async function preloadAPIs() {
-            if (!apiGetConversation) {
-                const chatService = await import('@/services/ChatService');
-                apiGetConversation = chatService.apiGetConversation;
+            try {
+                console.log('Precargando servicios API...');
+
+                if (!apiGetConversation) {
+                    const chatService = await import('@/services/ChatService');
+                    apiGetConversation = chatService.apiGetConversation;
+                    console.log('Servicio de chat cargado correctamente');
+                }
+
+                if (!apiSendChatMessage) {
+                    const messageSender = await import('@/services/ChatService/apiSendChatMessage');
+                    apiSendChatMessage = messageSender.default;
+                    console.log('Servicio de envío de mensajes cargado correctamente');
+                }
+
+                console.log('APIs precargadas correctamente');
+            } catch (error) {
+                console.error('Error al precargar APIs:', error);
             }
-            if (!apiSendChatMessage) {
-                const messageSender = await import('@/services/ChatService/apiSendChatMessage');
-                apiSendChatMessage = messageSender.default;
-            }
-            console.log('APIs precargadas correctamente');
         }
 
         preloadAPIs();
@@ -211,6 +215,8 @@ const ChatBody = () => {
             // Envío de mensaje (log adicional)
             console.log('=========== INICIO ENVÍO ===========')
             console.log('Enviando mensaje con template_id:', activeTemplateId)
+            console.log('templates disponibles:', templates)
+            console.log('selectedChat:', selectedChat)
             console.log('Datos envío:', {
                 value,
                 userId,
@@ -246,68 +252,83 @@ const ChatBody = () => {
 
                 // Verificar si tenemos una respuesta válida del servidor
                 if (response && typeof response === 'object') {
-                    // Priorizar respuesta directa
+                    // Caso 1: Respuesta directa con campo 'response'
                     if (response.response && typeof response.response === 'string') {
                         messageContent = response.response;
                         console.log('Usando respuesta directa del servidor:', messageContent);
                     }
-                    // Verificar si hay datos originales (passed through desde el API)
-                    else if (response.originalData) {
-                        console.log('Encontrados datos originales en la respuesta');
+                    // Caso 2: Respuesta con múltiples mensajes
+                    else if (response.is_multi_message && Array.isArray(response.messages) && response.messages.length > 0) {
+                        messageContent = response.messages[0];
+                        console.log('Usando primer mensaje de array:', messageContent);
 
-                        // Verificar si son mensajes múltiples
-                        if (response.originalData.is_multi_message &&
-                            Array.isArray(response.originalData.messages) &&
-                            response.originalData.messages.length > 0) {
+                        // Mostrar mensajes adicionales si existen
+                        if (response.messages.length > 1) {
+                            console.log('Procesando mensajes adicionales:', response.messages.slice(1));
 
-                            messageContent = response.originalData.messages[0];
-                            console.log('Usando primer mensaje de array:', messageContent);
+                            // Crear y programar los mensajes adicionales
+                            const additionalMessages = response.messages.slice(1).map(
+                                (msg: string, idx: number) => {
+                                    // Crear un objeto de mensaje para cada mensaje adicional
+                                    return {
+                                        id: uniqueId(`chat-conversation-additional-${idx}-`),
+                                        sender: {
+                                            id: '2',
+                                            name: 'BuilderBot',
+                                            avatarImageUrl: '/img/avatars/thumb-2.jpg',
+                                        },
+                                        content: msg,
+                                        timestamp: new Date(Date.now() + (idx + 1) * 200), // Agregar un pequeño retraso
+                                        type: 'regular',
+                                        isMyMessage: false,
+                                    };
+                                }
+                            );
 
-                            // Mostrar mensajes adicionales si existen
-                            if (response.originalData.messages.length > 1) {
-                                console.log('Procesando mensajes adicionales:',
-                                    response.originalData.messages.slice(1));
+                            // Programar la adición de mensajes adicionales con un ligero retraso
+                            additionalMessages.forEach((msg: Message, idx: number) => {
+                                setTimeout(() => {
+                                    console.log(`Agregando mensaje adicional #${idx + 1}:`, msg.content);
+                                    handlePushMessage(msg);
 
-                                // Crear y programar los mensajes adicionales
-                                const additionalMessages = response.originalData.messages.slice(1).map(
-                                    (msg: string, idx: number) => {
-                                        // Crear un objeto de mensaje para cada mensaje adicional
-                                        return {
-                                            id: uniqueId(`chat-conversation-additional-${idx}-`),
-                                            sender: {
-                                                id: '2',
-                                                name: 'BuilderBot',
-                                                avatarImageUrl: '/img/avatars/thumb-2.jpg',
-                                            },
-                                            content: msg,
-                                            timestamp: new Date(Date.now() + (idx + 1) * 200), // Agregar un pequeño retraso
-                                            type: 'regular',
-                                            isMyMessage: false,
-                                        };
+                                    // Scroll al fondo después del último mensaje
+                                    if (idx === additionalMessages.length - 1) {
+                                        setTimeout(scrollToBottom, 100);
                                     }
-                                );
-
-                                // Programar la adición de mensajes adicionales con un ligero retraso
-                                additionalMessages.forEach((msg: Message, idx: number) => {
-                                    setTimeout(() => {
-                                        console.log(`Agregando mensaje adicional #${idx + 1}:`, msg.content);
-                                        handlePushMessage(msg);
-
-                                        // Scroll al fondo después del último mensaje
-                                        if (idx === additionalMessages.length - 1) {
-                                            setTimeout(scrollToBottom, 100);
-                                        }
-                                    }, (idx + 1) * 500); // 500ms de retraso entre mensajes
-                                });
-                            }
-
-                            // Fin del manejo de mensajes múltiples
+                                }, (idx + 1) * 500); // 500ms de retraso entre mensajes
+                            });
                         }
-                        // Verificar respuesta directa en originalData
-                        else if (response.originalData.response) {
-                            messageContent = response.originalData.response;
-                            console.log('Usando respuesta de originalData:', messageContent);
-                        }
+                    }
+                    // Caso 3: Respuesta con campo 'text' (formato alternativo)
+                    else if (response.text && typeof response.text === 'string') {
+                        messageContent = response.text;
+                        console.log('Usando campo text:', messageContent);
+                    }
+                    // Log de diagnóstico si no encontramos una respuesta válida
+                    else {
+                        console.error('No se encontró un campo de respuesta válido en el objeto:', response);
+                    }
+                }
+
+                // Extraer botones de la respuesta si existen
+                let messageButtons = undefined;
+                
+                // Verificar diferentes formatos de respuesta
+                if (response) {
+                    // Formato directo: response.buttons
+                    if (response.buttons && Array.isArray(response.buttons)) {
+                        messageButtons = response.buttons;
+                        console.log('Botones encontrados en response.buttons:', messageButtons);
+                    }
+                    // Formato con metadata: response.metadata.buttons  
+                    else if (response.metadata?.buttons && Array.isArray(response.metadata.buttons)) {
+                        messageButtons = response.metadata.buttons;
+                        console.log('Botones encontrados en response.metadata.buttons:', messageButtons);
+                    }
+                    // Formato con data.metadata: response.data.metadata.buttons
+                    else if (response.data?.metadata?.buttons && Array.isArray(response.data.metadata.buttons)) {
+                        messageButtons = response.data.metadata.buttons;
+                        console.log('Botones encontrados en response.data.metadata.buttons:', messageButtons);
                     }
                 }
 
@@ -323,6 +344,7 @@ const ChatBody = () => {
                     timestamp: dayjs().toDate(),
                     type: 'regular',
                     isMyMessage: false,
+                    buttons: messageButtons, // Agregar botones al mensaje
                 }
 
                 console.log('Mensaje del bot que será mostrado:', botMessage)
@@ -645,6 +667,11 @@ const ChatBody = () => {
                         messageListClass="h-[calc(100%-100px)]"
                         bubbleClass="max-w-[300px] whitespace-pre-wrap"
                         onInputChange={handleInputChange}
+                        onButtonClick={(buttonText) => {
+                            console.log('Botón clickeado desde ChatBody:', buttonText);
+                            // Simular el envío del texto del botón como si fuera escrito por el usuario
+                            handleInputChange({ value: buttonText });
+                        }}
                         typing={
                             isLoading
                                 ? {

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/nodes/LeadQualificationNode.tsx
  * Nodo de chatbot para calificación de leads

@@ -157,7 +157,7 @@ const MessageTester = () => {
       // Como fallback, intentamos directamente con el backend
       try {
         console.log('↪️ FALLBACK ↪️ Intentando conexión directa con backend...');
-        const backendUrl = 'http://localhost:3090/api/text/chat';
+        const backendUrl = 'http://localhost:3090/api/text/chatbot';
 
         const response = await fetch(backendUrl, {
           method: 'POST',
@@ -404,7 +404,7 @@ ${isCannotGetError ? `6. Si ves "Cannot GET /api/text/chat", es normal porque es
               <div className="mt-2 text-xs text-gray-700">
                 <p className="font-medium mb-1">Información de diagnóstico:</p>
                 <p>• API Local: /api/chatbot/message (proxy hacia backend)</p>
-                <p>• API Backend directo: http://localhost:3090/api/text/chat</p>
+                <p>• API Backend directo: http://localhost:3090/api/text/chatbot</p>
                 <p>• Plantilla activa ID: {activeTemplateId}</p>
               </div>
 

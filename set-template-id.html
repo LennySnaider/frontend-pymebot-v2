@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Configurar Template ID</title>
+</head>
+<body>
+    <h1>Configurar Template ID en localStorage</h1>
+    <p>Este archivo configura el ID de la plantilla en localStorage para el chat.</p>
+    
+    <button onclick="setTemplateId()">Configurar Template ID</button>
+    
+    <script>
+        function setTemplateId() {
+            // ID de la plantilla "Flujo basico lead"
+            const templateId = '0654268d-a65a-4e59-83a2-e99d4d393273';
+            localStorage.setItem('selectedTemplateId', templateId);
+            alert('Template ID configurado: ' + templateId);
+        }
+    </script>
+    
+    <p>O abre la consola del navegador en la página del chat y ejecuta:</p>
+    <code>localStorage.setItem('selectedTemplateId', '0654268d-a65a-4e59-83a2-e99d4d393273');</code>
+</body>
+</html>

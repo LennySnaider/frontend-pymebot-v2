@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Componente para visualizar la forma de onda de audio en tiempo real
  * @version 1.0.0

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/core/permissions/FeatureLimit.tsx
  * Componente para mostrar/ocultar características según los límites del plan

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Hook para manejar la síntesis de voz (TTS)
  * @version 1.1.1

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/view/ChatbotBuilder/ChatbotActivationConfig.tsx
  * Componente para configurar los parámetros específicos de una activación de chatbot

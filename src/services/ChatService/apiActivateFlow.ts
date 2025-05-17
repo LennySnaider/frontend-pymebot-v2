@@ -16,15 +16,17 @@ const apiActivateFlow = async (flowId: string): Promise<boolean> => {
     try {
         console.log(`Intentando activar flujo con ID: ${flowId}...`)
         
-        // Llamar al endpoint correcto: POST /api/flows/:id/activate
+        // Obtener la URL base de forma dinámica (API interna)
+        // Usamos la URL relativa para que funcione en cualquier entorno
+        const apiBasePath = '/api/chatbot';
+
+        // Llamar al endpoint correcto: POST /api/chatbot/flows/:id/activate
         const response = await axios.post(
-            `http://localhost:3090/api/flows/${flowId}/activate`,
+            `${apiBasePath}/flows/${flowId}/activate`,
             {}, // No se necesita enviar flowId en el body si está en la URL
             {
                 // Añadimos un timeout más largo para operaciones que pueden tardar
                 timeout: 15000,
-                // Aseguramos que se envían correctamente las cookies de autenticación
-                withCredentials: true,
                 // Añadimos headers para ayudar con la depuración
                 headers: {
                     'Content-Type': 'application/json',

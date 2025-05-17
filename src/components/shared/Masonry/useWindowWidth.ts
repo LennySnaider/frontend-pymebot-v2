@@ -1,3 +1,5 @@
+'use client'
+
 import { useCallback, useEffect, useState } from 'react'
 
 const useWindowWidth = (isResponsive: boolean = true): number => {

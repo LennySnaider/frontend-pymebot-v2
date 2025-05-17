@@ -24,6 +24,11 @@ export type MessageProps = {
     bubbleClass?: string
     customRenderer?: () => string | ReactNode
     customAction?: () => string | ReactNode
+    buttons?: Array<{
+        body: string
+        id?: string
+    }>
+    onButtonClick?: (buttonText: string) => void
 }
 
 const Message = (props: MessageProps) => {
@@ -38,6 +43,8 @@ const Message = (props: MessageProps) => {
         customRenderer,
         customAction,
         bubbleClass,
+        buttons,
+        onButtonClick,
     } = props
 
     // Determine the avatar source based on whether it's the user's message
@@ -87,7 +94,25 @@ const Message = (props: MessageProps) => {
                                                     attachments={attachments}
                                                 />
                                             )}
-                                        {content}
+                                        <div>{content}</div>
+                                        {buttons && buttons.length > 0 && (
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {buttons.map((button, index) => (
+                                                    <button
+                                                        key={button.id || index}
+                                                        className="px-4 py-2 bg-primary hover:bg-primary-mild text-white dark:text-gray-900 rounded-lg transition-colors cursor-pointer text-sm font-medium border border-transparent hover:border-primary-mild"
+                                                        onClick={() => {
+                                                            console.log('Botón presionado:', button.body);
+                                                            if (onButtonClick) {
+                                                                onButtonClick(button.body);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {button.body}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </>
                                 )}
                             </div>

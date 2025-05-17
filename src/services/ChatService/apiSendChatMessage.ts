@@ -1,13 +1,15 @@
 /**
  * frontend/src/services/ChatService/apiSendChatMessage.ts
  * Servicio para enviar mensajes de chat de texto sin utilizar procesamiento de voz
- * @version 1.2.0
- * @updated 2025-05-11
+ * @version 1.4.0
+ * @updated 2025-05-13
  */
 
 import axios from 'axios'
 import { getOrCreateSessionId, getOrCreateUserId } from './utils'
-// Corregir la ruta de importación
+// Importamos el estado del store directamente en lugar de usar el hook
+// Esto evita el error de "Maximum update depth exceeded" por importación circular
+// No podemos usar hooks en archivos que no son componentes React
 import { useChatStore } from '@/app/(protected-pages)/modules/marketing/chat/_store/chatStore'
 
 // URL base para las APIs
@@ -21,6 +23,7 @@ const API_BASE_URL = '/api/chatbot';
  * @param userId ID del usuario (opcional)
  * @param tenantId ID del tenant (opcional)
  * @param botId ID del bot (opcional)
+ * @param templateId ID de plantilla explícito (opcional)
  * @returns Respuesta del servidor
  */
 const apiSendChatMessage = async (
@@ -29,7 +32,9 @@ const apiSendChatMessage = async (
     tenantId?: string,
     botId?: string,
     templateId?: string,
-): Promise<{ response: string }> => {
+): Promise<{ response: string, error?: boolean, errorDetails?: any, buttons?: any[], [key: string]: any }> => {
+    let endpoint: string;
+
     try {
         // Usamos los IDs existentes o generamos nuevos
         const currentUserId = getOrCreateUserId(userId)
@@ -41,98 +46,65 @@ const apiSendChatMessage = async (
         let template_id = templateId;
         if (!template_id) {
             try {
-                // Intentar obtener del store global
-                const store = useChatStore.getState();
-                const activeTemplateId = store.activeTemplateId;
-                const availableTemplates = store.templates || [];
+                // Paso 1: Verificar el localStorage (máxima prioridad)
+                const savedTemplateId = localStorage.getItem('selectedTemplateId');
+                if (savedTemplateId) {
+                    console.log('🔍 USANDO PLANTILLA DE LOCALSTORAGE 🔍:', savedTemplateId);
+                    template_id = savedTemplateId;
+                }
+                else {
+                    // Paso 2: Consultar el store global
+                    // Aquí NO estamos usando el hook (useChatStore()),
+                    // sino accediendo directamente al estado actual del store
+                    const activeTemplateId = useChatStore.getState().activeTemplateId;
+                    const availableTemplates = useChatStore.getState().templates || [];
 
-                console.log('🔍 DIAGNÓSTICO PLANTILLAS 🔍 ActiveTemplateId:', activeTemplateId);
-                console.log('🔍 DIAGNÓSTICO PLANTILLAS 🔍 Templates disponibles:',
-                  availableTemplates.map(t => ({id: t.id, name: t.name, isActive: t.isActive})));
+                    console.log('🔍 DIAGNÓSTICO PLANTILLAS 🔍 ActiveTemplateId:', activeTemplateId);
+                    console.log('🔍 DIAGNÓSTICO PLANTILLAS 🔍 Templates disponibles:',
+                        availableTemplates.length > 0 
+                            ? availableTemplates.map(t => ({id: t.id, name: t.name, isActive: t.isActive}))
+                            : 'Ninguna'
+                    );
 
-                if (activeTemplateId) {
-                    console.log('🔍 USANDO PLANTILLA DEL STORE 🔍 ID:', activeTemplateId);
-
-                    // Verificar que el ID es un UUID válido
-                    if (activeTemplateId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+                    if (activeTemplateId) {
+                        console.log('🔍 USANDO PLANTILLA DEL STORE 🔍 ID:', activeTemplateId);
                         template_id = activeTemplateId;
-                        console.log('🔍 UUID VÁLIDO 🔍 Usando directamente');
-                    } else {
-                        console.warn('🔍 UUID INVÁLIDO 🔍 ID de plantilla activa no es un UUID válido:', activeTemplateId);
-
-                        // Buscar la plantilla por nombre si el ID no es UUID
-                        const isBasicLeadTemplate = activeTemplateId === 'flujo-basico-lead' ||
-                            (activeTemplateId.toLowerCase().includes('basico') &&
-                             activeTemplateId.toLowerCase().includes('lead'));
-
-                        if (isBasicLeadTemplate) {
-                            // Buscar el UUID real en el store
-                            const basicLeadTemplate = availableTemplates.find(t =>
-                                t.name.toLowerCase().includes('basico') &&
-                                t.name.toLowerCase().includes('lead') &&
-                                t.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));
-
-                            if (basicLeadTemplate) {
-                                template_id = basicLeadTemplate.id;
-                                console.log('🔍 PLANTILLA ENCONTRADA POR NOMBRE 🔍', template_id);
-                            } else {
-                                // Si no encontramos plantilla específica, usar cualquiera disponible con UUID válido
-                                const anyValidTemplate = availableTemplates.find(t =>
-                                    t.id && t.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));
-
-                                if (anyValidTemplate) {
-                                    template_id = anyValidTemplate.id;
-                                    console.log('🔍 USANDO CUALQUIER PLANTILLA VÁLIDA 🔍', template_id);
-                                } else {
-                                    console.warn('🔍 NO HAY PLANTILLAS VÁLIDAS DISPONIBLES 🔍');
-                                }
-                            }
-                        } else {
-                            // Intentar usar cualquier plantilla disponible
-                            if (availableTemplates.length > 0) {
-                                const firstValidTemplate = availableTemplates.find(t =>
-                                    t.id && t.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));
-
-                                if (firstValidTemplate) {
-                                    template_id = firstValidTemplate.id;
-                                    console.log('🔍 USANDO PRIMERA PLANTILLA DISPONIBLE 🔍', template_id);
-                                }
-                            }
-                        }
                     }
-                } else {
-                    console.warn('🔍 SIN PLANTILLA ACTIVA 🔍 Buscando alternativas...');
+                    else if (availableTemplates.length > 0) {
+                        // Buscar "Flujo basico lead"
+                        const leadTemplate = availableTemplates.find(t =>
+                            t.name.toLowerCase().includes('lead') &&
+                            t.name.toLowerCase().includes('basico'));
 
-                    // Si no hay plantilla activa, intentar encontrar alguna válida
-                    if (availableTemplates.length > 0) {
-                        // Primero buscar una activa
-                        const activeTemplate = availableTemplates.find(t => t.isActive === true);
-
-                        if (activeTemplate && activeTemplate.id) {
-                            template_id = activeTemplate.id;
-                            console.log('🔍 ENCONTRADA PLANTILLA ACTIVA 🔍', template_id);
-                        } else {
-                            // Si no hay activa, usar la primera disponible
-                            template_id = availableTemplates[0].id;
-                            console.log('🔍 USANDO PRIMERA PLANTILLA 🔍', template_id);
+                        if (leadTemplate) {
+                            template_id = leadTemplate.id;
+                            console.log('🔍 USANDO PLANTILLA DE LEAD 🔍 ID:', template_id);
                         }
-                    } else {
-                        console.error('🔍 ERROR 🔍 No hay plantillas disponibles');
-                        // Fallback a un UUID constante para pruebas o comunicarlo al backend
-                        template_id = '00000000-0000-0000-0000-000000000000';
+                        else {
+                            // Buscar cualquier plantilla activa
+                            const activeTemplate = availableTemplates.find(t => t.isActive);
+                            if (activeTemplate) {
+                                template_id = activeTemplate.id;
+                                console.log('🔍 USANDO PLANTILLA ACTIVA 🔍 ID:', template_id);
+                            }
+                            else if (availableTemplates.length > 0) {
+                                // Usar la primera disponible
+                                template_id = availableTemplates[0].id;
+                                console.log('🔍 USANDO PRIMERA PLANTILLA DISPONIBLE 🔍 ID:', template_id);
+                            }
+                        }
                     }
                 }
             } catch (storeError) {
                 console.error('🔍 ERROR AL OBTENER PLANTILLAS 🔍', storeError);
-                // Fallback a un UUID constante para pruebas
-                template_id = '00000000-0000-0000-0000-000000000000';
             }
         }
 
         // Verificación final de seguridad
         if (!template_id) {
-            console.warn('🔍 ALERTA: SIN TEMPLATE_ID 🔍 Usando fallback');
-            template_id = '00000000-0000-0000-0000-000000000000';  // UUID nulo pero válido
+            console.warn('🔍 ALERTA: SIN TEMPLATE_ID 🔍 No se encontró plantilla activa');
+            // No establecer un valor por defecto, dejar que el backend maneje la ausencia
+            template_id = null;
         }
 
         // Verificar si el ID de usuario es un ID de lead o si viene directamente como ID de lead
@@ -169,31 +141,101 @@ const apiSendChatMessage = async (
 
         console.log('Enviando solicitud con datos:', requestData);
 
-        // Siempre usamos nuestro proxy API
-        const endpoint = `${API_BASE_URL}/message`;
-        console.log(`Endpoint completo: ${endpoint}`);
+        // Usamos el nuevo endpoint que garantiza la bienvenida y reemplaza variables
+        endpoint = `${API_BASE_URL}/integrated-message`;
+        console.log(`Endpoint actualizado: ${endpoint}`);
 
         const response = await axios.post(
-            endpoint, // Endpoint correcto para mensajes de chatbot
+            endpoint, // Endpoint mejorado para mensajes de chatbot
             requestData,
             {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                // Timeout estándar
-                timeout: 15000,
+                // Timeout extendido para dar tiempo al procesamiento de IA
+                timeout: 60000, // 60 segundos
                 // No necesitamos withCredentials cuando usamos nuestro propio proxy
                 withCredentials: false
             },
         )
 
-        console.log('Respuesta del servidor:', response)
+        console.log('Respuesta del servidor:', response);
 
         if (response.status === 200) {
+            // Manejar caso de múltiples mensajes
+            if (response.data.is_multi_message && Array.isArray(response.data.messages)) {
+                console.log(`Recibidos múltiples mensajes: ${response.data.messages.length}`);
+                
+                // Tomamos solo el primer mensaje para regresar inmediatamente
+                const firstResponse = response.data.messages[0];
+                
+                // Programamos envío de mensajes adicionales con delay para simular respuestas naturales
+                if (response.data.messages.length > 1) {
+                    // Capturamos una referencia al store para actualizar mensajes adicionales
+                    const chatStore = useChatStore.getState();
+                    
+                    // Enviamos los mensajes adicionales con un pequeño retraso entre ellos
+                    setTimeout(() => {
+                        // Iniciando desde el segundo mensaje (índice 1)
+                        for (let i = 1; i < response.data.messages.length; i++) {
+                            const message = response.data.messages[i];
+                            
+                            // Añadimos delay progresivo para cada mensaje
+                            setTimeout(() => {
+                                console.log(`Añadiendo mensaje adicional ${i}:`, message);
+                                
+                                // Actualizar el store para mostrar el mensaje
+                                // Usar pushConversationMessage que es la función disponible
+                                if (chatStore.selectedChat && chatStore.selectedChat.id) {
+                                    const chatId = chatStore.selectedChat.id;
+                                    chatStore.pushConversationMessage(chatId, {
+                                        id: `msg-${Date.now()}-${i}`,
+                                        sender: {
+                                            id: 'bot',
+                                            name: 'BuilderBot',
+                                            avatarImageUrl: '/img/avatars/thumb-3.jpg'
+                                        },
+                                        content: message,
+                                        timestamp: new Date(),
+                                        type: 'regular',
+                                        isMyMessage: false
+                                    });
+                                }
+                            }, (i - 1) * 1000); // 1 segundo entre cada mensaje
+                        }
+                    }, 1000); // 1 segundo después del primer mensaje
+                    
+                    const buttons = response.data.metadata?.buttons || [];
+                    console.log('Botones con múltiples mensajes:', buttons);
+                    
+                    return {
+                        response: firstResponse,
+                        hasFollowUpMessages: true,
+                        buttons: buttons,
+                        ...response.data
+                    };
+                }
+                
+                const buttons = response.data.metadata?.buttons || [];
+                return {
+                    response: firstResponse,
+                    buttons: buttons,
+                    ...response.data
+                };
+            }
+            
+            // Manejo normal para un solo mensaje
             const responseText = response.data.response || 'No se obtuvo respuesta del servidor';
-            console.log(`Respuesta recibida: "${responseText}"`)
+            console.log(`Respuesta recibida: "${responseText}"`);
+            
+            // Incluir botones si están presentes
+            const buttons = response.data.buttons || response.data.metadata?.buttons || [];
+            console.log('Botones recibidos:', buttons);
+            
             return {
                 response: responseText,
+                buttons: buttons,
+                ...response.data // Incluir toda la respuesta por si hay más datos
             }
         } else {
             throw new Error(
@@ -215,10 +257,17 @@ const apiSendChatMessage = async (
             =======================================================
         `);
 
+        // Verificar si el error es específico de activación
+        const isActivationError = errorMessage.includes('No se pudo determinar una activación') ||
+                                errorMessage.includes('No se ha configurado ninguna plantilla');
+        
         // Proporcionar un mensaje de error más detallado y la respuesta predeterminada
         return {
-            response: `Lo siento, estoy teniendo problemas para procesar tu mensaje (${errorMessage}). ¿Puedes intentarlo de nuevo?`,
+            response: isActivationError
+                ? `Error de configuración: No hay plantillas de chatbot activadas para este tenant. Por favor, contacte al administrador para configurar una plantilla.`
+                : `Lo siento, estoy teniendo problemas para procesar tu mensaje (${errorMessage}). ¿Puedes intentarlo de nuevo?`,
             error: true,
+            errorType: isActivationError ? 'activation_error' : 'general_error',
             errorDetails: {
                 message: errorMessage,
                 endpoint: endpoint

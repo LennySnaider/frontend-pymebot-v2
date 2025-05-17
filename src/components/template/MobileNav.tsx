@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, Suspense, lazy } from 'react'
 import classNames from 'classnames'
 import Drawer from '@/components/ui/Drawer'

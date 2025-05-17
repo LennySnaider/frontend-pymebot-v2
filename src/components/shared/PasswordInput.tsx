@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Input, InputProps } from '@/components/ui/Input'
 import { HiOutlineEyeOff, HiOutlineEye } from 'react-icons/hi'

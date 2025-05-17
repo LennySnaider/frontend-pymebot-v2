@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import classNames from '../utils/classNames'
 import useTimeout from '../hooks/useTimeout'

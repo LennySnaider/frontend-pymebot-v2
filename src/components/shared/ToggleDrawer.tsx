@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useImperativeHandle } from 'react'
 import Drawer from '@/components/ui/Drawer'
 import NavToggle from './NavToggle'

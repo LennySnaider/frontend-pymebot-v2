@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * frontend/src/components/shared/JSONSchemaEditor/JSONSchemaEditor.tsx
  * Versión corregida del editor de esquemas JSON que evita el bucle infinito de actualizaciones.
