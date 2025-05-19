@@ -28,7 +28,9 @@
             "subscriptionPlans": "Subscription Plans",
             "subscriptionPlansDesc": "Subscription plans management",
             "jsonSchemaForms": "JSON Schemas",
-            "jsonSchemaFormsDesc": "JSON schema management for dynamic forms"
+            "jsonSchemaFormsDesc": "JSON schema management for dynamic forms",
+            "salesFunnelDebug": "Sales Funnel Debug",
+            "salesFunnelDebugDesc": "Sales funnel debugging tool"
         },
         "configuracion": {
             "configuracion": "Configuration",

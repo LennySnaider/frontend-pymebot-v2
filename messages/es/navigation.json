@@ -28,7 +28,9 @@
             "subscriptionPlans": "Planes de Suscripción",
             "subscriptionPlansDesc": "Gestión de planes de suscripción",
             "jsonSchemaForms": "Esquemas JSON",
-            "jsonSchemaFormsDesc": "Gestión de esquemas JSON para formularios dinámicos"
+            "jsonSchemaFormsDesc": "Gestión de esquemas JSON para formularios dinámicos",
+            "salesFunnelDebug": "Depuración Embudo Ventas",
+            "salesFunnelDebugDesc": "Herramienta de depuración para el embudo de ventas"
         },
         "configuracion": {
             "configuracion": "Configuración",
