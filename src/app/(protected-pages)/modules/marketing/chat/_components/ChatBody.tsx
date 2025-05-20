@@ -18,6 +18,7 @@ import ChatBox from '@/components/view/ChatBox'
 import ChatAction from './ChatAction'
 import StartConverstation from '@/assets/svg/StartConverstation'
 import { useChatStore } from '../_store/chatStore'
+import toast from '@/components/ui/toast'
 // Importamos de forma dinámica para evitar problemas de SSR
 import dynamic from 'next/dynamic'
 
@@ -73,6 +74,7 @@ const ChatBody = () => {
     )
     const activeTemplateId = useChatStore((state) => state.activeTemplateId) // Añadimos el activeTemplateId
     const templates = useChatStore((state) => state.templates) // Obtener las templates para debug
+    const updateLeadStage = useChatStore((state) => state.updateLeadStage) // Función para actualizar etapa del lead
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, setIsFetchingConversation] = useState(false)
     // Local conversation state removed
@@ -165,9 +167,9 @@ const ChatBody = () => {
 
         // Determinar el ID a usar basado en el modo de prueba
         // En modo normal (como agente), usamos el ID generado
-        // En modo prueba (como lead), usamos el ID del chat (que incluye lead_)
+        // En modo prueba (como lead), usamos el ID del chat completo (con prefijo lead_)
         const effectiveUserId = testAsLead
-            ? (selectedChat.id?.replace('lead_', '') || userIdRef.current)
+            ? (selectedChat.id || userIdRef.current)
             : userIdRef.current;
 
         // Crear mensaje personalizado según el modo
@@ -243,6 +245,9 @@ const ChatBody = () => {
                 )
 
                 console.log('Respuesta recibida del servidor:', response)
+                console.log('Metadata en respuesta:', response?.metadata);
+                console.log('Data en respuesta:', response?.data);
+                console.log('Data.metadata en respuesta:', response?.data?.metadata);
 
                 // Manejo mejorado de la respuesta del servidor
                 console.log('Analizando respuesta del servidor:', response);
@@ -329,6 +334,32 @@ const ChatBody = () => {
                     else if (response.data?.metadata?.buttons && Array.isArray(response.data.metadata.buttons)) {
                         messageButtons = response.data.metadata.buttons;
                         console.log('Botones encontrados en response.data.metadata.buttons:', messageButtons);
+                    }
+                }
+
+                // Verificar si hay cambio de etapa del sales funnel
+                // Los logs muestran que salesStageId viene en response.metadata, no en response.data.metadata
+                if (response?.metadata?.salesStageId || response?.data?.metadata?.salesStageId || response?.salesStageId) {
+                    const newStageId = response.metadata?.salesStageId || response.data?.metadata?.salesStageId || response.salesStageId;
+                    console.log('Detectado cambio de etapa en sales funnel:', newStageId);
+                    
+                    // Actualizar la etapa del lead en el store
+                    if (selectedChat?.id) {
+                        // Remover el prefijo 'lead_' si existe
+                        const leadId = selectedChat.id.startsWith('lead_') 
+                            ? selectedChat.id.substring(5) 
+                            : selectedChat.id;
+                        console.log('Actualizando lead', leadId, 'a etapa', newStageId);
+                        updateLeadStage(leadId, newStageId).catch((error: any) => {
+                            console.error('Error al actualizar etapa del lead:', error);
+                            // Si es un error de etapa especial, no mostrarlo como error crítico
+                            if (newStageId === 'confirmado' || newStageId === 'confirmed' || 
+                                newStageId === 'cerrado' || newStageId === 'closed') {
+                                console.log('Error ignorado para etapa especial:', newStageId);
+                            } else {
+                                toast.error(`Error al actualizar etapa: ${error.message}`);
+                            }
+                        });
                     }
                 }
 
@@ -459,25 +490,7 @@ const ChatBody = () => {
         },
     }
 
-    // Automatically select a default chat if none is selected
-    useEffect(() => {
-        if (!selectedChat.id) {
-            // Create or select a default chat object
-            const defaultChat: SelectedChat = {
-                // Ensure type matches
-                id: 'default-chat-id', // Use a consistent default ID
-                user: {
-                    id: userIdRef.current, // Use generated user ID
-                    name: 'Default User',
-                    avatarImageUrl: '/img/avatars/thumb-1.jpg',
-                },
-                tenantId: tenantIdRef.current, // Use generated tenant ID
-                muted: false,
-                chatType: 'personal' as ChatType, // Use correct ChatType
-            }
-            setSelectedChat(defaultChat)
-        }
-    }, [selectedChat.id, setSelectedChat, userIdRef, tenantIdRef])
+    // No seleccionar chat por defecto - eliminar completamente este useEffect ya que no es necesario
 
     useEffect(() => {
         const fetchConversation = async () => {

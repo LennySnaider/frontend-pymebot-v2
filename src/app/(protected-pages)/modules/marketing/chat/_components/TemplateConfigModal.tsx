@@ -154,13 +154,13 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
     }, [activeTemplateId, templates, isOpen, isClient, setActiveTemplate])
 
     // Cargar plantillas disponibles desde el servidor
+    const fetchTemplatesFromStore = useChatStore((state) => state.fetchTemplates)
+    
     const fetchTemplates = async () => {
         try {
             setLoading(true)
-            const templatesData = await apiGetChatTemplates()
-            if (templatesData && templatesData.length > 0) {
-                setTemplates(templatesData)
-            }
+            // Usar la función del store que ya maneja la lógica de obtener plantillas
+            await fetchTemplatesFromStore()
         } catch (error) {
             console.error('Error al cargar plantillas:', error)
         } finally {

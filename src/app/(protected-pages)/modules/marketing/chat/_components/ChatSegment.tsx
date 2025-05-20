@@ -20,13 +20,13 @@ const ChatSegment = () => {
             <Segment.Item className="flex-1" value="personal">
                 <div className="flex items-center justify-center gap-2">
                     <TbUserCircle className="text-xl" />
-                    <span>Personal</span>
+                    <span>Prospectos</span>
                 </div>
             </Segment.Item>
             <Segment.Item className="flex-1" value="groups">
                 <div className="flex items-center justify-center gap-2">
                     <TbUsers className="text-xl" />
-                    <span>Groups</span>
+                    <span>Clientes</span>
                 </div>
             </Segment.Item>
         </Segment>

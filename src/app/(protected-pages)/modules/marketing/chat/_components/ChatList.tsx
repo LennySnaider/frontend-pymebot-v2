@@ -58,8 +58,10 @@ const ChatList = () => {
         }
 
         // Buscar datos adicionales del chat/lead
-        const chatItem = chats.find(chat => chat.id === id);
-        const stage = chatItem?.metadata?.stage || (id.startsWith('lead_') ? 'new' : undefined);
+        const chatItem = chats.find((chat) => chat.id === id)
+        const stage =
+            chatItem?.metadata?.stage ||
+            (id.startsWith('lead_') ? 'new' : undefined)
 
         // Configurar el chat seleccionado con información adicional
         setSelectedChat({
@@ -111,7 +113,7 @@ const ChatList = () => {
                             onChange={handleInputChange}
                         />
                     ) : (
-                        <h4>Chat</h4>
+                        <p>Buscar</p>
                     )}
                     <button
                         className="close-button text-lg"

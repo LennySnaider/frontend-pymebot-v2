@@ -83,13 +83,17 @@ const StoreInitializer = ({ children }: StoreInitializerProps) => {
   
   // También verificar si no hay plantillas después de cargar
   if (isInitialized && templates.length === 0) {
+    // En lugar de bloquear el chat, mostrar una advertencia pero permitir continuar
     return (
-      <div className="p-4 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-        <h3 className="text-yellow-600 dark:text-yellow-400">No hay plantillas disponibles</h3>
-        <div className="mt-2 text-yellow-700 dark:text-yellow-300 text-sm">
-          No se encontraron plantillas publicadas para este tenant. Contacta al administrador.
+      <>
+        <div className="mb-4 p-3 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+          <h3 className="text-yellow-600 dark:text-yellow-400 text-sm">Advertencia: Sin plantillas configuradas</h3>
+          <div className="mt-1 text-yellow-700 dark:text-yellow-300 text-xs">
+            No se encontraron plantillas para este tenant. El chat funcionará con respuestas automáticas básicas.
+          </div>
         </div>
-      </div>
+        {children}
+      </>
     )
   }
   

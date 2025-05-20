@@ -8,6 +8,9 @@ import type {
     SelectedChat,
 } from '../types'
 import { ChatTemplate } from '../_components/TemplateSelector'
+import { leadUpdateStore } from '@/stores/leadUpdateStore'
+import { simpleLeadUpdateStore } from '@/stores/simpleLeadUpdateStore'
+import { broadcastLeadUpdate } from '@/utils/broadcastLeadUpdate'
 // Evitar importar cualquier API o módulo que dependa de apis con este comentario
 // Las importaciones deben hacerse dinámicamente en runtime (cliente)
 
@@ -30,6 +33,8 @@ export type ChatState = {
     // Nuevos estados para las plantillas
     templates: ChatTemplate[]
     activeTemplateId: string
+    // Estado del sales funnel
+    currentLeadStage?: string
 }
 
 type ChatAction = {
@@ -49,6 +54,9 @@ type ChatAction = {
     setTemplates: (payload: ChatTemplate[]) => void
     setActiveTemplate: (templateId: string) => void
     fetchTemplates: () => Promise<void> // Nueva acción para cargar plantillas
+    // Acciones del sales funnel
+    setCurrentLeadStage: (stageId: string | undefined) => void
+    updateLeadStage: (leadId: string, stageId: string) => Promise<void>
 }
 
 const initialState: ChatState = {
@@ -68,6 +76,8 @@ const initialState: ChatState = {
     // Estado inicial para plantillas
     templates: [],
     activeTemplateId: '',
+    // Estado inicial del sales funnel
+    currentLeadStage: undefined,
 }
 
 export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
@@ -212,6 +222,145 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 activeTemplateId: templateId,
             }
         }),
+    
+    // Acciones del sales funnel
+    setCurrentLeadStage: (stageId) =>
+        set(() => ({ currentLeadStage: stageId })),
+    
+    updateLeadStage: async (leadId, stageId) => {
+        try {
+            // Actualizamos el estado local inmediatamente para UI responsiva
+            set(() => ({ currentLeadStage: stageId }));
+            
+            // Log para depuración
+            console.log('ChatStore: Actualizando etapa de lead', { leadId, stageId });
+            
+            // Para etapas especiales, manejar de manera diferente
+            const isSpecialStage = stageId === 'confirmado' || stageId === 'confirmed' || 
+                                  stageId === 'cerrado' || stageId === 'closed';
+            
+            let response;
+            
+            if (isSpecialStage) {
+                console.log('ChatStore: Manejando etapa especial:', stageId);
+                
+                // Usar el endpoint especial para etapas especiales
+                response = await fetch('/api/leads/update-special-stage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        leadId, 
+                        specialStage: stageId
+                    })
+                });
+            } else {
+                // Llamar a la API regular para actualizar el lead en el sales funnel
+                response = await fetch('/api/leads/update-stage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        leadId, 
+                        newStage: stageId,
+                        fromChatbot: true // Indicamos que viene del chatbot
+                    })
+                });
+            }
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || 'Error al actualizar etapa';
+                
+                // Si es un error 404, el lead no existe
+                if (response.status === 404) {
+                    console.warn(`Lead ${leadId} no encontrado. Es posible que ya haya sido eliminado o procesado.`);
+                    // Aún así, emitir el evento para que el UI se actualice
+                    // ya que en el caso de etapas especiales, el lead desaparece del funnel
+                    if (isSpecialStage) {
+                        console.log('ChatStore: Emitiendo evento de etapa especial aunque el lead no se encontró');
+                        // Continuar con la emisión del evento
+                    } else {
+                        throw new Error(errorMessage);
+                    }
+                } else {
+                    throw new Error(errorMessage);
+                }
+            }
+            
+            let data = null;
+            
+            // Solo intentar parsear el JSON si no fue un error 404 con etapa especial
+            if (response.ok || (response.status === 404 && isSpecialStage)) {
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    console.log('ChatStore: No se pudo parsear el JSON de respuesta, continuando...');
+                }
+            }
+            
+            console.log(`Lead ${leadId} movido a etapa ${stageId}`, data || '(sin data)');
+            
+            // Emitir evento para actualizar el sales funnel en tiempo real
+            if (typeof window !== 'undefined') {
+                console.log('ChatStore: Disparando evento lead-stage-updated con:', { leadId, newStage: stageId });
+                
+                // Mapear los nombres de etapas del frontend al backend si es necesario
+                let mappedStage = stageId;
+                const stageMapping: Record<string, string> = {
+                    'confirmar': 'confirmado',
+                    'confirmed': 'confirmado',
+                    'cerrado': 'cerrado',
+                    'closed': 'cerrado',
+                    'nuevos': 'nuevos',
+                    'new': 'nuevos',
+                    'prospectando': 'prospectando',
+                    'prospecting': 'prospectando',
+                    'calificacion': 'calificacion',
+                    'qualification': 'calificacion',
+                    'oportunidad': 'oportunidad',
+                    'opportunity': 'oportunidad'
+                };
+                
+                if (stageMapping[stageId]) {
+                    mappedStage = stageMapping[stageId];
+                    console.log('ChatStore: Etapa mapeada de', stageId, 'a', mappedStage);
+                }
+                
+                window.dispatchEvent(new CustomEvent('lead-stage-updated', {
+                    detail: { leadId, newStage: mappedStage },
+                    bubbles: true,
+                    composed: true
+                }));
+                
+                // Usar BroadcastChannel para comunicación instantánea entre pestañas
+                broadcastLeadUpdate(leadId, mappedStage);
+                
+                // También guardar en localStorage como fallback
+                simpleLeadUpdateStore.saveUpdate(leadId, mappedStage);
+                
+                // También notificar a través del store global (para la misma pestaña)
+                leadUpdateStore.notifyUpdate(leadId, mappedStage);
+            }
+        } catch (error: any) {
+            console.error('Error actualizando etapa del lead:', error);
+            
+            // Si es un error de lead no encontrado y es una etapa especial, no es crítico
+            if (error.message && error.message.includes('No se encontró el lead') && 
+                (stageId === 'confirmado' || stageId === 'confirmed' || 
+                 stageId === 'cerrado' || stageId === 'closed')) {
+                console.warn('El lead no se encontró, pero como es una etapa especial, no es un error crítico');
+                // No lanzar el error hacia arriba, permitir que continúe el flujo
+                return;
+            }
+            
+            // Para otros errores, lanzar hacia arriba
+            throw error;
+        }
+    },
+    
     // Implementación de la acción fetchTemplates compatible con backend
     fetchTemplates: async () => {
         try {
@@ -225,7 +374,12 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                     
                     // Obtener tenant_id de las cookies o usar el default
                     const cookieStore = document.cookie.split('; ').find(row => row.startsWith('tenant_id='));
-                    const tenantId = cookieStore ? cookieStore.split('=')[1] : process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'default';
+                    let tenantId = cookieStore ? cookieStore.split('=')[1] : process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'default';
+                    
+                    // Si el tenant_id está vacío o es 'undefined', usar el default
+                    if (!tenantId || tenantId === 'undefined' || tenantId === 'null' || tenantId === '') {
+                        tenantId = process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'afa60b0a-3046-4607-9c48-266af6e1d322';
+                    }
                     
                     console.log('Frontend: Tenant ID obtenido:', tenantId);
                     console.log('Frontend: URL backend:', BACKEND_URL);
@@ -296,11 +450,47 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 }
             }
 
-            // Si estamos en el servidor o hubo un error, devolver array vacío
-            console.log('No se pudieron cargar plantillas del backend. Mostrando mensaje de error.');
+            // Si estamos en el servidor o hubo un error, crear plantillas de demostración
+            console.log('No se pudieron cargar plantillas del backend. Creando plantillas de demostración.');
             
-            // No establecer plantillas predeterminadas, dejar el array vacío
-            get().setTemplates([]);
+            // Plantillas de demostración para desarrollo
+            const mockTemplates: ChatTemplate[] = [
+                {
+                    id: 'demo-basic-lead',
+                    name: 'Flujo básico de lead',
+                    description: 'Plantilla de demostración para captura de leads',
+                    isActive: true,
+                    isEnabled: true,
+                    avatarUrl: '/img/avatars/thumb-2.jpg',
+                    tokensEstimated: 500,
+                    category: 'lead',
+                    flowId: null
+                },
+                {
+                    id: 'demo-appointment',
+                    name: 'Agendar citas',
+                    description: 'Plantilla para agendar citas con clientes',
+                    isActive: false,
+                    isEnabled: true,
+                    avatarUrl: '/img/avatars/thumb-3.jpg',
+                    tokensEstimated: 750,
+                    category: 'appointment',
+                    flowId: null
+                },
+                {
+                    id: 'demo-support',
+                    name: 'Soporte al cliente',
+                    description: 'Plantilla de atención al cliente',
+                    isActive: false,
+                    isEnabled: true,
+                    avatarUrl: '/img/avatars/thumb-4.jpg',
+                    tokensEstimated: 600,
+                    category: 'support',
+                    flowId: null
+                }
+            ];
+            
+            get().setTemplates(mockTemplates);
             
             return;
         } catch (error) {
