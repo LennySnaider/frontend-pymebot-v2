@@ -4,6 +4,7 @@ import { simpleLeadUpdateStore } from '@/stores/simpleLeadUpdateStore';
 import { leadUpdateStore } from '@/stores/leadUpdateStore';
 import { getRealLeadId } from '@/utils/leadIdResolver';
 import { subscribeToLeadUpdates, getRecentUpdates } from '@/utils/broadcastLeadUpdate';
+import React from 'react';
 
 /**
  * Hook para sincronizar las etapas de leads con el backend
@@ -77,7 +78,7 @@ export function useLeadStageSync() {
         
         const processStageUpdate = (leadId: string, newStage: string) => {
             // Obtener el estado más reciente del store
-            const { columns, updateColumns } = useSalesFunnelStore.getState();
+            const { columns, updateColumns, setLeadAnimation, clearLeadAnimation } = useSalesFunnelStore.getState();
             
             // Verificar que tenemos columnas
             if (Object.keys(columns).length === 0) {
@@ -163,13 +164,48 @@ export function useLeadStageSync() {
             if (mappedStage === 'confirmed' || mappedStage === 'closed') {
                 console.log(`useLeadStageSync: Moviendo a etapa especial: ${mappedStage}`);
                 
-                // Solo remover de la columna actual
-                newColumns[currentStage] = newColumns[currentStage].filter(
-                    (l: any) => l.id !== lead.id && getRealLeadId(l) !== leadId
-                );
+                // Obtener posiciones para la animación
+                const leadElement = document.querySelector(`[data-lead-id="${lead.id}"]`);
+                const toColumn = document.querySelector(`[data-stage="${mappedStage}"]`);
                 
-                updateColumns(newColumns);
-                console.log(`useLeadStageSync: Lead ${mappedStage === 'confirmed' ? 'confirmado' : 'cerrado'} exitosamente`);
+                if (leadElement && toColumn) {
+                    // Obtener posición actual del lead
+                    const fromRect = leadElement.getBoundingClientRect();
+                    const fromPos = { x: fromRect.left, y: fromRect.top };
+                    
+                    // Calcular posición destino
+                    const toRect = toColumn.getBoundingClientRect();
+                    const toPos = { 
+                        x: toRect.left + toRect.width / 2 - 130, // Centrar el lead
+                        y: toRect.top + toRect.height / 2 - 50 // Centrado verticalmente
+                    };
+                    
+                    // Iniciar animación
+                    setLeadAnimation(lead, fromPos, toPos);
+                    
+                    // Esperar antes de hacer el movimiento real
+                    setTimeout(() => {
+                        newColumns[currentStage] = newColumns[currentStage].filter(
+                            (l: any) => l.id !== lead.id && getRealLeadId(l) !== leadId
+                        );
+                        
+                        updateColumns(newColumns);
+                        clearLeadAnimation();
+                        console.log(`useLeadStageSync: Lead ${mappedStage === 'confirmed' ? 'confirmado' : 'cerrado'} exitosamente`);
+                        
+                        // Mostrar notificación de éxito
+                        const message = mappedStage === 'confirmed' ? 'Lead confirmado' : 'Lead cerrado';
+                        showSuccessToast(message);
+                    }, 800);
+                } else {
+                    // Si no podemos animar, hacer el movimiento directamente
+                    newColumns[currentStage] = newColumns[currentStage].filter(
+                        (l: any) => l.id !== lead.id && getRealLeadId(l) !== leadId
+                    );
+                    
+                    updateColumns(newColumns);
+                    console.log(`useLeadStageSync: Lead ${mappedStage === 'confirmed' ? 'confirmado' : 'cerrado'} exitosamente (sin animación)`);
+                }
                 return;
             }
             
@@ -177,21 +213,109 @@ export function useLeadStageSync() {
             if (newColumns[mappedStage] !== undefined) {
                 console.log(`useLeadStageSync: Moviendo lead a columna regular: ${mappedStage}`);
                 
-                // Remover de la columna actual
-                newColumns[currentStage] = newColumns[currentStage].filter(
-                    (l: any) => l.id !== lead.id && getRealLeadId(l) !== leadId
-                );
+                // Obtener posiciones para la animación
+                const leadElement = document.querySelector(`[data-lead-id="${lead.id}"]`);
+                const toColumn = document.querySelector(`[data-stage="${mappedStage}"]`);
                 
-                // Añadir a la nueva columna con la etapa actualizada
-                const updatedLead = { ...lead, stage: mappedStage };
-                newColumns[mappedStage] = [updatedLead, ...newColumns[mappedStage]];
-                
-                updateColumns(newColumns);
-                console.log(`useLeadStageSync: Lead movido exitosamente a ${mappedStage}`);
+                if (leadElement && toColumn) {
+                    // Obtener posición actual del lead
+                    const fromRect = leadElement.getBoundingClientRect();
+                    const fromPos = { x: fromRect.left, y: fromRect.top };
+                    
+                    // Calcular posición destino
+                    const toRect = toColumn.getBoundingClientRect();
+                    const toPos = { 
+                        x: toRect.left + toRect.width / 2 - 130, // Centrar el lead
+                        y: toRect.top + 100 // Un poco abajo del header
+                    };
+                    
+                    // Iniciar animación
+                    setLeadAnimation(lead, fromPos, toPos);
+                    
+                    // Esperar antes de hacer el movimiento real
+                    setTimeout(() => {
+                        // Remover de la columna actual
+                        newColumns[currentStage] = newColumns[currentStage].filter(
+                            (l: any) => l.id !== lead.id && getRealLeadId(l) !== leadId
+                        );
+                        
+                        // Añadir a la nueva columna con la etapa actualizada
+                        const updatedLead = { ...lead, stage: mappedStage };
+                        newColumns[mappedStage] = [updatedLead, ...newColumns[mappedStage]];
+                        
+                        updateColumns(newColumns);
+                        clearLeadAnimation();
+                        console.log(`useLeadStageSync: Lead movido exitosamente a ${mappedStage}`);
+                        
+                        // Mostrar notificación de éxito
+                        const stageName = getStageDisplayName(mappedStage);
+                        showSuccessToast(`Lead movido a ${stageName}`);
+                    }, 800);
+                } else {
+                    // Si no podemos animar, hacer el movimiento directamente
+                    newColumns[currentStage] = newColumns[currentStage].filter(
+                        (l: any) => l.id !== lead.id && getRealLeadId(l) !== leadId
+                    );
+                    
+                    const updatedLead = { ...lead, stage: mappedStage };
+                    newColumns[mappedStage] = [updatedLead, ...newColumns[mappedStage]];
+                    
+                    updateColumns(newColumns);
+                    console.log(`useLeadStageSync: Lead movido exitosamente a ${mappedStage} (sin animación)`);
+                }
             } else {
                 console.error(`useLeadStageSync: Columna de destino no existe: ${mappedStage}`);
                 console.log('Columnas disponibles:', Object.keys(newColumns));
             }
+        };
+        
+        // Función helper para mostrar notificaciones de éxito
+        const showSuccessToast = (message: string) => {
+            if (typeof window !== 'undefined') {
+                import('@/components/ui/toast')
+                    .then(({ default: toastModule }) => {
+                        import('@/components/ui/Notification')
+                            .then(({ default: Notification }) => {
+                                toastModule.push(
+                                    React.createElement(Notification, {
+                                        title: 'Éxito',
+                                        type: 'success',
+                                        children: message
+                                    }),
+                                    { placement: 'top-center' }
+                                );
+                            });
+                    })
+                    .catch((err) => {
+                        console.error('Error al mostrar notificación:', err);
+                    });
+            }
+        };
+        
+        // Función helper para obtener el nombre de display de una etapa
+        const getStageDisplayName = (stage: string): string => {
+            const displayNames: Record<string, string> = {
+                'new': 'Nuevos',
+                'nuevos': 'Nuevos',
+                'Nuevos': 'Nuevos',
+                'prospecting': 'Prospectando',
+                'prospectando': 'Prospectando',
+                'Prospectando': 'Prospectando',
+                'qualification': 'Calificación',
+                'calificacion': 'Calificación',
+                'calificación': 'Calificación',
+                'Calificación': 'Calificación',
+                'opportunity': 'Oportunidad',
+                'oportunidad': 'Oportunidad',
+                'Oportunidad': 'Oportunidad',
+                'confirmed': 'Confirmado',
+                'confirmado': 'Confirmado',
+                'Confirmado': 'Confirmado',
+                'closed': 'Cerrado',
+                'cerrado': 'Cerrado',
+                'Cerrado': 'Cerrado'
+            };
+            return displayNames[stage] || stage;
         };
         
         // Verificar actualizaciones inmediatamente al montar usando BroadcastChannel

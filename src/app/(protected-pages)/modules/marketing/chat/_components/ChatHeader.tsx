@@ -21,6 +21,7 @@ const TemplateSelector = dynamic(() => import('./TemplateSelector'), { ssr: fals
 const TemplateConfigModal = dynamic(() => import('./TemplateConfigModal'), { ssr: false })
 const TemplateDebugger = dynamic(() => import('./TemplateDebugger'), { ssr: false })
 const MessageTester = dynamic(() => import('./MessageTester'), { ssr: false })
+const SalesFunnelStageIndicator = dynamic(() => import('./SalesFunnelStageIndicator'), { ssr: false })
 
 const ChatHeader = () => {
   // Estado para controlar la visibilidad del modal
@@ -78,6 +79,7 @@ const ChatHeader = () => {
   // Obtener templates y función para cargarlos del store
   const templates = useChatStore((state) => state.templates || [])
   const fetchTemplates = useChatStore((state) => state.fetchTemplates)
+  const currentLeadStage = useChatStore((state) => state.currentLeadStage)
 
   // Cargar templates si no están cargados
   useEffect(() => {
@@ -98,12 +100,13 @@ const ChatHeader = () => {
   }
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-      <div className="flex items-center gap-2">
-        <h4 className="m-0">Chat</h4>
-      </div>
-      
-      <div className="flex items-center gap-2">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2">
+          <h4 className="m-0">Chat</h4>
+        </div>
+        
+        <div className="flex items-center gap-2">
         {/* Toggle Modo Lead/Agente */}
         <Button
           variant="solid"
@@ -139,6 +142,7 @@ const ChatHeader = () => {
           className="ml-2"
         />
       </div>
+      </div>
 
       {/* Modal de configuración */}
       {isConfigModalOpen && (
@@ -146,6 +150,17 @@ const ChatHeader = () => {
           isOpen={isConfigModalOpen} 
           onClose={() => setIsConfigModalOpen(false)} 
         />
+      )}
+      
+      {/* Indicador del Sales Funnel */}
+      {currentLeadStage && (
+        <div className="px-4 pb-3">
+          <SalesFunnelStageIndicator 
+            currentStageId={currentLeadStage}
+            showProgress={true}
+            animated={true}
+          />
+        </div>
       )}
       
     </div>
