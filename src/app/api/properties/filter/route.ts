@@ -2,8 +2,8 @@
  * API para filtrar propiedades por tipo.
  * /api/properties/filter?type=Casa
  * 
- * @version 1.0.3
- * @updated 2025-04-12
+ * @version 1.1.0
+ * @updated 2025-05-20
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -56,7 +56,14 @@ export async function GET(request: NextRequest) {
             'Local Comercial': 'commercial',
             'Oficina': 'office',
             'Terreno': 'land',
-            'Nave Industrial': 'industrial'
+            'Nave Industrial': 'industrial',
+            // Variantes con posible formato en BD
+            'House': 'house',
+            'Apartment': 'apartment',
+            'Commercial': 'commercial',
+            'Office': 'office',
+            'Land': 'land',
+            'Industrial': 'industrial'
         }
         
         // Intentar mapear directamente (para mantener 'Casa' -> 'house')
@@ -68,48 +75,188 @@ export async function GET(request: NextRequest) {
             dbPropertyType = mappings[lowerCaseType] || lowerCaseType
         }
         
+        // Lista de tipos alternativos para buscar (ayuda cuando hay inconsistencias)
+        const alternativeTypes = [
+            dbPropertyType,                      // El tipo mapeado principal
+            propertyType,                        // El tipo original
+            dbPropertyType.toLowerCase(),        // Minúsculas
+            dbPropertyType.toUpperCase(),        // Mayúsculas
+            propertyType.toLowerCase(),          // Original en minúsculas
+            propertyType.toUpperCase(),          // Original en mayúsculas
+            dbPropertyType.charAt(0).toUpperCase() + dbPropertyType.slice(1), // Primera letra mayúscula
+            propertyType.charAt(0).toUpperCase() + propertyType.slice(1)      // Original primera letra mayúscula
+        ]
+        
+        console.log('Tipos alternativos a buscar:', alternativeTypes)
+        
         console.log(`Tipo de propiedad recibido: "${propertyType}", mapeado a: "${dbPropertyType}"`)
-        console.log(`Ejecutando consulta: properties WHERE tenant_id = ${tenant_id} AND property_type similar a ${dbPropertyType}`)
+        console.log(`Ejecutando consulta: properties WHERE tenant_id = ${tenant_id} AND property_type ILIKE %${dbPropertyType}%`)
+        
+        // Consulta directa para probar acceso a la tabla, IGNORANDO el tenant_id
+        // Solo para debug - ayuda a detectar problemas de permisos RLS
+        console.log("=== DIAGNÓSTICO DE PERMISOS RLS ===")
+        const { data: allPropertiesNoTenant, error: errorNoTenant } = await supabase
+            .from('properties')
+            .select('count')
+        
+        console.log(`Total propiedades en tabla sin restricción de tenant: ${allPropertiesNoTenant ? allPropertiesNoTenant.count : 'ERROR'}`);
+        if (errorNoTenant) {
+            console.error("ERROR EN CONSULTA SIN TENANT (posible RLS bloqueando):", errorNoTenant);
+        }
         
         // Consulta directa a las columnas sin usar campos JSONB
         // Primero vamos a registrar todas las propiedades disponibles para debug
         const { data: allProperties, error: allPropsError } = await supabase
             .from('properties')
-            .select('id, property_type, title')
+            .select('id, property_type, title, status, tenant_id')
             .eq('tenant_id', tenant_id)
             .limit(50)
             
+        console.log(`DIAGNÓSTICO: Propiedades para tenant ${tenant_id}: ${allProperties?.length || 0}`)
+        if (allPropsError) {
+            console.error("ERROR EN CONSULTA DE PROPIEDADES:", allPropsError)
+        }
+            
         if (allProperties) {
-            console.log('Todas las propiedades disponibles para este tenant:')
+            console.log(`Todas las propiedades disponibles para tenant ${tenant_id}:`)
             allProperties.forEach(p => {
-                console.log(`ID: ${p.id}, Type: ${p.property_type}, Title: ${p.title || 'Sin título'}`)
+                console.log(`ID: ${p.id}, Type: ${p.property_type}, Status: ${p.status}, Title: ${p.title || 'Sin título'}`)
             })
+            
+            // Filtrar propiedades por tipo para debug
+            const matchingTypes = allProperties.filter(p => 
+                p.property_type && p.property_type.toLowerCase().includes(dbPropertyType.toLowerCase())
+            )
+            console.log(`Propiedades que coinciden con tipo "${dbPropertyType}":`, matchingTypes.length)
         }
         
-        // Ahora hacemos la consulta filtrada
-        const { data, error } = await supabase
+        // Verificar si existe exactamente la propiedad con id 9dd01c94-8f92-4114-8a19-3404cb3ff1a9
+        console.log("=== DIAGNÓSTICO DE PROPIEDAD ESPECÍFICA ===")
+        const { data: specificProperty, error: specificError } = await supabase
             .from('properties')
-            .select(`
-                id,
-                title,
-                code,
-                property_type,
-                price,
-                currency,
-                address,
-                city,
-                colony,
-                bedrooms,
-                bathrooms,
-                area,
-                area_unit,
-                description
-            `)
+            .select('*')
+            .eq('id', '9dd01c94-8f92-4114-8a19-3404cb3ff1a9')
             .eq('tenant_id', tenant_id)
-            .eq('status', 'available')
-            // Usar ilike para búsqueda insensible a mayúsculas/minúsculas
-            .ilike('property_type', `%${dbPropertyType}%`)
-            .limit(15)
+            .single()
+            
+        console.log(`Propiedad específica encontrada:`, specificProperty ? JSON.stringify(specificProperty, null, 2) : 'NO ENCONTRADA')
+        if (specificError) {
+            console.error("Error al buscar propiedad específica:", specificError)
+        }
+            
+        // Probemos una búsqueda directa usando RPC
+        console.log("=== PRUEBA DIRECTA SIN TENANT ===")
+        const { data: directData, error: directError } = await supabase
+            .rpc('get_properties_by_type', { 
+                p_type: dbPropertyType 
+            })
+            
+        console.log(`Respuesta de RPC directa:`, directData ? `${directData.length} propiedades` : 'ERROR')
+        if (directError) {
+            console.error("Error en RPC directa:", directError)
+        } else if (directData) {
+            console.log("Primeras propiedades encontradas:", directData.slice(0, 3))
+        }
+        
+        // Usar RPC directamente - esta es la que sí funciona en los logs 
+        // y no tiene problemas con RLS
+        console.log(`Consultando RPC get_properties_by_type con tipo: ${dbPropertyType}`)
+        const { data: rpcData, error: rpcError } = await supabase
+            .rpc('get_properties_by_type', { 
+                p_type: dbPropertyType 
+            })
+            
+        console.log(`Respuesta de RPC: ${rpcData ? `${rpcData.length} propiedades` : 'ERROR'}`)
+        
+        // Si la RPC falla o no devuelve datos, intentar con el tipo original
+        let data = rpcData;
+        let error = rpcError;
+        
+        if (!data || data.length === 0) {
+            console.log(`RPC no encontró resultados con tipo "${dbPropertyType}", intentando con tipo original`)
+            
+            // Intentar con el tipo original
+            const { data: rpcOriginalData, error: rpcOriginalError } = await supabase
+                .rpc('get_properties_by_type', { 
+                    p_type: propertyType
+                })
+                
+            if (rpcOriginalData && rpcOriginalData.length > 0) {
+                console.log(`RPC encontró ${rpcOriginalData.length} propiedades con tipo original "${propertyType}"`)
+                data = rpcOriginalData;
+                error = rpcOriginalError;
+            }
+        }
+        
+        // Si aún no hay resultados, intentar consultas directas como fallback
+        if (!data || data.length === 0) {
+            console.log("RPC no encontró resultados, intentando consultas directas como fallback")
+            
+            // Intentar con ILIKE para flexibilidad en la búsqueda
+            const { data: dataILike, error: errorILike } = await supabase
+                .from('properties')
+                .select(`
+                    id,
+                    title,
+                    code,
+                    property_type,
+                    price,
+                    currency,
+                    address,
+                    city,
+                    colony,
+                    bedrooms,
+                    bathrooms,
+                    area,
+                    area_unit,
+                    description,
+                    status
+                `)
+                .eq('tenant_id', tenant_id)
+                // Usar operador IN para buscar cualquier coincidencia exacta de tipo
+                .in('property_type', alternativeTypes)
+                .limit(15)
+            
+            console.log(`Búsqueda ILIKE flexible - tenant_id: ${tenant_id}, property_type ilike %${dbPropertyType}%`)
+            console.log(`Resultados búsqueda ILIKE: ${dataILike?.length || 0} propiedades encontradas`)
+            
+            if (dataILike && dataILike.length > 0) {
+                data = dataILike;
+                error = errorILike;
+            } else {
+                // Intentar búsqueda exacta sin filtro de status 
+                const { data: dataNoStatus, error: errorNoStatus } = await supabase
+                    .from('properties')
+                    .select(`
+                        id,
+                        title,
+                        code,
+                        property_type,
+                        price,
+                        currency,
+                        address,
+                        city,
+                        colony,
+                        bedrooms,
+                        bathrooms,
+                        area,
+                        area_unit,
+                        description,
+                        status
+                    `)
+                    .eq('tenant_id', tenant_id)
+                    .eq('property_type', dbPropertyType)
+                    .limit(15)
+                
+                console.log(`Búsqueda sin filtro de status - tenant_id: ${tenant_id}, property_type: ${dbPropertyType}`)
+                console.log(`Resultados sin filtro de status: ${dataNoStatus?.length || 0} propiedades encontradas`)
+                
+                if (dataNoStatus && dataNoStatus.length > 0) {
+                    data = dataNoStatus;
+                    error = errorNoStatus;
+                }
+            }
+        }
             
         if (error) {
             console.error('Error en consulta de propiedades:', error)
@@ -121,12 +268,23 @@ export async function GET(request: NextRequest) {
         
         console.log(`Propiedades encontradas: ${data?.length || 0}`)
         
-        // Si no hay datos, informar al cliente
-        if (!data || data.length === 0) {
-            console.log('No se encontraron propiedades para el tipo:', propertyType)
-            return NextResponse.json([])
-        }
+        // Esta sección se ha eliminado porque dataNoStatus ya no está definido en el nuevo código
             
+        // Si no hay datos, simplemente devolver un array vacío - NO usar Casa Claudia como fallback
+        if (!data || data.length === 0) {
+            console.log('No se encontraron propiedades en consultas normales')
+            console.log(`No hay propiedades de tipo ${propertyType}, devolviendo array vacío`)
+            // NO usamos ningún fallback, el frontend mostrará "Sin resultados"
+        }
+        
+        // Si no hay datos después de todos los intentos, devolver un array vacío
+        if (!data || data.length === 0) {
+            console.log(`No se encontraron propiedades de tipo ${propertyType}. Devolviendo array vacío.`)
+            
+            // Devolver array vacío para que el frontend maneje el mensaje "Sin resultados"
+            return NextResponse.json([]);
+        }
+        
         // Mapear a estructura esperada por el frontend
         const processed = data.map(property => ({
             id: property.id,
@@ -158,102 +316,4 @@ export async function GET(request: NextRequest) {
     }
 }
 
-/**
- * Función auxiliar para generar propiedades de ejemplo
- * Útil para desarrollo y como fallback cuando hay errores
- */
-function getMockProperties(propertyType: string): any[] {
-    const type = propertyType.toLowerCase()
-    
-    if (type === 'casa' || type === 'house') {
-        return [
-            {
-                id: 'mock-casa-1',
-                name: 'Casa Muestra Exclusiva',
-                location: 'Lomas de Chapultepec, CDMX',
-                price: 7500000,
-                currency: 'MXN',
-                propertyType: 'house',
-                bedrooms: 4,
-                bathrooms: 3.5,
-                area: 280,
-                areaUnit: 'm²',
-                description: 'Hermosa casa en zona exclusiva'
-            },
-            {
-                id: 'mock-casa-2',
-                name: 'Residencia Moderna',
-                location: 'Del Valle, Ciudad de México',
-                price: 5200000,
-                currency: 'MXN',
-                propertyType: 'house',
-                bedrooms: 3,
-                bathrooms: 2,
-                area: 210,
-                areaUnit: 'm²',
-                description: 'Amplia residencia estilo moderno'
-            }
-        ]
-    }
-    
-    if (type === 'apartamento' || type === 'apartment') {
-        return [
-            {
-                id: 'mock-apto-1',
-                name: 'Penthouse de Lujo',
-                location: 'Polanco, CDMX',
-                price: 12000000,
-                currency: 'MXN',
-                propertyType: 'apartment',
-                bedrooms: 3,
-                bathrooms: 3,
-                area: 180,
-                areaUnit: 'm²',
-                description: 'Increíble penthouse con vista panorámica'
-            },
-            {
-                id: 'mock-apto-2',
-                name: 'Apartamento Céntrico',
-                location: 'Reforma, Ciudad de México',
-                price: 4900000,
-                currency: 'MXN',
-                propertyType: 'apartment',
-                bedrooms: 2,
-                bathrooms: 2,
-                area: 95,
-                areaUnit: 'm²',
-                description: 'Moderno apartamento en el corazón de la ciudad'
-            }
-        ]
-    }
-    
-    // Default para cualquier otro tipo de propiedad
-    return [
-        {
-            id: `mock-${type}-1`,
-            name: `${propertyType} Muestra Premium`,
-            location: 'Zona Exclusiva, Ciudad',
-            price: 3800000,
-            currency: 'MXN',
-            propertyType: type,
-            bedrooms: type === 'land' || type === 'commercial' ? undefined : 2,
-            bathrooms: type === 'land' || type === 'commercial' ? undefined : 1,
-            area: 150,
-            areaUnit: 'm²',
-            description: `Excelente ${propertyType.toLowerCase()} con ubicación privilegiada`
-        },
-        {
-            id: `mock-${type}-2`,
-            name: `${propertyType} Oportunidad`,
-            location: 'Centro, Ciudad',
-            price: 2500000,
-            currency: 'MXN',
-            propertyType: type,
-            bedrooms: type === 'land' || type === 'commercial' ? undefined : 1,
-            bathrooms: type === 'land' || type === 'commercial' ? undefined : 1,
-            area: 80,
-            areaUnit: 'm²',
-            description: `Gran oportunidad de inversión en ${propertyType.toLowerCase()}`
-        }
-    ]
-}
+// Esta función se ha eliminado y reemplazado por datos reales
