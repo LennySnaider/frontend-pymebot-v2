@@ -7,66 +7,57 @@
  * @updated 2025-04-28
  */
 
-import { SupabaseClient } from '@/services/supabase/SupabaseClient'
+import { createClient as createServerClient, createServiceClient } from '@/services/supabase/server'
 import { Lead, Member } from '@/app/(protected-pages)/modules/leads/leads-scrum/types'
+import { getTenantFromSession } from './tenant/getTenantFromSession'
+import { getLeadsForSalesFunnel, UNIFIED_STAGE_MAPPING } from '@/services/leads/leadCountService'
 
 const getSalesFunnelDataWithAgents = async () => {
     try {
-        // Obtenemos el cliente Supabase
-        const supabase = SupabaseClient.getInstance()
+        // En desarrollo usamos service role, en producción usamos el cliente con sesión
+        const supabase = process.env.NODE_ENV === 'development' 
+            ? createServiceClient()
+            : createServerClient()
         
         if (!supabase) {
-            console.error('Error: No se pudo obtener el cliente Supabase.')
-            return {
+            console.error('Error: No se pudo crear el cliente Supabase.')
+            // Retornar estructura vacía en lugar de {} para evitar problemas de renderizado
+            const emptyResult = {
                 'new': [],
                 'prospecting': [],
                 'qualification': [],
                 'opportunity': []
             }
+            console.log('Retornando estructura vacía por error de Supabase:', emptyResult)
+            return emptyResult
         }
         
-        // 1. Primero obtenemos todos los leads
-        const { data: leadsData, error: leadsError } = await supabase
-            .from('leads')
-            .select(`
-                id, 
-                full_name, 
-                description, 
-                email, 
-                phone, 
-                stage, 
-                status,
-                cover, 
-                metadata, 
-                created_at,
-                updated_at,
-                tenant_id, 
-                agent_id,
-                source,
-                interest_level,
-                budget_min,
-                budget_max,
-                property_type,
-                preferred_zones,
-                bedrooms_needed,
-                bathrooms_needed,
-                features_needed,
-                notes,
-                last_contact_date,
-                next_contact_date,
-                contact_count
-            `)
-            .order('created_at', { ascending: false })
-
-        if (leadsError) {
-            console.error('Error al obtener leads:', leadsError)
-            return {
+        // Obtener el tenant_id de la sesión
+        const tenantId = await getTenantFromSession()
+        console.log('Tenant ID en getSalesFunnelDataWithAgents:', tenantId)
+        
+        // Si no hay tenant_id, devolvemos estructura definida
+        if (!tenantId) {
+            console.error('No se encontró tenant_id en la sesión')
+            const emptyResult = {
                 'new': [],
                 'prospecting': [],
                 'qualification': [],
                 'opportunity': []
             }
+            console.log('Retornando estructura vacía por falta de tenant_id:', emptyResult)
+            return emptyResult
         }
+        
+        // Usar el servicio centralizado para obtener leads
+        console.log('Obteniendo leads con criterios unificados para tenant:', tenantId)
+        
+        const leadsData = await getLeadsForSalesFunnel(tenantId)
+        console.log('Resultado de getLeadsForSalesFunnel:', {
+            isArray: Array.isArray(leadsData),
+            length: leadsData?.length,
+            firstLead: leadsData?.[0]
+        })
         
         if (!leadsData || leadsData.length === 0) {
             console.log('No se encontraron leads.')
@@ -79,6 +70,7 @@ const getSalesFunnelDataWithAgents = async () => {
         }
         
         console.log(`Obtenidos ${leadsData.length} leads.`)
+        console.log('Leads data sample:', leadsData.slice(0, 3)) // Mostrar los primeros 3 leads
         
         // 2. Recopilamos todos los IDs de agentes para hacer una única consulta
         const agentIds = leadsData
@@ -90,30 +82,36 @@ const getSalesFunnelDataWithAgents = async () => {
         
         console.log(`Encontrados ${uniqueAgentIds.length} agentes únicos asignados.`)
         
-        // 3. Obtenemos datos de todos los agentes de una sola vez
+        // 3. Obtenemos datos de todos los usuarios agentes de una sola vez
         let agentsMap: Record<string, Member> = {}
         
         if (uniqueAgentIds.length > 0) {
             const { data: agentsData, error: agentsError } = await supabase
-                .from('agents')
+                .from('users')
                 .select(`
                     id,
-                    name,
+                    full_name,
                     email,
-                    profile_image
+                    avatar_url,
+                    metadata,
+                    role
                 `)
                 .in('id', uniqueAgentIds)
+                .eq('tenant_id', tenantId)
             
             if (agentsError) {
                 console.error('Error al obtener datos de agentes:', agentsError)
             } else if (agentsData) {
+                console.log(`Encontrados ${agentsData.length} usuarios para los IDs de agentes`)
+                console.log('Roles de usuarios encontrados:', agentsData.map(a => ({ id: a.id, role: a.role })))
+                
                 // Creamos un mapa de agentes por ID para acceso rápido
                 agentsMap = agentsData.reduce((map, agent) => {
                     map[agent.id] = {
                         id: agent.id,
-                        name: agent.name || agent.email || 'Agente',
+                        name: agent.full_name || agent.email || 'Agente',
                         email: agent.email || '',
-                        img: agent.profile_image || ''
+                        img: agent.avatar_url || agent.metadata?.profile_image || ''
                     }
                     return map
                 }, {} as Record<string, Member>)
@@ -131,11 +129,23 @@ const getSalesFunnelDataWithAgents = async () => {
             'opportunity': []
         }
         
-        // Lista de etapas válidas - TODAS son válidas para validación, pero solo algunas se muestran como columnas
-        const validStages = ['new', 'prospecting', 'qualification', 'opportunity', 'confirmed', 'closed']
+        // Usar el mapeo unificado del servicio
+        const stageMapping = UNIFIED_STAGE_MAPPING
         
         // Etapas que se muestran como columnas en el tablero kanban
         const displayedStages = ['new', 'prospecting', 'qualification', 'opportunity']
+        
+        // Definir las etapas válidas en español e inglés
+        const validStagesSpanish = ['nuevos', 'prospectando', 'calificacion', 'calificación', 'oportunidad', 'confirmado', 'cerrado']
+        const validStages = ['new', 'prospecting', 'qualification', 'opportunity', 'confirmed', 'closed']
+        
+        // Debug: Contar leads por etapa
+        const stageCount: Record<string, number> = {}
+        leadsData.forEach(lead => {
+            const stage = lead.stage || 'unknown'
+            stageCount[stage] = (stageCount[stage] || 0) + 1
+        })
+        console.log('Distribución de leads por etapa:', stageCount)
         
         // Procesamos cada lead
         leadsData.forEach(lead => {
@@ -173,7 +183,7 @@ const getSalesFunnelDataWithAgents = async () => {
                 initialLabels.push(interestLabel)
             }
             
-            // Metadata mejorada
+            // Metadata mejorada - USANDO LOS VALORES DE LA BASE DE DATOS
             const metadata = {
                 ...(lead.metadata || {}),
                 email: lead.email,
@@ -181,10 +191,10 @@ const getSalesFunnelDataWithAgents = async () => {
                 interest: interest,
                 source: lead.source || 'web',
                 budget: budget,
-                propertyType: lead.property_type || 'Apartamento',
+                propertyType: lead.property_type, // Usar valor original sin fallback
                 preferredZones: preferredZones,
-                bedroomsNeeded: lead.bedrooms_needed || 1,
-                bathroomsNeeded: lead.bathrooms_needed || 1,
+                bedroomsNeeded: lead.bedrooms_needed, // Usar valor original sin fallback
+                bathroomsNeeded: lead.bathrooms_needed, // Usar valor original sin fallback
                 leadStatus: lead.status || 'new',
                 lastContactDate: lead.last_contact_date ? new Date(lead.last_contact_date).getTime() : null,
                 nextContactDate: lead.next_contact_date ? new Date(lead.next_contact_date).getTime() : null,
@@ -223,7 +233,14 @@ const getSalesFunnelDataWithAgents = async () => {
             // Validar y asignar a la etapa correcta
             let stage = lead.stage || 'new'
             
-            // Verificamos si la etapa es válida
+            // Si la etapa está en español, la mapeamos a inglés
+            if (validStagesSpanish.includes(stage)) {
+                const mappedStage = stageMapping[stage]
+                console.log(`Etapa en español "${stage}" mapeada a inglés "${mappedStage}" para el lead ${lead.id}`)
+                stage = mappedStage
+            }
+            
+            // Verificamos si la etapa es válida (ahora en inglés)
             if (!validStages.includes(stage)) {
                 // Si es una etapa no reconocida, asignamos a 'new'
                 console.log(`Etapa "${stage}" no válida para el lead ${lead.id}, asignando a "new"`)
@@ -251,20 +268,36 @@ const getSalesFunnelDataWithAgents = async () => {
                 // Añadir a la etapa correspondiente
                 formattedData[stage].push(formattedLead)
             } else {
-                console.log(`Lead ${lead.id} en etapa ${stage} no se muestra en el tablero regular`)
+                console.log(`Lead ${lead.id} (${lead.full_name}) en etapa "${stage}" no se muestra en el tablero regular`)
+                
+                // Si el stage no está en las etapas mostradas, lo agregamos a 'new' como fallback
+                if (!validStages.includes(stage)) {
+                    console.log(`Moviendo lead ${lead.id} de etapa desconocida "${stage}" a "new"`)
+                    formattedLead.stage = 'new'
+                    formattedData['new'].push(formattedLead)
+                }
             }
+        })
+        
+        // Mostrar resumen de datos
+        console.log('Resumen de leads por etapa:')
+        Object.entries(formattedData).forEach(([stage, leads]) => {
+            console.log(`${stage}: ${leads.length} leads`)
         })
         
         return formattedData
         
     } catch (err: any) {
         console.error('Error en getSalesFunnelDataWithAgents:', err)
-        return {
+        // Asegurarnos de retornar una estructura bien definida
+        const errorResult = {
             'new': [],
             'prospecting': [],
             'qualification': [],
             'opportunity': []
         }
+        console.log('Retornando estructura vacía por error:', errorResult)
+        return errorResult
     }
 }
 
