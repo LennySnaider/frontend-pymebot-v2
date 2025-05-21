@@ -23,8 +23,8 @@ import toast from '@/components/ui/toast'
 import dynamic from 'next/dynamic'
 
 // Cargamos los servicios solo en el cliente - Variables inicializadas con null
-let apiGetConversation: any = null;
-let apiSendChatMessage: any = null;
+let apiGetConversation: any = null
+let apiSendChatMessage: any = null
 
 // Técnica más segura: usar useEffect para cargar servicios
 // Esta aproximación evita código fuera de componentes que podría ejecutarse en el servidor
@@ -54,10 +54,10 @@ const ChatBody = () => {
     const [testAsLead, setTestAsLead] = useState(() => {
         // Verificar si estamos en el cliente y leer de localStorage
         if (typeof window !== 'undefined') {
-            const savedMode = window.localStorage.getItem('chatTestMode');
-            return savedMode === 'lead';
+            const savedMode = window.localStorage.getItem('chatTestMode')
+            return savedMode === 'lead'
         }
-        return false;
+        return false
     })
 
     const selectedChat = useChatStore((state) => state.selectedChat)
@@ -84,18 +84,21 @@ const ChatBody = () => {
     // Efecto para escuchar cambios en el modo desde otros componentes
     useEffect(() => {
         const handleModeChange = (e: any) => {
-            const { testAsLead: newMode } = e.detail;
-            setTestAsLead(newMode);
-            console.log('ChatBody: Modo cambiado a', newMode ? 'Lead' : 'Agente');
-        };
+            const { testAsLead: newMode } = e.detail
+            setTestAsLead(newMode)
+            console.log(
+                'ChatBody: Modo cambiado a',
+                newMode ? 'Lead' : 'Agente',
+            )
+        }
 
         // Escuchar eventos de cambio de modo
-        window.addEventListener('chatModeChanged', handleModeChange);
+        window.addEventListener('chatModeChanged', handleModeChange)
 
         return () => {
-            window.removeEventListener('chatModeChanged', handleModeChange);
-        };
-    }, []);
+            window.removeEventListener('chatModeChanged', handleModeChange)
+        }
+    }, [])
 
     const { smaller } = useResponsive()
 
@@ -119,28 +122,32 @@ const ChatBody = () => {
         // Precargar la función apiGetConversation
         async function preloadAPIs() {
             try {
-                console.log('Precargando servicios API...');
+                console.log('Precargando servicios API...')
 
                 if (!apiGetConversation) {
-                    const chatService = await import('@/services/ChatService');
-                    apiGetConversation = chatService.apiGetConversation;
-                    console.log('Servicio de chat cargado correctamente');
+                    const chatService = await import('@/services/ChatService')
+                    apiGetConversation = chatService.apiGetConversation
+                    console.log('Servicio de chat cargado correctamente')
                 }
 
                 if (!apiSendChatMessage) {
-                    const messageSender = await import('@/services/ChatService/apiSendChatMessage');
-                    apiSendChatMessage = messageSender.default;
-                    console.log('Servicio de envío de mensajes cargado correctamente');
+                    const messageSender = await import(
+                        '@/services/ChatService/apiSendChatMessage'
+                    )
+                    apiSendChatMessage = messageSender.default
+                    console.log(
+                        'Servicio de envío de mensajes cargado correctamente',
+                    )
                 }
 
-                console.log('APIs precargadas correctamente');
+                console.log('APIs precargadas correctamente')
             } catch (error) {
-                console.error('Error al precargar APIs:', error);
+                console.error('Error al precargar APIs:', error)
             }
         }
 
-        preloadAPIs();
-    }, []);
+        preloadAPIs()
+    }, [])
 
     const handlePushMessage = (message: Message) => {
         console.log('Agregando mensaje a la conversación:', message)
@@ -169,22 +176,28 @@ const ChatBody = () => {
         // En modo normal (como agente), usamos el ID generado
         // En modo prueba (como lead), usamos el ID del chat completo (con prefijo lead_)
         const effectiveUserId = testAsLead
-            ? (selectedChat.id || userIdRef.current)
-            : userIdRef.current;
+            ? selectedChat.id || userIdRef.current
+            : userIdRef.current
 
         // Crear mensaje personalizado según el modo
-        let senderName = 'You';
-        let senderAvatar = '/img/avatars/thumb-1.jpg';
+        let senderName = 'You'
+        let senderAvatar = '/img/avatars/thumb-1.jpg'
         // IMPORTANTE: En el modo lead, visualmente queremos que el mensaje SIEMPRE se muestre como "mío"
         // para que aparezca a la derecha y con el estilo correcto
-        let isMyMsg = true; // Siempre true visualmente para fines de UI
+        let isMyMsg = true // Siempre true visualmente para fines de UI
 
         // Si estamos en modo lead, configurar los datos del remitente como el lead
         if (testAsLead) {
-            senderName = selectedChat.name || 'Lead';
-            senderAvatar = selectedChat.avatar || '/img/avatars/thumb-2.jpg';
+            senderName = selectedChat.name || 'Lead'
+            senderAvatar = selectedChat.avatar || '/img/avatars/thumb-2.jpg'
             // No cambiamos isMyMsg a false, porque queremos que visualmente aparezca como "mi mensaje"
-            console.log('Modo Lead activado - Usando nombre:', senderName, 'avatar:', senderAvatar, 'pero manteniendo visual como mensaje propio');
+            console.log(
+                'Modo Lead activado - Usando nombre:',
+                senderName,
+                'avatar:',
+                senderAvatar,
+                'pero manteniendo visual como mensaje propio',
+            )
         }
 
         // Create new message object with user's input
@@ -229,9 +242,11 @@ const ChatBody = () => {
 
             // Asegurarnos de que tenemos las funciones API cargadas
             if (!apiSendChatMessage) {
-                console.log('Cargando apiSendChatMessage...');
-                const sendModule = await import('@/services/ChatService/apiSendChatMessage');
-                apiSendChatMessage = sendModule.default;
+                console.log('Cargando apiSendChatMessage...')
+                const sendModule = await import(
+                    '@/services/ChatService/apiSendChatMessage'
+                )
+                apiSendChatMessage = sendModule.default
             }
 
             try {
@@ -245,122 +260,318 @@ const ChatBody = () => {
                 )
 
                 console.log('Respuesta recibida del servidor:', response)
-                console.log('Metadata en respuesta:', response?.metadata);
-                console.log('Data en respuesta:', response?.data);
-                console.log('Data.metadata en respuesta:', response?.data?.metadata);
+                console.log('Metadata en respuesta:', response?.metadata)
+                console.log('Data en respuesta:', response?.data)
+                console.log(
+                    'Data.metadata en respuesta:',
+                    response?.data?.metadata,
+                )
 
                 // Manejo mejorado de la respuesta del servidor
-                console.log('Analizando respuesta del servidor:', response);
+                console.log('Analizando respuesta del servidor:', response)
 
                 // Obtener el contenido del mensaje con mejor manejo de múltiples formatos
-                let messageContent = 'Lo siento, ha ocurrido un problema con mi conexión.';
+                let messageContent =
+                    'Lo siento, ha ocurrido un problema con mi conexión.'
 
                 // Verificar si tenemos una respuesta válida del servidor
                 if (response && typeof response === 'object') {
                     // Caso 1: Respuesta directa con campo 'response'
-                    if (response.response && typeof response.response === 'string') {
-                        messageContent = response.response;
-                        console.log('Usando respuesta directa del servidor:', messageContent);
+                    if (
+                        response.response &&
+                        typeof response.response === 'string'
+                    ) {
+                        messageContent = response.response
+                        console.log(
+                            'Usando respuesta directa del servidor:',
+                            messageContent,
+                        )
                     }
                     // Caso 2: Respuesta con múltiples mensajes
-                    else if (response.is_multi_message && Array.isArray(response.messages) && response.messages.length > 0) {
-                        messageContent = response.messages[0];
-                        console.log('Usando primer mensaje de array:', messageContent);
+                    else if (
+                        response.is_multi_message &&
+                        Array.isArray(response.messages) &&
+                        response.messages.length > 0
+                    ) {
+                        messageContent = response.messages[0]
+                        console.log(
+                            'Usando primer mensaje de array:',
+                            messageContent,
+                        )
 
                         // Mostrar mensajes adicionales si existen
                         if (response.messages.length > 1) {
-                            console.log('Procesando mensajes adicionales:', response.messages.slice(1));
+                            console.log(
+                                'Procesando mensajes adicionales:',
+                                response.messages.slice(1),
+                            )
 
                             // Crear y programar los mensajes adicionales
-                            const additionalMessages = response.messages.slice(1).map(
-                                (msg: string, idx: number) => {
+                            const additionalMessages = response.messages
+                                .slice(1)
+                                .map((msg: string, idx: number) => {
                                     // Crear un objeto de mensaje para cada mensaje adicional
                                     return {
-                                        id: uniqueId(`chat-conversation-additional-${idx}-`),
+                                        id: uniqueId(
+                                            `chat-conversation-additional-${idx}-`,
+                                        ),
                                         sender: {
                                             id: '2',
                                             name: 'BuilderBot',
-                                            avatarImageUrl: '/img/avatars/thumb-2.jpg',
+                                            avatarImageUrl:
+                                                '/img/avatars/thumb-2.jpg',
                                         },
                                         content: msg,
-                                        timestamp: new Date(Date.now() + (idx + 1) * 200), // Agregar un pequeño retraso
+                                        timestamp: new Date(
+                                            Date.now() + (idx + 1) * 200,
+                                        ), // Agregar un pequeño retraso
                                         type: 'regular',
                                         isMyMessage: false,
-                                    };
-                                }
-                            );
+                                    }
+                                })
 
                             // Programar la adición de mensajes adicionales con un ligero retraso
-                            additionalMessages.forEach((msg: Message, idx: number) => {
-                                setTimeout(() => {
-                                    console.log(`Agregando mensaje adicional #${idx + 1}:`, msg.content);
-                                    handlePushMessage(msg);
+                            additionalMessages.forEach(
+                                (msg: Message, idx: number) => {
+                                    setTimeout(
+                                        () => {
+                                            console.log(
+                                                `Agregando mensaje adicional #${idx + 1}:`,
+                                                msg.content,
+                                            )
+                                            handlePushMessage(msg)
 
-                                    // Scroll al fondo después del último mensaje
-                                    if (idx === additionalMessages.length - 1) {
-                                        setTimeout(scrollToBottom, 100);
-                                    }
-                                }, (idx + 1) * 500); // 500ms de retraso entre mensajes
-                            });
+                                            // Scroll al fondo después del último mensaje
+                                            if (
+                                                idx ===
+                                                additionalMessages.length - 1
+                                            ) {
+                                                setTimeout(scrollToBottom, 100)
+                                            }
+                                        },
+                                        (idx + 1) * 500,
+                                    ) // 500ms de retraso entre mensajes
+                                },
+                            )
                         }
                     }
                     // Caso 3: Respuesta con campo 'text' (formato alternativo)
-                    else if (response.text && typeof response.text === 'string') {
-                        messageContent = response.text;
-                        console.log('Usando campo text:', messageContent);
+                    else if (
+                        response.text &&
+                        typeof response.text === 'string'
+                    ) {
+                        messageContent = response.text
+                        console.log('Usando campo text:', messageContent)
                     }
                     // Log de diagnóstico si no encontramos una respuesta válida
                     else {
-                        console.error('No se encontró un campo de respuesta válido en el objeto:', response);
+                        console.error(
+                            'No se encontró un campo de respuesta válido en el objeto:',
+                            response,
+                        )
                     }
                 }
 
                 // Extraer botones de la respuesta si existen
-                let messageButtons = undefined;
-                
+                let messageButtons = undefined
+
                 // Verificar diferentes formatos de respuesta
                 if (response) {
                     // Formato directo: response.buttons
                     if (response.buttons && Array.isArray(response.buttons)) {
-                        messageButtons = response.buttons;
-                        console.log('Botones encontrados en response.buttons:', messageButtons);
+                        messageButtons = response.buttons
+                        console.log(
+                            'Botones encontrados en response.buttons:',
+                            messageButtons,
+                        )
                     }
-                    // Formato con metadata: response.metadata.buttons  
-                    else if (response.metadata?.buttons && Array.isArray(response.metadata.buttons)) {
-                        messageButtons = response.metadata.buttons;
-                        console.log('Botones encontrados en response.metadata.buttons:', messageButtons);
+                    // Formato con metadata: response.metadata.buttons
+                    else if (
+                        response.metadata?.buttons &&
+                        Array.isArray(response.metadata.buttons)
+                    ) {
+                        messageButtons = response.metadata.buttons
+                        console.log(
+                            'Botones encontrados en response.metadata.buttons:',
+                            messageButtons,
+                        )
                     }
                     // Formato con data.metadata: response.data.metadata.buttons
-                    else if (response.data?.metadata?.buttons && Array.isArray(response.data.metadata.buttons)) {
-                        messageButtons = response.data.metadata.buttons;
-                        console.log('Botones encontrados en response.data.metadata.buttons:', messageButtons);
+                    else if (
+                        response.data?.metadata?.buttons &&
+                        Array.isArray(response.data.metadata.buttons)
+                    ) {
+                        messageButtons = response.data.metadata.buttons
+                        console.log(
+                            'Botones encontrados en response.data.metadata.buttons:',
+                            messageButtons,
+                        )
                     }
                 }
 
                 // Verificar si hay cambio de etapa del sales funnel
                 // Los logs muestran que salesStageId viene en response.metadata, no en response.data.metadata
-                if (response?.metadata?.salesStageId || response?.data?.metadata?.salesStageId || response?.salesStageId) {
-                    const newStageId = response.metadata?.salesStageId || response.data?.metadata?.salesStageId || response.salesStageId;
-                    console.log('Detectado cambio de etapa en sales funnel:', newStageId);
-                    
+                if (
+                    response?.metadata?.salesStageId ||
+                    response?.data?.metadata?.salesStageId ||
+                    response?.salesStageId
+                ) {
+                    const newStageId =
+                        response.metadata?.salesStageId ||
+                        response.data?.metadata?.salesStageId ||
+                        response.salesStageId
+                    console.log(
+                        'Detectado cambio de etapa en sales funnel:',
+                        newStageId,
+                    )
+
                     // Actualizar la etapa del lead en el store
                     if (selectedChat?.id) {
                         // Remover el prefijo 'lead_' si existe
-                        const leadId = selectedChat.id.startsWith('lead_') 
-                            ? selectedChat.id.substring(5) 
-                            : selectedChat.id;
-                        console.log('Actualizando lead', leadId, 'a etapa', newStageId);
-                        updateLeadStage(leadId, newStageId).catch((error: any) => {
-                            console.error('Error al actualizar etapa del lead:', error);
-                            // Si es un error de etapa especial, no mostrarlo como error crítico
-                            if (newStageId === 'confirmado' || newStageId === 'confirmed' || 
-                                newStageId === 'cerrado' || newStageId === 'closed') {
-                                console.log('Error ignorado para etapa especial:', newStageId);
-                            } else {
-                                toast.error(`Error al actualizar etapa: ${error.message}`);
-                            }
-                        });
+                        const leadId = selectedChat.id.startsWith('lead_')
+                            ? selectedChat.id.substring(5)
+                            : selectedChat.id
+                        console.log(
+                            'Actualizando lead',
+                            leadId,
+                            'a etapa',
+                            newStageId,
+                        )
+                        updateLeadStage(leadId, newStageId).catch(
+                            (error: any) => {
+                                console.error(
+                                    'Error al actualizar etapa del lead:',
+                                    error,
+                                )
+                                // Si es un error de etapa especial, no mostrarlo como error crítico
+                                if (
+                                    newStageId === 'confirmado' ||
+                                    newStageId === 'confirmed' ||
+                                    newStageId === 'cerrado' ||
+                                    newStageId === 'closed'
+                                ) {
+                                    console.log(
+                                        'Error ignorado para etapa especial:',
+                                        newStageId,
+                                    )
+                                } else {
+                                    toast.error(
+                                        `Error al actualizar etapa: ${error.message}`,
+                                    )
+                                }
+                            },
+                        )
                     }
+                }
+                
+                // NUEVA FUNCIONALIDAD: Detectar y actualizar datos del lead
+                // Extraer información del cliente que podría venir en la respuesta
+                const leadData: Record<string, any> = {};
+                let shouldUpdateLead = false;
+                
+                // Analizar campos en la respuesta que podrían contener datos del lead
+                const dataToCheck = [
+                    response?.extracted_data,
+                    response?.metadata?.lead_data,
+                    response?.data?.metadata?.lead_data,
+                    response?.lead_data,
+                    response?.metadata?.client_data,
+                    response?.user_data
+                ];
+                
+                // Buscar en diferentes objetos por datos del lead
+                for (const dataObj of dataToCheck) {
+                    if (dataObj && typeof dataObj === 'object') {
+                        // Revisar datos importantes: nombre, email, teléfono
+                        if (dataObj.name || dataObj.full_name || dataObj.nombre) {
+                            leadData.full_name = dataObj.name || dataObj.full_name || dataObj.nombre;
+                            shouldUpdateLead = true;
+                        }
+                        
+                        if (dataObj.email || dataObj.correo || dataObj.mail) {
+                            leadData.email = dataObj.email || dataObj.correo || dataObj.mail;
+                            shouldUpdateLead = true;
+                        }
+                        
+                        if (dataObj.phone || dataObj.telefono || dataObj.phone_number) {
+                            leadData.phone = dataObj.phone || dataObj.telefono || dataObj.phone_number;
+                            shouldUpdateLead = true;
+                        }
+                        
+                        // Datos adicionales relevantes
+                        if (dataObj.notes || dataObj.notas) {
+                            leadData.notes = dataObj.notes || dataObj.notas;
+                            shouldUpdateLead = true;
+                        }
+                        
+                        if (dataObj.budget || dataObj.presupuesto) {
+                            if (typeof dataObj.budget === 'object') {
+                                leadData.budget_min = dataObj.budget.min;
+                                leadData.budget_max = dataObj.budget.max;
+                            } else {
+                                leadData.budget_max = dataObj.budget || dataObj.presupuesto;
+                            }
+                            shouldUpdateLead = true;
+                        }
+                    }
+                }
+                
+                // Buscar datos en texto/contenido del mensaje directamente mediante expresiones regulares
+                // Solo si no se encontraron en los objetos anteriores
+                if (!leadData.email && messageContent) {
+                    const emailMatch = messageContent.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/);
+                    if (emailMatch) {
+                        leadData.email = emailMatch[0];
+                        shouldUpdateLead = true;
+                        console.log('Email extraído del mensaje:', leadData.email);
+                    }
+                }
+                
+                if (!leadData.phone && messageContent) {
+                    // Buscar números telefónicos (varios formatos)
+                    const phoneMatches = messageContent.match(/(\+?[0-9]{1,3}[-\s]?)?(\(?[0-9]{3}\)?[-\s]?[0-9]{3}[-\s]?[0-9]{4})/);
+                    if (phoneMatches) {
+                        leadData.phone = phoneMatches[0].replace(/[-\s\(\)]/g, '');
+                        shouldUpdateLead = true;
+                        console.log('Teléfono extraído del mensaje:', leadData.phone);
+                    }
+                }
+                
+                // Si tenemos datos a actualizar y un ID de lead válido, realizar la actualización
+                if (shouldUpdateLead && selectedChat?.id) {
+                    try {
+                        // Remover el prefijo 'lead_' si existe
+                        const leadId = selectedChat.id.startsWith('lead_')
+                            ? selectedChat.id.substring(5)
+                            : selectedChat.id;
+                            
+                        console.log('Actualizando lead con nuevos datos:', leadId, leadData);
+                        
+                        // Actualizar en memoria primero para UI responsiva
+                        // (importaremos y usaremos la función en runtime para evitar problemas de SSR)
+                        import('@/services/leads/updateLeadData').then(module => {
+                            const { updateLeadData } = module;
+                            updateLeadData(leadId, leadData)
+                                .then(result => {
+                                    console.log('Lead actualizado correctamente:', result);
+                                    
+                                    // Disparar evento para que otros componentes se actualicen
+                                    if (typeof window !== 'undefined') {
+                                        window.dispatchEvent(new CustomEvent('lead-data-updated', {
+                                            detail: { leadId, data: leadData }
+                                        }));
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Error al actualizar lead:', err);
+                                    // No mostrar toast de error para no interrumpir la conversación
+                                });
+                        });
+                    } catch (updateError) {
+                        console.error('Error actualizando datos del lead:', updateError);
+                    }
+                } else if (Object.keys(leadData).length > 0) {
+                    console.log('Datos de lead detectados pero no aplicados:', leadData);
                 }
 
                 // Siempre mostramos una respuesta al usuario
@@ -469,11 +680,12 @@ const ChatBody = () => {
                                 <div className="font-bold heading-text truncate">
                                     {selectedChat.user?.name}
                                     {/* Mostrar etapa del lead si está disponible */}
-                                    {selectedChat.id && selectedChat.id.startsWith('lead_') && (
-                                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
-                                            {selectedChat.stage || 'new'}
-                                        </span>
-                                    )}
+                                    {selectedChat.id &&
+                                        selectedChat.id.startsWith('lead_') && (
+                                            <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
+                                                {selectedChat.stage || 'new'}
+                                            </span>
+                                        )}
                                 </div>
                             </div>
                             <div>
@@ -486,7 +698,7 @@ const ChatBody = () => {
                 </div>
             ),
             extra: <ChatAction muted={selectedChat.muted} />,
-            className: 'bg-gray-100 dark:bg-gray-600 h-[100px]',
+            className: 'bg-gray-100 dark:bg-gray-600 h-[80px]', // Reducir altura del header
         },
     }
 
@@ -528,9 +740,14 @@ const ChatBody = () => {
                         try {
                             // Verificar si tenemos la función apiGetConversation cargada
                             if (!apiGetConversation) {
-                                console.log('Cargando apiGetConversation bajo demanda...');
-                                const chatService = await import('@/services/ChatService');
-                                apiGetConversation = chatService.apiGetConversation;
+                                console.log(
+                                    'Cargando apiGetConversation bajo demanda...',
+                                )
+                                const chatService = await import(
+                                    '@/services/ChatService'
+                                )
+                                apiGetConversation =
+                                    chatService.apiGetConversation
                             }
 
                             const axiosResp =
@@ -587,22 +804,24 @@ const ChatBody = () => {
     const messageList = useMemo(() => {
         // Validar que conversationRecord sea un array
         if (!Array.isArray(conversationRecord)) {
-            console.warn('conversationRecord no es un array');
-            return [];
+            console.warn('conversationRecord no es un array')
+            return []
         }
 
         // Obtener la conversación actual del store global
         const conversation = conversationRecord.find(
-            (record) => record && record.id === selectedChat.id
-        );
+            (record) => record && record.id === selectedChat.id,
+        )
 
-        const currentConversation = conversation?.conversation || [];
+        const currentConversation = conversation?.conversation || []
 
         console.log(
             'Renderizando messageList, estado de conversationRecord para el chat seleccionado:',
             selectedChat.id,
-            'Encontrada:', !!conversation,
-            'Mensajes:', currentConversation.length
+            'Encontrada:',
+            !!conversation,
+            'Mensajes:',
+            currentConversation.length,
         )
 
         // Verificar que currentConversation sea un array válido antes de intentar map
@@ -614,39 +833,47 @@ const ChatBody = () => {
             return []
         }
 
-        return currentConversation.map((item: Message) => {
-            // Asegurarse de que item no sea null o undefined
-            if (!item) {
-                console.warn('Item de mensaje null o undefined encontrado');
-                return null;
-            }
+        return currentConversation
+            .map((item: Message) => {
+                // Asegurarse de que item no sea null o undefined
+                if (!item) {
+                    console.warn('Item de mensaje null o undefined encontrado')
+                    return null
+                }
 
-            // Asegurarse de que hay una marca de tiempo válida
-            const timestamp = item.timestamp
-                ? typeof item.timestamp === 'number'
-                    ? dayjs.unix(item.timestamp).toDate()
-                    : item.timestamp
-                : new Date()
+                // Asegurarse de que hay una marca de tiempo válida
+                const timestamp = item.timestamp
+                    ? typeof item.timestamp === 'number'
+                        ? dayjs.unix(item.timestamp).toDate()
+                        : item.timestamp
+                    : new Date()
 
-            // ¡IMPORTANTE! Siempre mostrar los mensajes del modo "Lead" como si fueran míos
-            // para que aparezcan correctamente en la UI como mensajes salientes (a la derecha)
-            let isMyMessage = item.isMyMessage;
+                // ¡IMPORTANTE! Siempre mostrar los mensajes del modo "Lead" como si fueran míos
+                // para que aparezcan correctamente en la UI como mensajes salientes (a la derecha)
+                let isMyMessage = item.isMyMessage
 
-            // Si el mensaje fue enviado mientras estaba activo el modo Lead
-            // (comprobamos esto por el remitente, que tendrá el nombre del Lead)
-            if (testAsLead && item.sender && item.sender.name === (selectedChat.name || 'Lead')) {
-                console.log('Forzando isMyMessage=true para mensaje en modo Lead');
-                isMyMessage = true;
-            }
+                // Si el mensaje fue enviado mientras estaba activo el modo Lead
+                // (comprobamos esto por el remitente, que tendrá el nombre del Lead)
+                if (
+                    testAsLead &&
+                    item.sender &&
+                    item.sender.name === (selectedChat.name || 'Lead')
+                ) {
+                    console.log(
+                        'Forzando isMyMessage=true para mensaje en modo Lead',
+                    )
+                    isMyMessage = true
+                }
 
-            const processedItem = {
-                ...item,
-                timestamp: timestamp,
-                isMyMessage: isMyMessage, // Usar valor actualizado
-            }
+                const processedItem = {
+                    ...item,
+                    timestamp: timestamp,
+                    isMyMessage: isMyMessage, // Usar valor actualizado
+                }
 
-            return processedItem
-        }).filter(Boolean); // Filtrar cualquier null/undefined
+                return processedItem
+            })
+            .filter(Boolean) // Filtrar cualquier null/undefined
 
         // Depender de conversationRecord, selectedChat.id y testAsLead para re-calcular
     }, [conversationRecord, selectedChat.id, testAsLead, selectedChat.name])
@@ -661,10 +888,9 @@ const ChatBody = () => {
             {selectedChat.id ? (
                 <Card
                     className="flex-1 h-full max-h-full dark:border-gray-700"
-                    bodyClass="h-[calc(100%-100px)] relative"
+                    bodyClass="h-[calc(100%-80px)] relative" // Reducir a 80px para dar más espacio
                     {...cardHeaderProps}
                 >
-
                     <ChatBox
                         ref={scrollRef}
                         messageList={messageList}
@@ -677,13 +903,16 @@ const ChatBody = () => {
                         }
                         showAvatar={true}
                         avatarGap={true}
-                        messageListClass="h-[calc(100%-100px)]"
+                        messageListClass="h-[calc(100%-80px)]" // Restar la altura del input/footer
                         bubbleClass="max-w-[300px] whitespace-pre-wrap"
                         onInputChange={handleInputChange}
                         onButtonClick={(buttonText) => {
-                            console.log('Botón clickeado desde ChatBody:', buttonText);
+                            console.log(
+                                'Botón clickeado desde ChatBody:',
+                                buttonText,
+                            )
                             // Simular el envío del texto del botón como si fuera escrito por el usuario
-                            handleInputChange({ value: buttonText });
+                            handleInputChange({ value: buttonText })
                         }}
                         typing={
                             isLoading

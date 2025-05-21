@@ -10,10 +10,15 @@ import NewChat from './NewChat'
 import { useChatStore } from '../_store/chatStore'
 import classNames from '@/utils/classNames'
 import useDebounce from '@/utils/hooks/useDebounce'
-import { TbVolumeOff, TbSearch, TbX } from 'react-icons/tb'
+import { TbVolumeOff, TbSearch, TbX, TbRefresh } from 'react-icons/tb'
 import dayjs from 'dayjs'
 import type { ChatType } from '../types'
 import type { ChangeEvent } from 'react'
+import {
+    useLeadRealTimeStore,
+    startLeadRealTimeListener,
+    stopLeadRealTimeListener,
+} from '@/stores/leadRealTimeStore'
 
 const ChatList = () => {
     const chats = useChatStore((state) => state.chats)
@@ -28,9 +33,71 @@ const ChatList = () => {
     const setChatRead = useChatStore((state) => state.setChatRead)
 
     const inputRef = useRef<HTMLInputElement>(null)
+    const refreshChatList = useChatStore((state) => state.refreshChatList)
 
     const [showSearchBar, setShowSearchBar] = useState(false)
     const [queryText, setQueryText] = useState('')
+    const [isRefreshing, setIsRefreshing] = useState(false)
+
+    // Obtener eventos de leads para reacción en tiempo real
+    const lastLeadEvent = useLeadRealTimeStore((state) => state.lastEvent)
+
+    // Efecto para iniciar escucha de eventos de leads
+    useEffect(() => {
+        console.log('ChatList: Iniciando escucha de eventos de leads')
+        startLeadRealTimeListener()
+        
+        // También escuchamos eventos del SalesFunnel
+        const handleSalesFunnelUpdate = (e: any) => {
+            if (e.detail && e.detail.leadId) {
+                console.log('ChatList: Evento de SalesFunnel detectado:', e.detail);
+                // Refrescar la lista cuando hay un cambio en salesfunnel
+                if (selectedChatType === 'leads' || selectedChatType === 'prospects') {
+                    handleRefreshChatList();
+                }
+            }
+        };
+        
+        // Escuchar eventos del SalesFunnel 
+        window.addEventListener('salesfunnel-lead-updated', handleSalesFunnelUpdate);
+        
+        return () => {
+            console.log('ChatList: Deteniendo escucha de eventos de leads')
+            stopLeadRealTimeListener();
+            window.removeEventListener('salesfunnel-lead-updated', handleSalesFunnelUpdate);
+        }
+    }, [selectedChatType])
+
+    // Efecto para reaccionar a eventos de leads
+    useEffect(() => {
+        if (lastLeadEvent) {
+            console.log('ChatList: Detectado evento de lead:', lastLeadEvent)
+
+            // Refrescar la lista de chats si es un evento relevante
+            if (
+                selectedChatType === 'leads' ||
+                selectedChatType === 'prospects'
+            ) {
+                console.log('ChatList: Refrescando lista tras evento de lead')
+                handleRefreshChatList()
+            }
+        }
+    }, [lastLeadEvent])
+
+    // Función para refrescar manualmente la lista de chats
+    const handleRefreshChatList = async () => {
+        if (isRefreshing) return
+
+        setIsRefreshing(true)
+        try {
+            await refreshChatList()
+            console.log('ChatList: Lista refrescada exitosamente')
+        } catch (error) {
+            console.error('Error al refrescar lista de chats:', error)
+        } finally {
+            setIsRefreshing(false)
+        }
+    }
 
     useEffect(() => {
         if (showSearchBar) {
@@ -115,18 +182,29 @@ const ChatList = () => {
                     ) : (
                         <p>Buscar</p>
                     )}
-                    <button
-                        className="close-button text-lg"
-                        type="button"
-                        onClick={handleSearchToggleClick}
-                    >
-                        {showSearchBar ? <TbX /> : <TbSearch />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            className={`text-lg ${isRefreshing ? 'animate-spin text-primary' : ''}`}
+                            type="button"
+                            onClick={handleRefreshChatList}
+                            disabled={isRefreshing}
+                            title="Actualizar lista"
+                        >
+                            <TbRefresh />
+                        </button>
+                        <button
+                            className="close-button text-lg"
+                            type="button"
+                            onClick={handleSearchToggleClick}
+                        >
+                            {showSearchBar ? <TbX /> : <TbSearch />}
+                        </button>
+                    </div>
                 </div>
                 <ChatSegment />
             </div>
-            <ScrollBar className="h-[calc(100%-150px)] overflow-y-auto">
-                <div className="flex flex-col gap-2 h-full">
+            <ScrollBar className="h-[calc(100vh-440px)] overflow-y-auto">
+                <div className="flex flex-col gap-2">
                     {chatFetched ? (
                         <>
                             {chats
@@ -138,6 +216,21 @@ const ChatList = () => {
                                     }
 
                                     return selectedChatType === item.chatType
+                                })
+                                // Ordenar los leads: primero por tiempo (más recientes primero), 
+                                // luego por última interacción
+                                .sort((a, b) => {
+                                    // 1. Si ambos tienen lastActivity (timestamp de última interacción)
+                                    if (a.metadata?.lastActivity && b.metadata?.lastActivity) {
+                                        return b.metadata.lastActivity - a.metadata.lastActivity;
+                                    }
+                                    
+                                    // 2. Si solo uno tiene lastActivity, ese va primero
+                                    if (a.metadata?.lastActivity) return -1;
+                                    if (b.metadata?.lastActivity) return 1;
+                                    
+                                    // 3. Fallback al timestamp principal
+                                    return b.time - a.time;
                                 })
                                 .map((item) => (
                                     <div
