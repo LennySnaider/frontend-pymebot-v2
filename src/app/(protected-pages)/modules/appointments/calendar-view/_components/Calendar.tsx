@@ -11,12 +11,14 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import CalendarView from '@/components/shared/CalendarView'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import AppointmentFormDialog from '../../_components/AppointmentFormDialog'
+import AppointmentDetails from '../../_components/AppointmentDetails'
 import AgentColorLegend from './AgentColorLegend'
 import { useAppointmentStore } from '../../_store/appointmentStore'
 import Spinner from '@/components/ui/Spinner'
 import dayjs from 'dayjs'
 import { toast } from '@/components/ui/toast'
 import { Notification } from '@/components/ui'
+import DebugAppointments from './debug-appointments'
 import type { CalendarEvent } from '@/app/(protected-pages)/modules/calendar/types'
 import FullCalendar from '@fullcalendar/react'
 import type {
@@ -27,13 +29,24 @@ import type {
 } from '@fullcalendar/core/index.js'
 
 const Calendar = () => {
-    // Estados para diálogos
+    // Estados para diálogos - ensure form dialog starts closed
     const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
+    const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<
         string | null
     >(null)
     const [isEditMode, setIsEditMode] = useState(false)
     const [selectedDate, setSelectedDate] = useState<string | null>(null)
+    
+    // Debug logging
+    useEffect(() => {
+        console.log('Calendar: Dialog states:', {
+            isFormDialogOpen,
+            isDetailsDialogOpen,
+            selectedAppointmentId,
+            isEditMode
+        })
+    }, [isFormDialogOpen, isDetailsDialogOpen, selectedAppointmentId, isEditMode])
 
     // Estado local para eventos del calendario
     const [events, setEvents] = useState<CalendarEvent[]>([])
@@ -85,13 +98,16 @@ const Calendar = () => {
         setIsFormDialogOpen(true)
     }
 
-    // Manejador para clic en evento (editar cita)
+    // Manejador para clic en evento (ver detalles de cita)
     const handleEventClick = (arg: EventClickArg) => {
         const { extendedProps } = arg.event
         if (extendedProps.appointmentId) {
             setSelectedAppointmentId(extendedProps.appointmentId)
-            setIsEditMode(true)
-            setIsFormDialogOpen(true)
+            // Asegurarse de que el formulario esté cerrado antes de abrir detalles
+            setIsFormDialogOpen(false)
+            setIsEditMode(false)
+            // Abrir diálogo de detalles en lugar del formulario
+            setIsDetailsDialogOpen(true)
         } else {
             toast.push(
                 <Notification type="info">
@@ -140,8 +156,26 @@ const Calendar = () => {
         loadEvents()
     }, [loadEvents])
 
+    // Función para cerrar el diálogo de detalles
+    const handleCloseDetailsDialog = useCallback(() => {
+        setIsDetailsDialogOpen(false)
+        setSelectedAppointmentId(null)
+    }, [])
+
+    // Función para editar desde el diálogo de detalles
+    const handleEditFromDetails = useCallback(() => {
+        // Primero cerrar el diálogo de detalles
+        setIsDetailsDialogOpen(false)
+        // Esperar un momento antes de abrir el diálogo de formulario
+        setTimeout(() => {
+            setIsEditMode(true)
+            setIsFormDialogOpen(true)
+        }, 100)
+    }, [])
+
     return (
         <AdaptiveCard className="p-4">
+            <DebugAppointments />
             {/* Leyenda de colores por agente */}
             <div className="mb-4 flex justify-end">
                 <div className="w-48">
@@ -217,6 +251,12 @@ const Calendar = () => {
                         : undefined
                 }
                 initialDate={selectedDate}
+            />
+            {/* Diálogo de detalles de cita */}
+            <AppointmentDetails
+                isOpen={isDetailsDialogOpen}
+                onClose={handleCloseDetailsDialog}
+                onEdit={handleEditFromDetails}
             />
         </AdaptiveCard>
     )

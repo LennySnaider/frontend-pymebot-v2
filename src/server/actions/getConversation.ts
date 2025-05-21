@@ -6,25 +6,17 @@
  * @updated 2025-04-16
  */
 
-import { conversationList } from '@/mock/data/chatData'
-
 const getConversation = async (id: string) => {
     try {
-        // En una implementación real, aquí consultaríamos a la base de datos
-        // usando el ID del chat y posiblemente filtrando por tenant_id
+        // Esta función ya no usa datos mock
+        // En caso de necesitarla, debería conectarse a la base de datos real
+        console.warn('getConversation: Esta función necesita ser actualizada para usar datos reales')
         
-        // Para la versión de mock, buscamos en nuestros datos de prueba
-        const conversation = conversationList.find(item => item.id === id)
-        
-        if (!conversation) {
-            // Si no encontramos la conversación, devolvemos una vacía
-            return {
-                id,
-                conversation: []
-            }
+        // Por ahora retorna una conversación vacía
+        return {
+            id,
+            conversation: []
         }
-        
-        return conversation
     } catch (error) {
         console.error('Error getting conversation:', error)
         // En caso de error, devolvemos una conversación vacía

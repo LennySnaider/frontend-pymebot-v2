@@ -128,7 +128,7 @@ export async function GET(
       }
     });
   } catch (error) {
-    console.error(`Error obteniendo módulos para plan ${params.id}:`, error);
+    console.error(`Error obteniendo módulos para plan ${String(params?.id || '')}:`, error);
     
     return NextResponse.json({
       error: 'Error interno al obtener módulos del plan',
@@ -189,7 +189,7 @@ export async function PATCH(
       }
     }, { status: 200 });
   } catch (error) {
-    console.error(`Error actualizando módulos para plan ${params.id}:`, error);
+    console.error(`Error actualizando módulos para plan ${String(params?.id || '')}:`, error);
     
     return NextResponse.json({
       error: 'Error interno al actualizar módulos del plan',

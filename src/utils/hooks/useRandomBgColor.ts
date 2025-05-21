@@ -19,6 +19,7 @@ const whiteListTwColor = [
 
 function useRandomBgColor(): (name: string) => string {
     const hashName = (name: string) => {
+        if (!name) return 0
         let hash = 0
         for (let i = 0; i < name.length; i++) {
             const charCode = name.charCodeAt(i)

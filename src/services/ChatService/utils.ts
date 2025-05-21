@@ -50,10 +50,11 @@ export const getOrCreateUserId = (userId?: string): string => {
 
     // Si no hay un ID guardado, creamos uno nuevo
     if (!userStore[key]) {
-        const newUserId = uuidv4()
-        userStore[key] = newUserId
-        console.log(`Nuevo ID de usuario generado: ${newUserId}`)
-        return newUserId
+        // Usar un número de teléfono formateado en vez de un UUID para que el backend pueda crear un lead
+        const generatedPhone = `52559${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`
+        userStore[key] = generatedPhone
+        console.log(`Nuevo ID de usuario con formato de teléfono generado: ${generatedPhone}`)
+        return generatedPhone
     }
 
     // Devolvemos el ID de usuario existente

@@ -94,6 +94,8 @@
             "source": "Origen del prospecto",
             "interest": "Nivel de interés",
             "propertyRequirements": "Requisitos de la propiedad",
+            "assignedAgent": "Agente asignado",
+            "budgetRange": "Rango de presupuesto",
             "bedrooms": "Habitaciones",
             "bathrooms": "Baños",
             "bedroomsNeeded": "Habitaciones necesarias",
@@ -110,7 +112,11 @@
             "availableProperties": "Propiedades disponibles",
             "loadingProperties": "Cargando propiedades...",
             "selectProperty": "Seleccione una propiedad",
-            "noPropertiesAvailable": "No hay propiedades disponibles"
+            "noPropertiesAvailable": "No hay propiedades disponibles",
+            "nextContact": "Próximo contacto",
+            "assignTo": "Asignar a",
+            "budgetMin": "Presupuesto mínimo",
+            "selectedProperties": "Propiedades seleccionadas"
         },
         "details": {
             "activity": {

@@ -1,18 +1,24 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Tag from '@/components/ui/Tag'
 import Dropdown from '@/components/ui/Dropdown'
 import DataTable from '@/components/shared/DataTable'
+import Button from '@/components/ui/Button'
+import Dialog from '@/components/ui/Dialog'
 import { useRolePermissionsStore } from '../_store/rolePermissionsStore'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
 import dayjs from 'dayjs'
-import { TbChevronDown } from 'react-icons/tb'
+import { TbChevronDown, TbEdit, TbTrash } from 'react-icons/tb'
 import type {
     User,
 } from '../types'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
+import { useTranslations } from 'next-intl'
+import { toast } from '@/components/ui/toast'
+import { Notification } from '@/components/ui/Notification'
+import EditAgentDialog from './EditAgentDialog'
 
 type RolesPermissionsUserTableProps = {
     userListTotal?: number
@@ -43,6 +49,12 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
     )
 
     const { onAppendQueryParams } = useAppendQueryParams()
+    const t = useTranslations('agents')
+    const tCommon = useTranslations('common')
+    
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [editingUser, setEditingUser] = useState<User | null>(null)
+    const [deletingUser, setDeletingUser] = useState<User | null>(null)
 
     const handlePaginationChange = (page: number) => {
         onAppendQueryParams({
@@ -88,20 +100,62 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
 
         setUserList(newUserList)
     }
+    
+    const handleEdit = (user: User) => {
+        setEditingUser(user)
+    }
+    
+    const handleDeleteConfirm = (user: User) => {
+        setDeletingUser(user)
+        setDeleteDialogOpen(true)
+    }
+    
+    const handleDelete = async () => {
+        if (!deletingUser) return
+        
+        try {
+            const response = await fetch(`/api/admin/agents/${deletingUser.id}`, {
+                method: 'DELETE',
+            })
+            
+            if (!response.ok) {
+                const error = await response.json()
+                throw new Error(error.error || 'Error al eliminar agente')
+            }
+            
+            toast.push(
+                <Notification title={tCommon('success')} type="success">
+                    {t('messages.agentDeletedSuccessfully')}
+                </Notification>
+            )
+            
+            // Actualizar la lista de usuarios
+            setUserList(userList.filter(u => u.id !== deletingUser.id))
+            setDeleteDialogOpen(false)
+            setDeletingUser(null)
+            
+        } catch (error: any) {
+            toast.push(
+                <Notification title={tCommon('error')} type="danger">
+                    {error.message || t('messages.errorDeletingAgent')}
+                </Notification>
+            )
+        }
+    }
 
     const columns: ColumnDef<User>[] = useMemo(
         () => [
             {
                 header: 'Name',
-                accessorKey: 'name',
+                accessorKey: 'full_name',
                 cell: (props) => {
                     const row = props.row.original
                     return (
                         <div className="flex items-center gap-2">
-                            <Avatar size={40} shape="circle" src={row.img} />
+                            <Avatar size={40} shape="circle" src={row.avatar_url || row.img} />
                             <div>
                                 <div className="font-bold heading-text">
-                                    {row.name}
+                                    {row.full_name || row.name || row.email}
                                 </div>
                                 <div>{row.email}</div>
                             </div>
@@ -116,27 +170,30 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
                     const row = props.row.original
                     return (
                         <div className="flex items-center">
-                            <Tag className={statusColor[row.status]}>
-                                <span className="capitalize">{row.status}</span>
+                            <Tag className={statusColor[row.status || 'active']}>
+                                <span className="capitalize">{row.status || 'active'}</span>
                             </Tag>
                         </div>
                     )
                 },
             },
             {
-                header: 'Last online',
-                accessorKey: 'lastOnline',
+                header: 'Last activity',
+                accessorKey: 'last_activity',
                 cell: (props) => {
                     const row = props.row.original
+                    const lastActivity = row.last_activity || row.created_at
                     return (
                         <div className="flex flex-col">
                             <span className="font-semibold">
-                                {dayjs
-                                    .unix(row.lastOnline)
-                                    .format('MMMM, D YYYY')}
+                                {lastActivity 
+                                    ? dayjs(lastActivity).format('MMMM, D YYYY')
+                                    : 'Never'}
                             </span>
                             <small>
-                                {dayjs.unix(row.lastOnline).format('hh:mm A')}
+                                {lastActivity 
+                                    ? dayjs(lastActivity).format('hh:mm A')
+                                    : ''}
                             </small>
                         </div>
                     )
@@ -183,6 +240,37 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
                     )
                 },
             },
+            {
+                header: 'Actions',
+                id: 'actions',
+                size: 120,
+                cell: (props) => {
+                    const row = props.row.original
+                    const isAgent = row.role === 'agent'
+                    
+                    return (
+                        <div className="flex items-center gap-2">
+                            {isAgent && (
+                                <>
+                                    <Button
+                                        size="sm"
+                                        variant="default"
+                                        icon={<TbEdit />}
+                                        onClick={() => handleEdit(row)}
+                                    />
+                                    <Button
+                                        size="sm"
+                                        variant="default"
+                                        color="red"
+                                        icon={<TbTrash />}
+                                        onClick={() => handleDeleteConfirm(row)}
+                                    />
+                                </>
+                            )}
+                        </div>
+                    )
+                },
+            },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [roleList, userList],
@@ -213,6 +301,61 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
                 onCheckBoxChange={handleRowSelect}
                 onIndeterminateCheckBoxChange={handleAllRowSelect}
             />
+            
+            <Dialog
+                isOpen={deleteDialogOpen}
+                onClose={() => setDeleteDialogOpen(false)}
+            >
+                <div className="p-6">
+                    <h4 className="mb-4">{t('confirmDelete')}</h4>
+                    <p className="mb-6">
+                        {t('confirmDeleteMessage', {
+                            name: deletingUser?.full_name || deletingUser?.email
+                        })}
+                    </p>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="default"
+                            onClick={() => setDeleteDialogOpen(false)}
+                        >
+                            {tCommon('cancel')}
+                        </Button>
+                        <Button
+                            variant="solid"
+                            color="red"
+                            onClick={handleDelete}
+                        >
+                            {tCommon('delete')}
+                        </Button>
+                    </div>
+                </div>
+            </Dialog>
+            
+            {editingUser && (
+                <EditAgentDialog
+                    user={editingUser}
+                    onClose={() => setEditingUser(null)}
+                    onSuccess={async () => {
+                        setEditingUser(null)
+                        // Recargar datos del agente actualizado
+                        try {
+                            const response = await fetch(`/api/admin/agents/${editingUser.id}`)
+                            if (response.ok) {
+                                const data = await response.json()
+                                const updatedUser = data.agent
+                                
+                                // Actualizar el usuario en la lista
+                                const newUserList = userList.map(user => 
+                                    user.id === updatedUser.id ? updatedUser : user
+                                )
+                                setUserList(newUserList)
+                            }
+                        } catch (error) {
+                            console.error('Error actualizando lista:', error)
+                        }
+                    }}
+                />
+            )}
         </>
     )
 }

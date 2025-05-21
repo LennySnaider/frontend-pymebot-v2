@@ -18,7 +18,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const templateId = params.id;
+    const templateId = String(params?.id || '');
     
     if (!templateId) {
       return NextResponse.json({ error: 'El parámetro id es requerido' }, { status: 400 });

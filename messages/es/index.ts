@@ -15,6 +15,8 @@ import common from './common.json';
 import notificationBuilder from './notificationBuilder.json';
 import superadmin from './superadmin.json';
 import moduleEditor from './module-editor.json';
+import agents from './agents.json';
+import roles from './roles.json';
 import { set } from 'lodash';
 
 // Crear un objeto para los mensajes con estructura anidada
@@ -90,7 +92,9 @@ Object.assign(messages, {
   common,         // Namespace para common.json
   notificationBuilder,  // Namespace para notificationBuilder.json
   superadmin,      // Namespace para superadmin.json
-  moduleEditor     // Namespace para module-editor.json
+  moduleEditor,     // Namespace para module-editor.json
+  agents,          // Namespace para agents.json
+  roles           // Namespace para roles.json
 });
 
 export default messages;

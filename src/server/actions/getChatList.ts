@@ -5,34 +5,19 @@
  * @updated 2025-06-05
  */
 
-import { mockData } from '@/services/ChatService/mockChatData'
 import { auth } from '@/auth'
 
 /**
  * Obtiene la lista de chats para el usuario actual
- * En producción, esta función consultaría a la base de datos
+ * ACTUALIZADO: Ya no usa datos mock
  */
 const getChatList = async () => {
     try {
-        // Obtener la sesión del usuario actual (auth.js next-auth)
-        const session = await auth()
+        // Esta función no debe ser utilizada ya que getChatListFromLeads es la implementación correcta
+        console.warn('getChatList está deprecado. Usar getChatListFromLeads en su lugar.')
         
-        // Si queremos filtrar por tenant o usuario, aquí podríamos hacerlo
-        // const tenantId = session?.user?.tenant_id
-        
-        // Nota: En implementación real, consultaríamos Supabase u otra base de datos
-        // const { data, error } = await supabase
-        //     .from('chats')
-        //     .select('*')
-        //     .eq('tenant_id', tenantId)
-        //     .order('time', { ascending: false })
-        
-        // if (error) throw error
-        // return data
-        
-        // Por ahora, retornamos datos simulados
-        console.log('Usando datos simulados para chats')
-        return mockData
+        // Retornar array vacío para evitar datos fantasmas
+        return []
     } catch (error) {
         console.error('Error obteniendo lista de chats:', error)
         return []

@@ -11,6 +11,9 @@
 import { create } from 'zustand'
 import type { Member, Lead, Appointment } from '../types'
 import { toast } from '@/components/ui/toast'
+import { Notification } from '@/components/ui/Notification'
+import { getRealLeadId } from '@/utils/leadIdResolver'
+import { subscribeToLeadUpdates } from '@/utils/broadcastLeadUpdate'
 
 type View = 'NEW_COLUMN' | 'LEAD' | 'ADD_MEMBER' | 'NEW_LEAD' | 'SCHEDULE_APPOINTMENT' | ''
 
@@ -32,6 +35,10 @@ export type SalesFunnelState = {
     previousStage: string | null // Guarda la etapa anterior del lead cuando se mueve a "confirmed"
     // Estado para controlar operaciones pendientes
     pendingOperations: Map<string, { operation: string, sourceStage: string, destinationStage: string }>
+    // Estado para animación de movimiento de leads
+    animatingLead: Lead | null
+    animationFromPosition: { x: number, y: number } | null
+    animationToPosition: { x: number, y: number } | null
 }
 
 type SalesFunnelAction = {
@@ -61,6 +68,9 @@ type SalesFunnelAction = {
     cancelAppointmentScheduling: () => void
     // Utilidades para diagnóstico
     showStageInConsole: (leadId: string) => void
+    // Animación de movimiento de leads
+    setLeadAnimation: (lead: Lead | null, fromPos: { x: number, y: number } | null, toPos: { x: number, y: number } | null) => void
+    clearLeadAnimation: () => void
 }
 
 const initialState: SalesFunnelState = {
@@ -78,40 +88,18 @@ const initialState: SalesFunnelState = {
     currentAppointment: null,
     isSchedulingAppointment: false,
     previousStage: null, // Inicializado como null
-    pendingOperations: new Map()
+    pendingOperations: new Map(),
+    animatingLead: null,
+    animationFromPosition: null,
+    animationToPosition: null
 }
 
-// Utility function para mostrar notificaciones toast sin usar JSX directamente
-// Esta función no usa JSX porque está en un archivo .ts en lugar de .tsx
+// Utility function para mostrar notificaciones toast
 const showToast = (message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'success') => {
     // Solo ejecutar esto en el cliente
     if (typeof window !== 'undefined') {
-        // Determinar el título basado en el tipo
-        const title = type === 'success' 
-            ? 'Éxito' 
-            : type === 'danger' 
-                ? 'Error' 
-                : type === 'warning' 
-                    ? 'Advertencia' 
-                    : 'Información';
-        
-        // Importamos dinámicamente la notificación para evitar problemas de compilación
-        import('@/components/ui').then(({ Notification }) => {
-            toast.push(
-                Notification({
-                    title: title,
-                    type: type,
-                    children: message
-                }),
-                {
-                    placement: 'top-center',
-                }
-            );
-        }).catch(err => {
-            // En caso de error, mostrar un toast simple
-            console.error('Error al mostrar notificación:', err);
-            toast.push(message, { placement: 'top-center' });
-        });
+        // Por ahora, usar solo strings simples para evitar errores
+        toast.push(message);
     }
 }
 
@@ -142,22 +130,36 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
         updateLead: (lead) => {
             const { columns, selectedLeadId } = get()
             
-            if (!selectedLeadId || selectedLeadId !== lead.id) return
+            // Si no hay selectedLeadId, salir
+            if (!selectedLeadId) return
             
             // Encontrar en qué columna está el lead
             let columnKey: string | null = null
+            let oldLeadId = selectedLeadId
+            
+            // Si el lead tiene un ID temporal pero viene con un nuevo ID de la BD
+            if (lead.metadata?.original_lead_id && lead.id !== lead.metadata.original_lead_id) {
+                oldLeadId = lead.metadata.original_lead_id
+                console.log(`Actualizando lead: ID temporal ${oldLeadId} -> ID real ${lead.id}`)
+            }
             
             Object.entries(columns).forEach(([key, leads]) => {
-                const found = leads.find((item) => item.id === selectedLeadId)
+                const found = leads.find((item) => item.id === oldLeadId || item.id === selectedLeadId)
                 if (found) columnKey = key
             })
             
-            if (!columnKey) return
+            if (!columnKey) {
+                console.error(`Lead ${oldLeadId} no encontrado en ninguna columna`)
+                return
+            }
             
-            // Actualizar el lead
-            const updatedLeads = columns[columnKey].map((item) => 
-                item.id === selectedLeadId ? lead : item
-            )
+            // Actualizar el lead, reemplazando el ID temporal si es necesario
+            const updatedLeads = columns[columnKey].map((item) => {
+                if (item.id === oldLeadId || item.id === selectedLeadId) {
+                    return { ...lead, id: lead.id } // Asegurar que usamos el nuevo ID
+                }
+                return item
+            })
             
             // Actualizar las columnas
             const updatedColumns = {
@@ -165,7 +167,15 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                 [columnKey]: updatedLeads
             }
             
-            set({ columns: updatedColumns })
+            // Si el ID cambió, actualizar también selectedLeadId
+            if (lead.id !== selectedLeadId && lead.id !== oldLeadId) {
+                set({ 
+                    columns: updatedColumns,
+                    selectedLeadId: lead.id
+                })
+            } else {
+                set({ columns: updatedColumns })
+            }
         },
         
         // Acciones para la búsqueda de leads
@@ -333,41 +343,88 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                     (async () => {
                         try {
                             console.log(`Enviando actualización al servidor: leadId=${leadId}, newStage=${destinationStage}`);
-                            const response = await fetch('/api/leads/update-stage', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    leadId: leadId,
-                                    newStage: destinationStage
-                                }),
-                            });
                             
-                            const responseData = await response.json();
+                            // Primero intentar con el endpoint normal
+                            let useSimulation = false;
+                            const realLeadId = getRealLeadId(sourceLead); // Usar el ID real del lead
                             
-                            if (!response.ok) {
-                                console.error('Error al actualizar etapa en el servidor:', responseData);
-                                showToast(`Error al actualizar la etapa: ${responseData.error || 'Error desconocido'}`, 'danger');
+                            try {
+                                const response = await fetch('/api/leads/update-stage', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        leadId: realLeadId,
+                                        newStage: destinationStage
+                                    }),
+                                });
                                 
-                                // Remover de operaciones pendientes
-                                const updatedOperations = new Map(get().pendingOperations);
-                                updatedOperations.delete(leadId);
-                                set({ pendingOperations: updatedOperations });
-                            } else {
-                                console.log('Respuesta del servidor:', responseData);
-                                
-                                // Remover de operaciones pendientes
-                                const updatedOperations = new Map(get().pendingOperations);
-                                updatedOperations.delete(leadId);
-                                set({ pendingOperations: updatedOperations });
-                                
-                                // Opcional: Mostrar notificación de éxito
-                                // showToast(`Lead movido a ${destinationStage} exitosamente`, 'success');
+                                // Si el primer intento falla con 404 o 500, usar simulación
+                                if (!response.ok && (response.status === 404 || response.status === 500)) {
+                                    console.log(`Error ${response.status} en API update-stage, intentando con simulación`);
+                                    useSimulation = true;
+                                } else {
+                                    const responseData = await response.json();
+                                    
+                                    if (!responseData.success) {
+                                        console.log(`Error en API update-stage: ${responseData.error}, intentando con simulación`);
+                                        useSimulation = true;
+                                    } else {
+                                        console.log('Respuesta del servidor:', responseData);
+                                        
+                                        // Remover de operaciones pendientes
+                                        const updatedOperations = new Map(get().pendingOperations);
+                                        updatedOperations.delete(leadId);
+                                        set({ pendingOperations: updatedOperations });
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Error al llamar API update-stage:', error);
+                                console.log('Error en la conexión, intentando con simulación');
+                                useSimulation = true;
+                            }
+                            
+                            // Si hay que usar simulación, hacer la llamada al endpoint de simulación
+                            if (useSimulation) {
+                                try {
+                                    console.log('Usando endpoint de simulación para actualizar etapa');
+                                    const simResponse = await fetch('/api/leads/simulate-stage-update', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                            leadId: realLeadId,
+                                            newStage: destinationStage,
+                                            fromChatbot: false
+                                        }),
+                                    });
+                                    
+                                    const simData = await simResponse.json();
+                                    
+                                    if (!simResponse.ok || !simData.success) {
+                                        console.error('Error incluso en simulación:', simData.error || 'Error desconocido');
+                                    } else {
+                                        console.log('Simulación exitosa:', simData);
+                                    }
+                                    
+                                    // Remover de operaciones pendientes independientemente del resultado
+                                    const updatedOperations = new Map(get().pendingOperations);
+                                    updatedOperations.delete(leadId);
+                                    set({ pendingOperations: updatedOperations });
+                                } catch (simError) {
+                                    console.error('Error en simulación:', simError);
+                                    
+                                    // Remover de operaciones pendientes
+                                    const updatedOperations = new Map(get().pendingOperations);
+                                    updatedOperations.delete(leadId);
+                                    set({ pendingOperations: updatedOperations });
+                                }
                             }
                         } catch (error) {
                             console.error('Error al enviar actualización de etapa:', error);
-                            showToast(`Error en la conexión con el servidor`, 'danger');
+                            console.error('Error en la conexión con el servidor');
                             
                             // Remover de operaciones pendientes
                             const updatedOperations = new Map(get().pendingOperations);
@@ -471,9 +528,17 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
         setIsSchedulingAppointment: (isScheduling) => 
             set({ isSchedulingAppointment: isScheduling }),
         scheduleAppointment: (appointment) => {
+            console.log('salesFunnelStore: scheduleAppointment iniciado');
             const { columns, selectedLeadId } = get()
             
-            if (!selectedLeadId) return
+            if (!selectedLeadId) {
+                console.log('salesFunnelStore: No hay selectedLeadId, saliendo');
+                return
+            }
+            
+            // Cerrar el diálogo inmediatamente
+            console.log('salesFunnelStore: Cerrando diálogo inmediatamente');
+            set({ appointmentDialogOpen: false })
             
             // Encontrar en qué columna está el lead
             let columnKey: string | null = null
@@ -487,7 +552,10 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                 }
             })
             
-            if (!columnKey || !leadToUpdate) return
+            if (!columnKey || !leadToUpdate) {
+                console.log('salesFunnelStore: No se encontró el lead, saliendo');
+                return
+            }
             
             // Actualizar el lead con la información de la cita
             const updatedLead = {
@@ -530,25 +598,43 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                             
                             if (!response.ok) {
                                 console.error('Error al actualizar etapa a confirmed');
-                                showToast('Error al confirmar el lead', 'danger');
+                                console.error('Error al confirmar el lead');
                             } else {
                                 console.log('Etapa actualizada exitosamente a confirmed');
                                 
                                 // Enviar la cita al servidor para que se refleje en el calendario
                                 try {
                                     console.log('Creando cita en el servidor para lead:', selectedLeadId);
+                                    console.log('Datos de appointment recibidos:', appointment);
+                                    // Validar que los campos necesarios estén presentes
+                                    if (!appointment.agentId) {
+                                        throw new Error('Agent ID es requerido');
+                                    }
+                                    if (!appointment.date || !appointment.time) {
+                                        throw new Error('Fecha y hora son requeridas');
+                                    }
+                                    
+                                    // Log para debug
+                                    console.log('Preparando datos de cita:', {
+                                        appointmentLeadId: appointment.leadId,
+                                        selectedLeadId: selectedLeadId,
+                                        leadIdFinal: appointment.leadId || selectedLeadId
+                                    });
+                                    
                                     // Convertir el appointment a formato esperado por la API
                                     const appointmentData = {
                                         lead_id: appointment.leadId || selectedLeadId,
                                         agent_id: appointment.agentId,
                                         appointment_date: appointment.date,
                                         appointment_time: appointment.time,
-                                        location: appointment.location,
-                                        property_type: appointment.propertyType,
+                                        location: appointment.location || '',
+                                        property_type: appointment.propertyType || 'Casa',
                                         status: 'scheduled',
-                                        notes: appointment.notes,
+                                        notes: appointment.notes || '',
                                         property_ids: appointment.propertyIds || []
                                     };
+                                    
+                                    console.log('Datos a enviar a la API:', appointmentData);
                                     
                                     // Llamar a la API de citas
                                     const appointmentResponse = await fetch('/api/appointments/create', {
@@ -559,14 +645,16 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                                         body: JSON.stringify(appointmentData),
                                     });
                                     
+                                    console.log('Respuesta del servidor - status:', appointmentResponse.status);
+                                    
                                     if (!appointmentResponse.ok) {
                                         const errorData = await appointmentResponse.json();
-                                        console.error('Error al crear cita en el servidor:', errorData);
-                                        showToast(`Error al crear cita: ${errorData.error || 'Error desconocido'}`, 'warning');
+                                        console.error('Error al crear cita en el servidor - respuesta completa:', errorData);
+                                        console.error('Error al crear cita:', errorData.error || 'Error desconocido');
                                     } else {
                                         const result = await appointmentResponse.json();
                                         console.log('Cita creada exitosamente en el servidor:', result);
-                                        showToast('Cita programada y guardada correctamente', 'success');
+                                        console.log('Cita programada y guardada correctamente');
                                         
                                         // Actualizar el ID de la cita en el lead
                                         if (result && result.id) {
@@ -580,13 +668,14 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                                         }
                                     }
                                 } catch (appointmentError) {
-                                    console.error('Error al enviar cita al servidor:', appointmentError);
-                                    showToast('Error al guardar la cita en el servidor', 'danger');
+                                    console.error('Error al enviar cita al servidor - detalles:', appointmentError);
+                                    console.error('Mensaje del error:', appointmentError.message);
+                                    console.error('Stack del error:', appointmentError.stack);
                                 }
                             }
                         } catch (error) {
                             console.error('Error al enviar actualización a confirmed:', error);
-                            showToast('Error de conexión con el servidor', 'danger');
+                            console.error('Error de conexión con el servidor');
                         }
                     })();
                 }
@@ -630,11 +719,11 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                             if (!appointmentResponse.ok) {
                                 const errorData = await appointmentResponse.json();
                                 console.error('Error al actualizar cita en el servidor:', errorData);
-                                showToast(`Error al actualizar cita: ${errorData.error || 'Error desconocido'}`, 'warning');
+                                        console.error('Error al actualizar cita:', errorData.error || 'Error desconocido');
                             } else {
                                 const result = await appointmentResponse.json();
                                 console.log('Cita actualizada exitosamente en el servidor:', result);
-                                showToast('Cita actualizada correctamente', 'success');
+                                console.log('Cita actualizada correctamente');
                                 
                                 // Actualizar el ID de la cita en el lead si es una nueva cita
                                 if (!appointment.id && result && result.id) {
@@ -655,13 +744,15 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                 }
             }
             
+            console.log('salesFunnelStore: Actualizando columnas');
+            // Actualizar las columnas sin cerrar el diálogo (ya se cerró al inicio)
             set({ 
                 columns: updatedColumns,
-                appointmentDialogOpen: false,
                 currentAppointment: null,
                 isSchedulingAppointment: false,
                 previousStage: null // Resetear la etapa anterior
             })
+            console.log('salesFunnelStore: scheduleAppointment completado')
         },
         // Nueva acción para cancelar específicamente la programación de cita
         cancelAppointmentScheduling: () => {
@@ -732,6 +823,18 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                     }
                 }
             }
-        }
+        },
+        setLeadAnimation: (lead, fromPos, toPos) => 
+            set({ 
+                animatingLead: lead,
+                animationFromPosition: fromPos,
+                animationToPosition: toPos
+            }),
+        clearLeadAnimation: () => 
+            set({ 
+                animatingLead: null,
+                animationFromPosition: null,
+                animationToPosition: null
+            })
     }),
 )

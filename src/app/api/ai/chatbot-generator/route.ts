@@ -313,7 +313,7 @@ function getFlowTemplate(complexity: string, includeAI: boolean) {
                 infoNode, 
                 appointmentNode, 
                 queryNode, 
-                includeAI ? aiResponseNode : aiResponseNode, 
+                aiResponseNode, 
                 endNode
             ],
             edges
@@ -574,7 +574,7 @@ function getFlowTemplate(complexity: string, includeAI: boolean) {
                 contactInputNode,
                 leadQualificationNode,
                 queryNode,
-                includeAI ? aiResponseNode : aiResponseNode,
+                aiResponseNode,
                 endNode
             ],
             edges
@@ -781,6 +781,8 @@ function addFeatureNodes(flowTemplate: any, features: string[]) {
 /**
  * Utilitario para capitalizar la primera letra de una cadena
  */
-function capitalizeFirstLetter(string: string) {
-    return string.charAt(0).toUpperCase() + string.slice(1)
+function capitalizeFirstLetter(value: any): string {
+    const string = String(value || '');
+    if (!string) return '';
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }

@@ -3,6 +3,65 @@
 
 /* Archivo global.css */
 
+/* Mejoras para el hover de LeadCard */
+.board-column {
+  overflow: visible !important;
+  position: relative;
+}
+
+.board-column .overflow-y-auto {
+  overflow-x: visible !important;
+  position: relative;
+}
+
+/* Prevenir el corte de cards durante hover */
+.board-column [data-rbd-droppable-id] {
+  position: relative;
+  z-index: auto;
+  min-height: 100px;
+}
+
+/* Asegurar que los cards en hover estén por encima */
+.board-column .fixed-width-card {
+  transition: all 150ms ease-out;
+  position: relative;
+}
+
+.board-column .fixed-width-card:hover {
+  z-index: 50 !important;
+}
+
+/* Suavizar las sombras */
+.hover\:shadow-lg:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 150ms ease-out;
+}
+
+/* Prevenir scroll automático durante drag & drop */
+.no-scroll {
+  overflow: hidden !important;
+  scroll-behavior: unset !important;
+  position: relative !important;
+}
+
+/* Mantener posición durante el arrastre */
+.board-column.dragging .overflow-y-auto {
+  scroll-behavior: unset !important;
+  overflow: hidden !important;
+}
+
+/* Evitar que las columnas hagan auto-scroll */
+[data-rbd-droppable-id] {
+  scroll-behavior: unset !important;
+}
+
+/* Prevenir cambios de posición durante drag */
+.overflow-y-auto.dragging {
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+
 /*
  * Forzar modo oscuro para el nodo de CheckAvailability en ReactFlow
  */

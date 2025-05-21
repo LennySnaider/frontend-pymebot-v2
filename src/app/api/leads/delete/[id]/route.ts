@@ -15,7 +15,7 @@ export async function DELETE(
 ) {
   try {
     // Extract the lead ID from the URL params
-    const leadId = params.id
+    const leadId = String(params?.id || '')
     
     // Validate the ID
     if (!leadId) {
@@ -78,10 +78,19 @@ export async function DELETE(
       );
     }
 
+    // En el lado del servidor no podemos disparar eventos al navegador directamente
+    // En su lugar, incluiremos información en el response para que el cliente
+    // pueda disparar el evento usando nuestro sistema de leads en tiempo real
+
     return NextResponse.json(
       {
         success: true,
         message: 'Lead eliminado correctamente',
+        // Incluir información para que el cliente pueda disparar evento
+        event: {
+          type: 'delete',
+          leadId: leadId
+        }
       },
       { status: 200 }
     );

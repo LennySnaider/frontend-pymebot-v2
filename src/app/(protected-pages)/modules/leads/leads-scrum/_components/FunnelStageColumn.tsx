@@ -43,11 +43,51 @@ const FunnelStageColumn = ({
     const [columnName, setColumnName] = useState(title)
     const [isOver, setIsOver] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { updateColumns, openAppointmentDialog } = useSalesFunnelStore()
 
     // Añadimos el hook de traducción
     const t = useTranslations('salesFunnel.columns.defaultNames')
+
+    // Efecto para forzar scroll al tope cuando se monte el componente
+    useEffect(() => {
+        // Usar setTimeout para asegurar que el DOM esté completamente listo
+        const timer = setTimeout(() => {
+            if (scrollContainerRef.current) {
+                scrollContainerRef.current.scrollTop = 0
+            }
+        }, 100)
+        
+        return () => clearTimeout(timer)
+    }, []) // Solo ejecutar al montar
+    
+    // Efecto adicional para resetear scroll cuando cambien los contenidos
+    useEffect(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = 0
+        }
+    }, [contents.length])
+
+    // Efecto para prevenir scroll automático durante drag
+    useEffect(() => {
+        const container = scrollContainerRef.current
+        if (!container) return
+
+        const preventAutoScroll = (e: Event) => {
+            // Solo prevenir si hay un drag activo
+            if (container.classList.contains('dragging')) {
+                e.preventDefault()
+                e.stopPropagation()
+            }
+        }
+
+        container.addEventListener('scroll', preventAutoScroll, { passive: false })
+        
+        return () => {
+            container.removeEventListener('scroll', preventAutoScroll)
+        }
+    }, [])
 
     // Función para obtener el título traducido basado en la clave del título
     const getTranslatedTitle = (columnTitle: string) => {
@@ -122,8 +162,7 @@ const FunnelStageColumn = ({
 
         // Clases comunes para mantener una altura consistente
         const baseClasses = `
-            h-full flex-1 flex flex-col items-center justify-center
-            min-h-[500px] min-height-fixed
+            h-full flex flex-col items-center justify-center
             border-2 border-dashed rounded-lg transition-colors duration-200
         `
 
@@ -144,41 +183,28 @@ const FunnelStageColumn = ({
         return 'h-full flex-1'
     }
     
-    // Definir estilos CSS para asegurar altura consistente
-    useEffect(() => {
-        // Crear una regla CSS para aplicar altura fija
-        const style = document.createElement('style')
-        style.innerHTML = `
-            .min-height-fixed {
-                min-height: 500px !important;
-                height: 500px !important;
-            }
-        `
-        // Añadir al head del documento
-        document.head.appendChild(style)
-        
-        // Limpieza al desmontar
-        return () => {
-            document.head.removeChild(style)
-        }
-    }, [])
+    // No necesitamos estilos CSS fijos ya que ahora usamos flexbox
 
     return (
         <Draggable draggableId={title} index={index}>
             {(provided, snapshot) => (
                 <div
                     ref={provided.innerRef}
-                    className={`board-column min-w-[280px] w-[280px] h-full flex flex-col mr-4 rtl:ml-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden ${snapshot.isDragging ? 'scrollbar-hide' : ''}`}
+                    className={`board-column min-w-[280px] w-[280px] flex flex-col mr-4 rtl:ml-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm ${snapshot.isDragging ? 'scrollbar-hide' : ''} sm:h-full md:h-full h-[calc(100vh-200px)]`}
                     style={{
                         ...provided.draggableProps.style,
                         width: '280px',             // Base width
                         minWidth: '280px',           // Fixed minimum width
                         maxWidth: '280px',           // Fixed maximum width
+                        minHeight: '500px',          // Altura mínima para móviles
+                        display: 'flex',
+                        flexDirection: 'column'
                     }}
                     {...provided.draggableProps}
                     onDragOver={() => isFinalStage && setIsOver(true)}
                     onDragLeave={() => isFinalStage && setIsOver(false)}
                     onDrop={() => isFinalStage && setIsOver(false)}
+                    data-stage={title}
                 >
                     <div
                         className="flex items-center justify-between w-full"
@@ -226,12 +252,22 @@ const FunnelStageColumn = ({
                         >
                             {(provided, snapshot) => (
                                 <div
-                                    ref={provided.innerRef}
-                                    className={`flex-grow overflow-y-auto overflow-x-hidden mt-2 pb-0 ${
+                                    ref={(el) => {
+                                        provided.innerRef(el)
+                                        scrollContainerRef.current = el
+                                    }}
+                                    className={`flex-1 overflow-y-auto overflow-x-visible mt-2 pb-0 ${
                                         snapshot.isDraggingOver
-                                            ? 'bg-gray-100 dark:bg-gray-700 scrollbar-hide'
-                                            : 'scrollbar-hide'
+                                            ? 'bg-gray-100 dark:bg-gray-700'
+                                            : ''
                                     }`}
+                                    style={{
+                                        maxHeight: 'calc(100% - 60px)',
+                                        height: 'calc(100% - 60px)',
+                                        minHeight: '400px',
+                                        scrollbarWidth: 'thin',
+                                        scrollbarColor: '#cbd5e0 transparent'
+                                    }}
                                     {...provided.droppableProps}
                                 >
                                     <LeadCardList
@@ -252,7 +288,11 @@ const FunnelStageColumn = ({
                             {(provided, snapshot) => (
                                 <div
                                     ref={provided.innerRef}
-                                    className={`mt-2 ${getDropAreaClass()} overflow-hidden min-h-[500px]`}
+                                    className={`flex-1 mt-2 ${getDropAreaClass()} overflow-hidden`}
+                                    style={{
+                                        minHeight: '400px',
+                                        height: 'calc(100% - 60px)'
+                                    }}
                                     {...provided.droppableProps}
                                     // Cuando se suelta un lead en "confirmed", abrimos el diálogo de programación de citas
                                     onDrop={(e) => {
@@ -294,7 +334,7 @@ const FunnelStageColumn = ({
                                         </p>
 
                                         {/* Lista de leads en etapas finales */}
-                                        <div className="w-full mt-6 flex-grow overflow-y-auto">
+                                        <div className="w-full mt-6 flex-grow overflow-y-auto" style={{ minHeight: '200px' }}>
                                             <LeadCardList
                                                 leads={contents || []}
                                                 listId={title}

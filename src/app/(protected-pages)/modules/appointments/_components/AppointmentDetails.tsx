@@ -9,7 +9,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Dialog from '@/components/ui/Dialog'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -17,6 +17,7 @@ import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
+import Spinner from '@/components/ui/Spinner'
 import { 
     TbCalendar, 
     TbClock, 
@@ -36,6 +37,7 @@ import { useAppointmentStore } from '../_store/appointmentStore'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import { formatCurrency } from '@/utils/formatCurrency'
+import { getAppointmentById } from '@/server/actions/appointments/getAppointmentById'
 
 interface AppointmentDetailsProps {
     isOpen: boolean
@@ -53,15 +55,39 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
     const [newStatus, setNewStatus] = useState('')
     const [isDeleting, setIsDeleting] = useState(false)
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+    const [isLoadingDetails, setIsLoadingDetails] = useState(false)
+    const [localAppointmentData, setLocalAppointmentData] = useState(null)
     
     const { 
-        selectedAppointment, 
+        appointment, 
         availableStatuses,
         updateAppointmentStatus,
         deleteAppointment
     } = useAppointmentStore()
     
-    if (!selectedAppointment) {
+    // Cargar datos adicionales cuando se selecciona una cita
+    useEffect(() => {
+        if (appointment?.id && isOpen) {
+            setIsLoadingDetails(true)
+            console.log('AppointmentDetails: Cargando detalles para:', appointment.id)
+            
+            getAppointmentById(appointment.id)
+                .then(data => {
+                    console.log('AppointmentDetails: Datos cargados:', data)
+                    setLocalAppointmentData(data)
+                    setIsLoadingDetails(false)
+                })
+                .catch(error => {
+                    console.error('AppointmentDetails: Error al cargar detalles:', error)
+                    setIsLoadingDetails(false)
+                })
+        }
+    }, [appointment?.id, isOpen])
+    
+    // Usar datos locales si están disponibles, sino usar appointment
+    const displayAppointment = localAppointmentData || appointment
+    
+    if (!displayAppointment) {
         return null
     }
     
@@ -89,7 +115,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
         }
         
         try {
-            await updateAppointmentStatus(selectedAppointment.id, newStatus, notes)
+            await updateAppointmentStatus(displayAppointment.id, newStatus, notes)
             setIsChangingStatus(false)
             setNotes('')
             setNewStatus('')
@@ -105,7 +131,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
         setIsDeleting(true)
         
         try {
-            await deleteAppointment(selectedAppointment.id)
+            await deleteAppointment(displayAppointment.id)
             setIsDeleting(false)
             setIsConfirmingDelete(false)
             onClose()
@@ -134,11 +160,17 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
             title="Detalles de la Cita"
             width="600px"
         >
+            {isLoadingDetails ? (
+                <div className="flex justify-center p-8">
+                    <Spinner size={40} />
+                    <span className="ml-3">Cargando detalles de la cita...</span>
+                </div>
+            ) : (
             <div className="p-4">
                 {/* Encabezado con estado y acciones */}
                 <div className="flex justify-between items-center mb-5">
-                    <Badge color={getStatusColor(selectedAppointment.status)}>
-                        {availableStatuses.find(s => s.value === selectedAppointment.status)?.label || selectedAppointment.status}
+                    <Badge color={getStatusColor(displayAppointment.status)}>
+                        {availableStatuses.find(s => s.value === displayAppointment.status)?.label || displayAppointment.status}
                     </Badge>
                     
                     <div className="flex space-x-2">
@@ -177,12 +209,12 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                             </div>
                             <div>
                                 <h4 className="font-semibold text-lg">
-                                    {selectedAppointment.lead?.full_name || 'Prospecto'}
+                                    {displayAppointment.lead?.full_name || displayAppointment.leadName || 'Prospecto sin nombre'}
                                 </h4>
                                 <p className="text-gray-500">
-                                    {selectedAppointment.lead?.email || 'Sin correo'}
-                                    {selectedAppointment.lead?.phone && (
-                                        <span> • {selectedAppointment.lead.phone}</span>
+                                    {displayAppointment.lead?.email || 'Sin correo'}
+                                    {displayAppointment.lead?.phone && (
+                                        <span> • {displayAppointment.lead.phone}</span>
                                     )}
                                 </p>
                             </div>
@@ -192,28 +224,28 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                             <div className="flex items-center">
                                 <TbCalendar className="text-lg text-gray-500 mr-2" />
                                 <span>
-                                    {formatDate(selectedAppointment.appointment_date)}
+                                    {formatDate(displayAppointment.appointment_date)}
                                 </span>
                             </div>
                             <div className="flex items-center">
                                 <TbClock className="text-lg text-gray-500 mr-2" />
-                                <span>{selectedAppointment.appointment_time}</span>
+                                <span>{displayAppointment.appointment_time}</span>
                             </div>
                             <div className="flex items-center">
                                 <TbMapPin className="text-lg text-gray-500 mr-2" />
-                                <span>{selectedAppointment.location}</span>
+                                <span>{displayAppointment.location}</span>
                             </div>
                             <div className="flex items-center">
                                 <TbHome className="text-lg text-gray-500 mr-2" />
-                                <span>{selectedAppointment.property_type || 'No especificado'}</span>
+                                <span>{displayAppointment.property_type || 'No especificado'}</span>
                             </div>
-                            {selectedAppointment.agent && (
+                            {displayAppointment.agent && (
                                 <div className="flex items-center col-span-2">
                                     <TbUser className="text-lg text-gray-500 mr-2" />
                                     <div className="flex items-center">
-                                        {selectedAppointment.agent.profile_image ? (
+                                        {displayAppointment.agent.profile_image ? (
                                             <Avatar 
-                                                src={selectedAppointment.agent.profile_image} 
+                                                src={displayAppointment.agent.profile_image} 
                                                 size={24} 
                                                 className="mr-2" 
                                             />
@@ -224,7 +256,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                                                 icon={<TbUser />} 
                                             />
                                         )}
-                                        <span>{selectedAppointment.agent.name}</span>
+                                        <span>{displayAppointment.agent.name || displayAppointment.agentName || 'Agente no asignado'}</span>
                                     </div>
                                 </div>
                             )}
@@ -233,7 +265,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                 </Card>
                 
                 {/* Propiedades asociadas */}
-                {selectedAppointment.properties && selectedAppointment.properties.length > 0 && (
+                {displayAppointment.properties && displayAppointment.properties.length > 0 && (
                     <Card className="mb-4">
                         <div className="p-3">
                             <h5 className="font-semibold mb-3 flex items-center">
@@ -241,10 +273,10 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                                 Propiedades a visitar
                             </h5>
                             <div className="space-y-3">
-                                {selectedAppointment.properties.map(property => (
+                                {displayAppointment.properties.map(property => (
                                     <div key={property.id} className="p-2 border rounded-lg hover:bg-gray-50">
                                         <div className="flex justify-between">
-                                            <span className="font-medium">{property.name}</span>
+                                            <span className="font-medium">{property.title || property.name}</span>
                                             <span className="text-green-600 font-medium">
                                                 {formatCurrency(property.price, property.currency)}
                                             </span>
@@ -266,7 +298,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                 )}
                 
                 {/* Notas */}
-                {selectedAppointment.notes && (
+                {displayAppointment.notes && (
                     <Card className="mb-4">
                         <div className="p-3">
                             <h5 className="font-semibold mb-2 flex items-center">
@@ -274,7 +306,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                                 Notas
                             </h5>
                             <p className="text-gray-700 whitespace-pre-line">
-                                {selectedAppointment.notes}
+                                {displayAppointment.notes}
                             </p>
                         </div>
                     </Card>
@@ -368,6 +400,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                     </Card>
                 )}
             </div>
+            )}
         </Dialog>
     )
 }

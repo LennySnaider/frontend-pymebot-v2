@@ -5,17 +5,25 @@
  * @updated 2025-04-16
  */
 
-import { getMockConversation } from './mockChatData'
-
 /**
  * Obtiene una conversación específica por ID
+ * ACTUALIZADO: No usar datos mock
  */
 const apiGetConversation = async <T>({ id }: { id: string }): Promise<T> => {
-    // En implementación real, aquí se haría una llamada a la API
-    // return await http.get(`/api/chat/conversation/${id}`)
-    
-    // Simulación con datos mock
-    return Promise.resolve(getMockConversation(id) as unknown as T)
+    try {
+        // Llamar a la API real
+        const response = await fetch(`/api/chat/conversation/${id}`)
+        
+        if (!response.ok) {
+            throw new Error('Error al obtener la conversación')
+        }
+        
+        const data = await response.json()
+        return data as T
+    } catch (error) {
+        console.error('Error obteniendo conversación:', error)
+        throw error
+    }
 }
 
 export default apiGetConversation

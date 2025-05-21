@@ -15,6 +15,8 @@ import common from './common.json';
 import notificationBuilder from './notificationBuilder.json';
 import superadmin from './superadmin.json';
 import moduleEditor from './module-editor.json';
+import agents from './agents.json';
+import roles from './roles.json';
 import { set } from 'lodash';
 
 // Create an object for messages with nested structure
@@ -90,7 +92,9 @@ Object.assign(messages, {
   common,        // Add common as a namespace
   notificationBuilder,  // Add notificationBuilder as a namespace
   superadmin,     // Add superadmin as a namespace
-  moduleEditor    // Add moduleEditor as a namespace
+  moduleEditor,    // Add moduleEditor as a namespace
+  agents,         // Add agents as a namespace
+  roles          // Add roles as a namespace
 });
 
 // Note: We don't need to manually add system.business anymore as it's included in system.json directly

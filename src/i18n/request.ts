@@ -34,6 +34,7 @@ export default getRequestConfig(async () => {
                 const salesFunnel = (await import(`../../messages/${locale}/salesFunnel.json`)).default;
                 const scrumboard = (await import(`../../messages/${locale}/scrumboard.json`)).default;
                 const common = (await import(`../../messages/${locale}/common.json`)).default;
+                const agents = (await import(`../../messages/${locale}/agents.json`)).default;
                 
                 // Cargar los módulos de notificaciones y superadmin
                 let notificationBuilder = {};
@@ -136,7 +137,8 @@ export default getRequestConfig(async () => {
                     { namespace: 'scrumboard', data: scrumboard },
                     { namespace: 'common', data: common },
                     { namespace: 'notificationBuilder', data: notificationBuilder },
-                    { namespace: 'superadmin', data: superadmin }
+                    { namespace: 'superadmin', data: superadmin },
+                    { namespace: 'agents', data: agents }
                 ].forEach(({ namespace, data }) => {
                     Object.entries(data).forEach(([key, value]) => {
                         if (typeof value === 'object' && value !== null) {

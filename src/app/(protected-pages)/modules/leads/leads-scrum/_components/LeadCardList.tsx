@@ -10,6 +10,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import LeadCard from './LeadCard'
 import { Droppable, Draggable } from '@hello-pangea/dnd'
 import { useSalesFunnelStore } from '../_store/salesFunnelStore'
@@ -25,12 +26,12 @@ const LeadCardList = ({ listId, leads = [] }: LeadCardListProps) => {
     const { updateDialogView, openDialog, setSelectedLeadId } =
         useSalesFunnelStore()
 
-    // Desplazar para ver la nueva tarjeta
-    useEffect(() => {
-        if (cardListRef.current) {
-            cardListRef.current.scrollTop = cardListRef.current.scrollHeight
-        }
-    }, [leads.length])
+    // Desplazar para ver la nueva tarjeta - comentado para evitar saltos
+    // useEffect(() => {
+    //     if (cardListRef.current) {
+    //         cardListRef.current.scrollTop = cardListRef.current.scrollHeight
+    //     }
+    // }, [leads.length])
 
     // Maneja la creación de un nuevo lead
     const onAddNewLead = () => {
@@ -49,35 +50,42 @@ const LeadCardList = ({ listId, leads = [] }: LeadCardListProps) => {
                 >
                     <div
                         ref={cardListRef}
-                        className="overflow-y-auto overflow-x-hidden scrollbar-hide flex-grow py-1 space-y-1 w-[260px]"
+                        className="overflow-y-auto overflow-x-hidden scrollbar-hide flex-grow py-1 md:space-y-1 space-y-0 w-[260px] md:pb-2 pb-10"
                     >
-                        {leads.map((lead, index) => (
-                            <Draggable
-                                key={lead.id}
-                                draggableId={lead.id}
-                                index={index}
-                            >
-                                {(provided, snapshot) => (
-                                    <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className="w-[260px] mb-3" // Ancho fijo para mantener consistencia
-                                    >
-                                        <LeadCard
-                                            data={lead}
-                                            className={`
-                                                ${snapshot.isDragging ? '!shadow-lg' : ''}
-                                                w-[240px] fixed-width-card
-                                            `}
-                                        />
-                                    </div>
-                                )}
-                            </Draggable>
-                        ))}
+                        <AnimatePresence initial={false}>
+                            {leads.map((lead, index) => (
+                                <Draggable
+                                    key={lead.id}
+                                    draggableId={lead.id}
+                                    index={index}
+                                >
+                                    {(provided, snapshot) => (
+                                        <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            className="w-[260px] md:mb-3 mb-2" // Ancho fijo y margen menor en móvil
+                                            style={{
+                                                ...provided.draggableProps.style
+                                            }}
+                                        >
+                                            <LeadCard
+                                                data={lead}
+                                                isDragging={snapshot.isDragging}
+                                                className={`
+                                                    ${snapshot.isDragging ? '!shadow-lg' : ''}
+                                                    w-[240px] fixed-width-card
+                                                `}
+                                            />
+                                        </div>
+                                    )}
+                                </Draggable>
+                            ))}
+                        </AnimatePresence>
                         {provided.placeholder}
                     </div>
-                    <div className="mt-3 mb-2 sticky bottom-0 bg-gray-50 dark:bg-gray-800 pt-2 w-[240px] mx-auto">
+                    {/* Botón "Añadir prospecto" - visible solo en desktop, oculto en móvil */}
+                    <div className="mt-3 mb-2 sticky bottom-0 bg-gray-50 dark:bg-gray-800 pt-2 w-[240px] mx-auto hidden md:block">
                         <button
                             onClick={onAddNewLead}
                             className="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200 w-full border-dashed border-2 border-gray-200 dark:border-gray-600 rounded-lg py-2 px-3 text-gray-500 dark:text-gray-400 flex items-center justify-center"

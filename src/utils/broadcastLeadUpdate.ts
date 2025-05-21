@@ -18,12 +18,15 @@ let channel: any = null
 
 /**
  * Enviar actualización de lead a todas las pestañas
+ * @param type Tipo de actualización (generalmente 'update-stage')
+ * @param leadId ID del lead
+ * @param data Datos adicionales de la actualización
  */
-export function broadcastLeadUpdate(leadId: string, newStage: string): void {
+export function broadcastLeadUpdate(type: string, leadId: string, data: { newStage: string, rawStage: string }): void {
     const message: LeadUpdateMessage = {
-        type: 'lead-stage-update',
+        type: type || 'lead-stage-update',
         leadId,
-        newStage,
+        newStage: data.newStage,
         timestamp: Date.now(),
     }
 

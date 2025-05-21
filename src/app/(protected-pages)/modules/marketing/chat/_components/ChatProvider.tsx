@@ -15,6 +15,8 @@ import type { Chats, Conversation } from '../types'
 // Importamos componentes de seguridad que evitan errores de renderizado
 import ErrorBoundary from './ErrorBoundary'
 import StoreInitializer from './StoreInitializer'
+// Nueva solución simple que solo fuerza actualizaciones frecuentes
+import QuickFix from './QuickFix'
 
 interface ChatProviderProviderProps extends CommonProps {
     chats: Chats
@@ -97,6 +99,8 @@ const ChatProvider = ({ children, chats }: ChatProviderProviderProps) => {
     return (
         <ErrorBoundary>
             <StoreInitializer>
+                {/* Solución simple: actualizar cada 5 segundos */}
+                <QuickFix />
                 {children}
             </StoreInitializer>
         </ErrorBoundary>

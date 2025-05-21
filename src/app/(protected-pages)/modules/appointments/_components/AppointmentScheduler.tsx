@@ -177,7 +177,16 @@ const AppointmentScheduler = (props: AppointmentSchedulerProps) => {
                     <Button
                         variant="solid"
                         color="green"
-                        onClick={formState.currentStep === 3 ? formState.handleSubmit : formState.handleNextStep}
+                        onClick={() => {
+                            console.log('AppointmentScheduler: Botón clickeado, paso actual:', formState.currentStep);
+                            if (formState.currentStep === 3) {
+                                console.log('AppointmentScheduler: Llamando handleSubmit');
+                                formState.handleSubmit();
+                            } else {
+                                console.log('AppointmentScheduler: Llamando handleNextStep');
+                                formState.handleNextStep();
+                            }
+                        }}
                         loading={formState.isSubmitting}
                     >
                         {formState.currentStep === 3 ? 'Programar Cita' : 'Siguiente'}

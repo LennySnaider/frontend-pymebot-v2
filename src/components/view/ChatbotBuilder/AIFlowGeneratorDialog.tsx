@@ -246,7 +246,7 @@ const AIFlowGeneratorDialog: React.FC<AIFlowGeneratorDialogProps> = ({
                                         null
                                 }
                                 onClick={() => handleFeatureSelect(feature.value)}
-                                prefixClassName={
+                                className={
                                     options.features?.includes(feature.value) ?
                                         "mr-1" : ""
                                 }

@@ -1,8 +1,8 @@
 /**
  * frontend/src/app/(protected-pages)/modules/superadmin/chatbot-builder/editor/_components/nodes/AIVoiceAgentNode.tsx
  * Nodo combinado de IA + Voz ("AI Voice Agent") para el flujo de chatbot
- * @version 1.1.0
- * @updated 2025-04-14 - Mejorado con soporte para variables y más opciones de configuración
+ * @version 1.2.0
+ * @updated 2025-05-19 - Añadido indicador de etapa del sales funnel con wrapper
  */
 
 'use client'
@@ -11,6 +11,7 @@ import React, { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import { PiRobotDuotone, PiSpeakerHighDuotone } from 'react-icons/pi'
 import { containsVariables } from '@/services/SystemVariablesService'
+import NodeWrapper from './NodeWrapper'
 
 // Función para truncar texto
 const truncateText = (text: string, maxLength: number) => {
@@ -52,12 +53,11 @@ const AIVoiceAgentNode = ({ data, selected }: NodeProps<AIVoiceAgentNodeData>) =
     const hasVariables = data.prompt ? containsVariables(data.prompt) : false
 
     return (
-        <div
-            className={`px-4 py-3 rounded-lg shadow-md border-2 ${
-                selected
-                    ? 'border-indigo-500'
-                    : 'border-indigo-200 dark:border-indigo-700'
-            } bg-white dark:bg-gray-800 min-w-[250px]`}
+        <NodeWrapper 
+            selected={selected} 
+            salesStageId={data.salesStageId}
+            className="min-w-[250px]"
+            borderColor="border-indigo-200 dark:border-indigo-700"
         >
             <div className="flex items-center gap-2">
                 <PiRobotDuotone className="text-indigo-500 text-xl" />
@@ -154,7 +154,7 @@ const AIVoiceAgentNode = ({ data, selected }: NodeProps<AIVoiceAgentNodeData>) =
                 position={Position.Right}
                 className="w-2 h-2 !bg-indigo-500"
             />
-        </div>
+        </NodeWrapper>
     )
 }
 

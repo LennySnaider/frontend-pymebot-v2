@@ -10,10 +10,16 @@
 import React, { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import { PiKeyboardDuotone } from 'react-icons/pi'
+import NodeWrapper from './NodeWrapper'
 
 const InputNode = ({ data, selected }: NodeProps) => {
   return (
-    <div className={`px-4 py-2 rounded-lg shadow-md border-2 ${selected ? 'border-blue-500' : 'border-green-200 dark:border-green-700'} bg-white dark:bg-gray-800 min-w-[180px]`}>
+    <NodeWrapper 
+      selected={selected} 
+      salesStageId={data.salesStageId}
+      className="min-w-[180px]"
+      borderColor="border-green-200 dark:border-green-700"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <PiKeyboardDuotone className="text-green-500 text-xl mr-2" />
@@ -54,7 +60,7 @@ const InputNode = ({ data, selected }: NodeProps) => {
         position={Position.Right}
         className="w-2 h-2 !bg-green-500"
       />
-    </div>
+    </NodeWrapper>
   )
 }
 

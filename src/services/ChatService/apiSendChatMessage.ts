@@ -37,7 +37,7 @@ const apiSendChatMessage = async (
 
     try {
         // Usamos los IDs existentes o generamos nuevos
-        const currentUserId = getOrCreateUserId(userId)
+        let currentUserId = getOrCreateUserId(userId)
         const sessionId = getOrCreateSessionId(currentUserId)
         const currentTenantId = tenantId || 'default'
         const currentBotId = botId || 'default'
@@ -107,12 +107,13 @@ const apiSendChatMessage = async (
             template_id = null;
         }
 
-        // Verificar si el ID de usuario es un ID de lead o si viene directamente como ID de lead
-        // El formato puede ser lead_XXXX o directamente el ID de lead
-        const isLead = userId?.startsWith('lead_') || false;
-        const leadId = isLead
-            ? userId?.replace('lead_', '')
-            : (userId && !userId.includes('-') ? userId : null);  // Si no incluye guiones, probable ID de lead directo
+        // Verificar si el ID de usuario es un ID de lead
+        // Puede venir como lead_XXXX
+        const isLead = userId?.startsWith('lead_');
+        const leadId = isLead ? userId.replace('lead_', '') : null;
+        
+        // Actualizar currentUserId para usar el ID limpio
+        currentUserId = leadId || userId;
 
         console.log(`Enviando mensaje: "${text}"`)
         console.log(`Usuario: ${currentUserId}`)
@@ -232,11 +233,16 @@ const apiSendChatMessage = async (
             const buttons = response.data.buttons || response.data.metadata?.buttons || [];
             console.log('Botones recibidos:', buttons);
             
-            return {
+            const result = {
                 response: responseText,
                 buttons: buttons,
+                success: response.data.success,
+                metadata: response.data.data?.metadata || response.data.metadata || {},
                 ...response.data // Incluir toda la respuesta por si hay más datos
-            }
+            };
+            
+            console.log('Estructura de resultado final:', JSON.stringify(result, null, 2));
+            return result;
         } else {
             throw new Error(
                 `Error en la respuesta: ${response.status} ${response.statusText}`,

@@ -1,0 +1,47 @@
+'use client'
+
+/**
+ * Botón visible que permite al usuario forzar manualmente la actualización de la lista de chat
+ * 
+ * NOTA: Este componente ha sido desactivado temporalmente por no funcionar correctamente.
+ * Se mantiene como backup para futuras implementaciones.
+ */
+
+import { useState } from 'react'
+import { TbRefresh } from 'react-icons/tb'
+
+export default function RefreshButton() {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    
+    const handleRefresh = () => {
+        if (isRefreshing) return;
+        
+        setIsRefreshing(true);
+        console.log('RefreshButton: Forzando actualización manual de la lista');
+        
+        // Disparar evento para forzar refresco
+        window.dispatchEvent(new CustomEvent('force-chat-refresh', {
+            detail: { timestamp: Date.now(), manual: true },
+            bubbles: true
+        }));
+        
+        // Resetear estado después de un segundo
+        setTimeout(() => {
+            setIsRefreshing(false);
+        }, 1000);
+    };
+    
+    return (
+        <button
+            className={`text-lg flex items-center gap-1 px-3 py-1 rounded-md border
+                       ${isRefreshing ? 'animate-spin text-primary border-primary' : 'text-gray-600 border-gray-300'}`}
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Forzar sincronización"
+        >
+            <TbRefresh />
+            <span className="text-sm font-medium">{isRefreshing ? 'Actualizando...' : 'Actualizar chats'}</span>
+        </button>
+    );
+}

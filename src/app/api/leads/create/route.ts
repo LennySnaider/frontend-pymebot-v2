@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { SupabaseClient } from '@/services/supabase/SupabaseClient'
+import { validateLeadData } from '@/utils/validateLeadPhone'
 
 export async function POST(request: NextRequest) {
   try {
@@ -94,10 +95,13 @@ export async function POST(request: NextRequest) {
       // created_at y updated_at son manejados por Supabase por defecto
     };
 
-    // Insert the lead into the database using the prepared data
+    // Validar los datos del lead antes de insertar
+    const validatedData = validateLeadData(insertData);
+
+    // Insert the lead into the database using the validated data
     const { data, error } = await supabase
       .from('leads')
-      .insert(insertData) // Usar el objeto insertData preparado
+      .insert(validatedData) // Usar el objeto validado
       .select()
       .single();
 
@@ -134,11 +138,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // En el lado del servidor no podemos disparar eventos al navegador directamente
+    // En su lugar, incluiremos información en el response para que el cliente
+    // pueda disparar el evento usando nuestro sistema de leads en tiempo real
+
     return NextResponse.json(
       { 
         success: true, 
         message: 'Lead created successfully',
-        data: data
+        data: data,
+        // Incluir información para que el cliente pueda disparar evento
+        event: {
+          type: 'create',
+          leadId: data.id
+        }
       },
       { status: 201 }
     )

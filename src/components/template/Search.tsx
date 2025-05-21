@@ -12,7 +12,7 @@ import {
     UI_COMPONENTS_PREFIX_PATH,
 } from '@/constants/route.constant'
 import debounce from 'lodash/debounce'
-import { HiOutlineSearch, HiChevronRight, HiCalendar, HiUser, HiOfficeBuilding, HiChat, HiCog } from 'react-icons/hi'
+import { HiOutlineSearch, HiChevronRight, HiCalendar, HiUser, HiOfficeBuilding, HiCog } from 'react-icons/hi'
 import { PiMagnifyingGlassDuotone } from 'react-icons/pi'
 import Link from 'next/link'
 import Highlighter from 'react-highlight-words'
@@ -59,14 +59,6 @@ const agentPropSearch: SearchResult[] = [
                 icon: <HiCalendar className="text-amber-500" />,
                 category: 'management',
                 categoryTitle: 'Gestión',
-            },
-            {
-                key: 'chatbot',
-                path: '/concepts/superadmin/chatbot-builder',
-                title: 'Chatbot',
-                icon: <HiChat className="text-purple-500" />,
-                category: 'tools',
-                categoryTitle: 'Herramientas',
             },
             {
                 key: 'settings',

@@ -20,7 +20,7 @@ export async function POST(
 ) {
   try {
     // Obtener ID del flujo desde la URL
-    const flowId = params.id
+    const flowId = String(params?.id || '')
     
     // Verificar autenticación
     const session = await auth()

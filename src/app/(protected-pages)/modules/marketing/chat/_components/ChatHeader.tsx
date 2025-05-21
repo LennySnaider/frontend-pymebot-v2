@@ -14,7 +14,7 @@ import { TbBug } from 'react-icons/tb'
 import dynamic from 'next/dynamic'
 import { useChatStore } from '../_store/chatStore'
 import { HiUserCircle, HiExclamationCircle } from 'react-icons/hi'
-import { TbUserExclamation, TbUserCheck, TbRobot, TbUser } from 'react-icons/tb'
+import { TbUserExclamation, TbUserCheck, TbRobot, TbUser, TbRefresh } from 'react-icons/tb'
 
 // Importación dinámica de componentes para evitar errores de hidratación
 const TemplateSelector = dynamic(() => import('./TemplateSelector'), { ssr: false })
@@ -126,6 +126,8 @@ const ChatHeader = () => {
           </span>
         </Button>
 
+        {/* Botón de actualización removido */}
+        
         {/* Selector de plantillas */}
         <TemplateSelector onTemplateChange={handleTemplateChange} />
 

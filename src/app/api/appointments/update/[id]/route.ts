@@ -15,7 +15,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = params.id
+    const id = String(params?.id || '')
     
     // Validar que el ID existe
     if (!id) {

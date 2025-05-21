@@ -1,0 +1,53 @@
+{
+  "title": "Agentes",
+  "createAgent": "Crear Agente",
+  "editAgent": "Editar Agente",
+  "agentsList": "Lista de Agentes",
+  "confirmDelete": "Confirmar Eliminación",
+  "confirmDeleteMessage": "¿Estás seguro de que deseas eliminar al agente {name}? Esta acción no se puede deshacer.",
+  "fields": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "fullName": "Nombre completo",
+    "phone": "Teléfono",
+    "bio": "Biografía",
+    "specializations": "Especializaciones",
+    "languages": "Idiomas",
+    "profileImage": "Imagen de perfil"
+  },
+  "placeholders": {
+    "bioPlaceholder": "Breve descripción del agente...",
+    "specializationsPlaceholder": "Casas, Departamentos, Locales comerciales",
+    "languagesPlaceholder": "Español, Inglés"
+  },
+  "hints": {
+    "separateByCommas": "Separar por comas",
+    "temporaryPasswordHint": "El agente deberá cambiar esta contraseña en su primer inicio de sesión",
+    "clickToUpload": "Haz clic para subir imagen"
+  },
+  "messages": {
+    "agentCreatedSuccessfully": "Agente creado exitosamente",
+    "errorCreatingAgent": "Error al crear el agente",
+    "agentUpdatedSuccessfully": "Agente actualizado exitosamente",
+    "errorUpdatingAgent": "Error al actualizar el agente",
+    "agentDeletedSuccessfully": "Agente eliminado exitosamente",
+    "errorDeletingAgent": "Error al eliminar el agente",
+    "profileUpdatedSuccessfully": "Perfil actualizado exitosamente",
+    "errorUpdatingProfile": "Error al actualizar el perfil"
+  },
+  "buttons": {
+    "uploadImage": "Subir imagen",
+    "changeImage": "Cambiar imagen"
+  },
+  "myProfile": "Mi Perfil",
+  "noSpecializations": "Sin especializaciones",
+  "notProvided": "No proporcionado",
+  "noBioProvided": "No se ha proporcionado una biografía",
+  "active": "Activo",
+  "inactive": "Inactivo",
+  "statistics": "Estadísticas",
+  "activeLeads": "Leads Activos",
+  "appointments": "Citas",
+  "sales": "Ventas",
+  "rating": "Calificación"
+}

@@ -307,7 +307,7 @@ export const useTenantStore = create<TenantState>()(
         // Verificar si es una vertical
         if (isVertical) {
           // Verificar en el plan
-          const hasInPlan = currentTenant.plan.verticals.includes(featureOrVertical);
+          const hasInPlan = currentTenant.plan.verticals?.includes(featureOrVertical) || false;
           
           // Verificar si está habilitada en configuración
           const isEnabledInSettings = currentTenant.settings.verticals?.[featureOrVertical]?.enabled;
@@ -316,7 +316,7 @@ export const useTenantStore = create<TenantState>()(
         }
         
         // Es una característica (feature)
-        const hasInPlan = currentTenant.plan.features.includes(featureOrVertical);
+        const hasInPlan = currentTenant.plan.features?.includes(featureOrVertical) || false;
         
         // Las features pueden estar organizadas en módulos
         // Extraer el módulo base de la feature (ejemplo: feature_appointments -> appointments)

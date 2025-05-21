@@ -291,10 +291,10 @@ const ProductNode: React.FC<NodeProps<ProductNodeData>> = ({
               className="w-full h-20 px-2 py-1 text-sm border border-gray-300 rounded-md" 
               value={message_template || ''}
               onChange={handleMessageTemplateChange}
-              placeholder="Estos son nuestros productos disponibles: {{products_list}}"
+              placeholder={'Estos son nuestros productos disponibles: {{products_list}}'}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Usa {{products_list}} para mostrar la lista de productos
+              Usa {'{{products_list}}'} para mostrar la lista de productos
             </p>
           </div>
         </div>

@@ -2,10 +2,10 @@
 
 /**
  * frontend/src/components/view/ChatbotBuilder/nodes/CheckAvailabilityNodeDark.tsx
- * Nodo de chatbot para verificar disponibilidad de citas - Versión optimizada para modo oscuro
+ * Nodo de chatbot para verificar disponibilidad de citas
  * 
- * @version 1.0.1
- * @updated 2025-09-05
+ * @version 1.0.2
+ * @updated 2025-01-17
  */
 
 import React, { useCallback } from 'react';
@@ -24,7 +24,7 @@ export interface CheckAvailabilityNodeData {
 }
 
 /**
- * Versión optimizada del nodo de verificación de disponibilidad para modo oscuro
+ * Componente del nodo de verificación de disponibilidad con estilos claros
  */
 const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({ 
   id, 
@@ -53,10 +53,10 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
     }
   }, [id, data, onUpdateNodeData]);
   
-  // Estilos en línea para forzar la apariencia en modo oscuro
+  // Estilos base del nodo
   const containerStyles = {
-    backgroundColor: '#1a1a1a',
-    borderColor: selected ? 'var(--color-primary-500)' : '#333333',
+    backgroundColor: '#ffffff',
+    borderColor: selected ? 'var(--color-primary-500)' : '#e5e7eb',
     borderWidth: '2px',
     borderStyle: 'solid',
     borderRadius: '0.375rem',
@@ -64,7 +64,7 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
     boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
     minWidth: '250px',
     maxWidth: '320px',
-    color: '#e5e7eb'
+    color: '#1f2937'
   };
   
   const headerStyles = {
@@ -72,11 +72,11 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
     paddingBottom: '0.5rem',
     borderBottomWidth: '1px',
     borderBottomStyle: 'solid',
-    borderBottomColor: '#333333'
+    borderBottomColor: '#e5e7eb'
   };
   
   const contentStyles = {
-    backgroundColor: '#282828',
+    backgroundColor: '#f9fafb',
     padding: '0.5rem',
     borderRadius: '0.375rem',
     marginBottom: '0.25rem'
@@ -90,7 +90,7 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
   
   const labelStyles = {
     fontSize: '0.75rem',
-    color: '#9ca3af',
+    color: '#6b7280',
     marginBottom: '0.25rem',
     display: 'block'
   };
@@ -100,7 +100,7 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
     justifyContent: 'space-between',
     marginTop: '0.5rem',
     fontSize: '0.75rem',
-    color: '#9ca3af'
+    color: '#6b7280'
   };
   
   const statusItemStyles = {
@@ -126,7 +126,7 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
             width: '1.5rem', 
             height: '1.5rem', 
             borderRadius: '50%', 
-            backgroundColor: 'rgba(59, 130, 246, 0.2)', 
+            backgroundColor: 'rgba(59, 130, 246, 0.1)', 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center', 
@@ -135,7 +135,7 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
             <PiCalendarBold style={{ width: '1rem', height: '1rem', color: '#3b82f6' }} />
           </div>
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#e5e7eb' }}>
+            <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1f2937' }}>
               {label || 'Verificar Disponibilidad'}
             </p>
           </div>
@@ -151,7 +151,6 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
               onChange={handleAppointmentTypeChange}
               value={appointment_type_id || ''}
               size="sm"
-              className="dark-mode-select"
             >
               <Option value="">Cualquier tipo</Option>
               <Option value="1">Consulta Inicial</Option>
@@ -166,7 +165,6 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
               onChange={handleLocationChange}
               value={location_id || ''}
               size="sm"
-              className="dark-mode-select"
             >
               <Option value="">Cualquier ubicación</Option>
               <Option value="1">Oficina Central</Option>
@@ -181,7 +179,6 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
               onChange={handleAgentChange}
               value={agent_id || ''}
               size="sm"
-              className="dark-mode-select"
             >
               <Option value="">Cualquier agente</Option>
               <Option value="1">Carlos Rodríguez</Option>
@@ -211,7 +208,7 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
           width: '0.75rem', 
           height: '0.75rem', 
           backgroundColor: '#3b82f6', 
-          border: '2px solid #1f2937'
+          border: '2px solid #ffffff'
         }}
         isConnectable={isConnectable}
       />
@@ -223,7 +220,7 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
           width: '0.75rem', 
           height: '0.75rem', 
           backgroundColor: '#10b981', 
-          border: '2px solid #1f2937'
+          border: '2px solid #ffffff'
         }}
         isConnectable={isConnectable}
       />
@@ -235,7 +232,7 @@ const CheckAvailabilityNodeDark: React.FC<NodeProps<CheckAvailabilityNodeData>> 
           width: '0.75rem', 
           height: '0.75rem', 
           backgroundColor: '#ef4444', 
-          border: '2px solid #1f2937', 
+          border: '2px solid #ffffff', 
           top: '70%'
         }}
         isConnectable={isConnectable}

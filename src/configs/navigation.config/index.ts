@@ -517,6 +517,22 @@ const navigationConfig: NavigationTree[] = [
                 },
                 subMenu: [],
             },
+            {
+                key: 'superadmin.tools.salesFunnelDebug',
+                path: `/debug/sales-funnel-integration`,
+                title: 'Debug Sales Funnel',
+                translateKey: 'nav.superadmin.salesFunnelDebug',
+                icon: 'bug',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [SUPER_ADMIN],
+                meta: {
+                    description: {
+                        translateKey: 'nav.superadmin.salesFunnelDebugDesc',
+                        label: 'Debug de integración Sales Funnel con Chatbot',
+                    },
+                },
+                subMenu: [],
+            },
         ],
     },
     

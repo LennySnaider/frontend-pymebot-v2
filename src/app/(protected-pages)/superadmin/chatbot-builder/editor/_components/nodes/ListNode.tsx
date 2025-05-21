@@ -3,6 +3,7 @@
 import React, { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import { PiListNumbersDuotone } from 'react-icons/pi'
+import NodeWrapper from './NodeWrapper'
 
 const ListNode = ({ data, selected }: NodeProps) => {
   // Asegurar que siempre hay un array de opciones y limitar a 10 para la visualización
@@ -36,7 +37,12 @@ const ListNode = ({ data, selected }: NodeProps) => {
   const handlePositions = getHandlePositions(listItems.length)
 
   return (
-    <div className={`px-4 py-2 rounded-lg shadow-md border-2 ${selected ? 'border-blue-500' : 'border-orange-200 dark:border-orange-700'} bg-white dark:bg-gray-800 min-w-[180px]`}>
+    <NodeWrapper 
+      selected={selected} 
+      salesStageId={data.salesStageId}
+      className="min-w-[180px]"
+      borderColor="border-orange-200 dark:border-orange-700"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <PiListNumbersDuotone className="text-orange-500 text-xl mr-2" />
@@ -152,7 +158,7 @@ const ListNode = ({ data, selected }: NodeProps) => {
           />
         ))
       )}
-    </div>
+    </NodeWrapper>
   )
 }
 

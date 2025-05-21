@@ -1,4 +1,5 @@
-import { taskBugFix } from './projectsData'
+// Removed import from deleted projectsData file
+// Creating taskBugFix data inline to fix build error
 
 const currentDate = new Date()
 
@@ -478,7 +479,35 @@ export const projectData = {
             range: ['08:00', '12:00', '16:00', '20:00', '24:00'],
         },
     },
-    currentTasks: taskBugFix,
+    currentTasks: [
+        {
+            id: '1',
+            name: 'Fix responsive design issues',
+            priority: 'high',
+            status: 'in-progress',
+            assignee: 'John Doe',
+            dueDate: new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000),
+            progress: 65
+        },
+        {
+            id: '2',
+            name: 'Update API documentation',
+            priority: 'medium',
+            status: 'pending',
+            assignee: 'Jane Smith',
+            dueDate: new Date(currentDate.getTime() + 14 * 24 * 60 * 60 * 1000),
+            progress: 0
+        },
+        {
+            id: '3',
+            name: 'Optimize database queries',
+            priority: 'high',
+            status: 'in-progress',
+            assignee: 'Mike Johnson',
+            dueDate: new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000),
+            progress: 40
+        }
+    ],
     schedule: [
         {
             start: new Date(

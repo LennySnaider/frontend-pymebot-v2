@@ -15,6 +15,8 @@ import classNames from '@/utils/classNames'
 import isLastChild from '@/utils/isLastChild'
 import sleep from '@/utils/sleep'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import { useTenantModules } from '@/hooks/useTenantModules'
+import { useAuthContext } from '@/components/providers/AuthProvider'
 import {
     TbUserCog,
     TbBox,
@@ -38,6 +40,8 @@ const { useUniqueId } = hooks
 
 const RolesPermissionsAccessDialog = () => {
     const { isSuperAdmin } = usePermissions();
+    const { modules: tenantModules, loading: modulesLoading } = useTenantModules()
+    const { role: userRole } = useAuthContext()
     const roleList = useRolePermissionsStore((state) => state.roleList)
     const setRoleList = useRolePermissionsStore((state) => state.setRoleList)
 
@@ -101,20 +105,32 @@ const RolesPermissionsAccessDialog = () => {
     };
 
     const modules = useMemo(() => {
-        return roleList.find((role) => role.id === selectedRole)
+        const role = roleList.find((role) => role.id === selectedRole)
+        // Asegurar que el rol tenga las propiedades necesarias
+        if (role) {
+            return {
+                ...role,
+                accessRight: role.accessRight || {},
+                users: role.users || []
+            }
+        }
+        return null
     }, [selectedRole, roleList])
 
     const handleChange = (accessRight: string[], key: string) => {
         if (roleDialog.type === 'new') {
             setAccessRight((value) => {
-                value[key] = accessRight
-                return value
+                return {
+                    ...value,
+                    [key]: accessRight
+                }
             })
         }
 
         if (roleDialog.type === 'edit') {
             const newRoleList = structuredClone(roleList).map((role) => {
                 if (role.id === selectedRole) {
+                    role.accessRight = role.accessRight || {}
                     role.accessRight[key] = accessRight
                 }
 
@@ -124,6 +140,45 @@ const RolesPermissionsAccessDialog = () => {
             setRoleList(newRoleList)
         }
     }
+
+    // Mapear los módulos del tenant a los módulos de permisos
+    const moduleCodeToPermissionId: Record<string, string> = {
+        'users': 'users',
+        'customers': 'users',
+        'leads': 'users',
+        'products': 'products',
+        'sales': 'products',
+        'orders': 'products',
+        'appointments': 'configurations',
+        'calendar': 'configurations',
+        'settings': 'configurations',
+        'file-manager': 'files',
+        'analytics': 'reports',
+        'reports': 'reports'
+    }
+
+    // Filtrar los módulos de permisos según los módulos activos del tenant
+    const availableModules = useMemo(() => {
+        // Si es super_admin, mostrar todos los módulos
+        if (userRole === 'super_admin') {
+            return accessModules
+        }
+
+        // Si aún no se han cargado los módulos del tenant, mostrar ninguno
+        if (modulesLoading) {
+            return []
+        }
+
+        // Filtrar módulos según los que estén activos en el tenant
+        const activeModuleCodes = tenantModules.map(tm => tm.module.code)
+        
+        return accessModules.filter(module => {
+            const moduleCode = Object.entries(moduleCodeToPermissionId)
+                .find(([_, permId]) => permId === module.id)?.[0]
+            
+            return moduleCode && activeModuleCodes.includes(moduleCode)
+        })
+    }, [tenantModules, modulesLoading, userRole])
 
     return (
         <>
@@ -149,12 +204,17 @@ const RolesPermissionsAccessDialog = () => {
                                 </span>
                             </>
                         )}
-                        {accessModules.map((module, index) => (
+                        {modulesLoading && userRole !== 'super_admin' ? (
+                            <div className="text-center py-4">
+                                <span>Cargando módulos disponibles...</span>
+                            </div>
+                        ) : (
+                            availableModules.map((module, index) => (
                             <div
                                 key={module.id}
                                 className={classNames(
                                     'flex flex-col md:flex-row md:items-center justify-between gap-4 py-6 border-gray-200 dark:border-gray-600',
-                                    !isLastChild(accessModules, index) &&
+                                    !isLastChild(availableModules, index) &&
                                         'border-b',
                                 )}
                             >
@@ -223,7 +283,8 @@ const RolesPermissionsAccessDialog = () => {
                                     </Segment>
                                 </div>
                             </div>
-                        ))}
+                        ))
+                        )}
                         <div className="flex justify-end mt-6">
                             <Button
                                 className="ltr:mr-2 rtl:ml-2"

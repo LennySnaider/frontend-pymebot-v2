@@ -19,6 +19,10 @@ export interface Toast {
     ): string | undefined | Promise<string | undefined>
     remove(key: string): void
     removeAll(): void
+    success(message: ReactNode, options?: ToastProps): string | undefined | Promise<string | undefined>
+    info(message: ReactNode, options?: ToastProps): string | undefined | Promise<string | undefined>
+    warning(message: ReactNode, options?: ToastProps): string | undefined | Promise<string | undefined>
+    error(message: ReactNode, options?: ToastProps): string | undefined | Promise<string | undefined>
 }
 
 const defaultWrapperId = 'default'
@@ -52,8 +56,12 @@ function getWrapper(wrapperId?: string) {
     return wrappers.get(wrapperId || defaultWrapperId)
 }
 
-const toast: Toast = (message: ReactNode) => toast.push(message)
+// Crear la función toast base
+const toast = ((message: ReactNode, options = {}) => {
+    return toast.push(message, options);
+}) as Toast;
 
+// Implementar métodos requeridos
 toast.push = (message, options = toastDefaultProps as ToastProps) => {
     let id = options.placement
     if (options.block) {
@@ -81,4 +89,37 @@ toast.removeAll = () => {
     wrappers.forEach((elm) => elm.current.removeAll())
 }
 
-export default toast
+// Implementar métodos de tipos específicos de toast
+toast.success = (message, options = {}) => {
+    return toast.push(message, { 
+        ...toastDefaultProps,
+        ...options,
+        type: 'success'
+    })
+}
+
+toast.info = (message, options = {}) => {
+    return toast.push(message, { 
+        ...toastDefaultProps,
+        ...options,
+        type: 'info'
+    })
+}
+
+toast.warning = (message, options = {}) => {
+    return toast.push(message, { 
+        ...toastDefaultProps,
+        ...options,
+        type: 'warning'
+    })
+}
+
+toast.error = (message, options = {}) => {
+    return toast.push(message, { 
+        ...toastDefaultProps,
+        ...options,
+        type: 'danger'
+    })
+}
+
+export default toast;

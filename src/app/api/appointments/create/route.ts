@@ -12,8 +12,12 @@ import { createAppointment } from '@/server/actions/appointments/createAppointme
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('API appointments/create: Iniciando request');
+    
     // Extraer los datos de la cita del cuerpo de la solicitud
     const appointmentData = await request.json()
+    
+    console.log('API appointments/create: Datos recibidos:', JSON.stringify(appointmentData, null, 2));
 
     // Validar los datos esenciales
     if (!appointmentData.lead_id) {

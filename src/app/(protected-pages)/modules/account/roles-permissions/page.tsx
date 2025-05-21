@@ -7,6 +7,7 @@ import RolesPermissionsUserSelected from './_components/RolesPermissionsUserSele
 import RolesPermissionsAccessDialog from './_components/RolesPermissionsAccessDialog'
 import RolesPermissionsProvider from './_components/RolesPermissionsProvider'
 import PermissionsGuideButton from './_components/PermissionsGuideButton'
+import CreateAgentButton from './_components/CreateAgentButton'
 import getRolesPermissionsRoles from '@/server/actions/getRolesPermissionsRoles'
 import getRolesPermissionsUsers from '@/server/actions/getRolesPermissionsUsers'
 import type { PageProps } from '@/@types/common'
@@ -29,8 +30,9 @@ export default async function Page({ searchParams }: PageProps) {
             <Container className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-sm">
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h3>{t('common.roles')} & {t('common.permissions')}</h3>
+                        <h3>{t('common.roles')} {t('common.and')} {t('common.permissions')}</h3>
                         <div className="flex items-center gap-3">
+                            <CreateAgentButton />
                             <PermissionsGuideButton />
                             <RolesPermissionsGroupsAction />
                         </div>

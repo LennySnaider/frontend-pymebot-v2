@@ -62,21 +62,17 @@ const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
   return (
     <div
       ref={nodeRef}
-      className={`rounded-md border-2 ${selected ? 'border-primary' : 'border-gray-200 dark:border-gray-600'} p-3 shadow-md min-w-[250px] max-w-[320px] check-availability-node dark:node-dark-bg`}
-      style={{
-        backgroundColor: mode === MODE_DARK ? '#1f2937' : 'white',
-        borderColor: mode === MODE_DARK ? '#4b5563' : '',
-      }}
+      className={`rounded-md border-2 ${selected ? 'border-primary' : 'border-gray-200'} bg-white p-3 shadow-md min-w-[250px] max-w-[320px] check-availability-node`}
       data-node-type="check_availability"
       data-dark-mode={isDarkMode ? 'true' : 'false'}>
       {/* Título del nodo */}
-      <div className="mb-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+      <div className="mb-2 border-b border-gray-200 pb-2">
         <div className="flex items-center">
-          <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-2">
+          <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-2">
             <PiCalendarBold className="h-4 w-4 text-blue-500" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+            <p className="text-sm font-medium text-gray-800">
               {label || 'Verificar Disponibilidad'}
             </p>
           </div>
@@ -84,11 +80,10 @@ const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
       </div>
 
       {/* Contenido del nodo */}
-      <div className="bg-gray-50 dark:!bg-gray-700 p-2 rounded-md mb-1"
-           style={{backgroundColor: mode === MODE_DARK ? '#374151' : '#f9fafb'}}>
+      <div className="bg-gray-50 p-2 rounded-md mb-1">
         <div className="space-y-2">
           <div className="form-group">
-            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Tipo de Cita:</label>
+            <label className="text-xs text-gray-600 mb-1 block">Tipo de Cita:</label>
             <Select
               onChange={handleAppointmentTypeChange}
               value={appointment_type_id || ''}
@@ -102,7 +97,7 @@ const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
           </div>
           
           <div className="form-group">
-            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Ubicación:</label>
+            <label className="text-xs text-gray-600 mb-1 block">Ubicación:</label>
             <Select
               onChange={handleLocationChange}
               value={location_id || ''}
@@ -116,7 +111,7 @@ const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
           </div>
           
           <div className="form-group">
-            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Agente:</label>
+            <label className="text-xs text-gray-600 mb-1 block">Agente:</label>
             <Select
               onChange={handleAgentChange}
               value={agent_id || ''}
@@ -131,7 +126,7 @@ const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
         </div>
       </div>
       
-      <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex justify-between mt-2 text-xs text-gray-500">
         <div className="flex items-center">
           <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
           <span>Disponible</span>
@@ -146,21 +141,21 @@ const CheckAvailabilityNode: React.FC<NodeProps<CheckAvailabilityNodeData>> = ({
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 bg-blue-500 border-2 border-white dark:border-gray-800"
+        className="w-3 h-3 bg-blue-500 border-2 border-white"
         isConnectable={isConnectable}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="available"
-        className="w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800"
+        className="w-3 h-3 bg-green-500 border-2 border-white"
         isConnectable={isConnectable}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="unavailable"
-        className="w-3 h-3 bg-red-500 border-2 border-white dark:border-gray-800"
+        className="w-3 h-3 bg-red-500 border-2 border-white"
         style={{ top: '70%' }}
         isConnectable={isConnectable}
       />

@@ -1,8 +1,8 @@
 /**
  * frontend/src/app/(protected-pages)/modules/superadmin/chatbot-builder/editor/_components/nodes/ConditionNode.tsx
  * Nodo de condición para el flujo de chatbot
- * @version 1.0.0
- * @updated 2025-04-08
+ * @version 1.1.0
+ * @updated 2025-05-19 - Añadido indicador de etapa del sales funnel con wrapper
  */
 
 'use client'
@@ -10,6 +10,7 @@
 import React, { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import { PiArrowsSplitDuotone } from 'react-icons/pi'
+import NodeWrapper from './NodeWrapper'
 
 const ConditionNode = ({ data, selected }: NodeProps) => {
   const options = data.options || []
@@ -38,7 +39,12 @@ const ConditionNode = ({ data, selected }: NodeProps) => {
   const handlePositions = getHandlePositions(options.length)
   
   return (
-    <div className={`px-4 py-2 rounded-lg shadow-md border-2 ${selected ? 'border-blue-500' : 'border-yellow-200 dark:border-yellow-700'} bg-white dark:bg-gray-800 min-w-[180px]`}>
+    <NodeWrapper 
+      selected={selected} 
+      salesStageId={data.salesStageId}
+      className="min-w-[180px]"
+      borderColor="border-yellow-200 dark:border-yellow-700"
+    >
       <div className="flex items-center">
         <PiArrowsSplitDuotone className="text-yellow-500 text-xl mr-2" />
         <span className="font-semibold text-gray-900 dark:text-gray-100">{data.label || 'Condición'}</span>
@@ -80,7 +86,7 @@ const ConditionNode = ({ data, selected }: NodeProps) => {
           style={{ top: position.y }}
         />
       ))}
-    </div>
+    </NodeWrapper>
   )
 }
 

@@ -315,5 +315,32 @@
     "module_created_message": "Module \"{name}\" created successfully",
     "error_saving_module": "Error Saving Module",
     "error_saving_module_message": "An error occurred while saving the module. Please try again."
+  },
+  "agents": {
+    "title": "Agents",
+    "createAgent": "Create Agent",
+    "agentsList": "Agents List",
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "bio": "Bio",
+      "specializations": "Specializations",
+      "languages": "Languages"
+    },
+    "placeholders": {
+      "bioPlaceholder": "Brief description of the agent...",
+      "specializationsPlaceholder": "Houses, Apartments, Commercial properties",
+      "languagesPlaceholder": "Spanish, English"
+    },
+    "hints": {
+      "separateByCommas": "Separate by commas",
+      "temporaryPasswordHint": "The agent must change this password on their first login"
+    },
+    "messages": {
+      "agentCreatedSuccessfully": "Agent created successfully",
+      "errorCreatingAgent": "Error creating agent"
+    }
   }
 }

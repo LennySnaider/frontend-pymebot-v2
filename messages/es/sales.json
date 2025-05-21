@@ -182,6 +182,7 @@
                 "propertyRequirements": "Requisitos de la propiedad",
                 "bedrooms": "Habitaciones",
                 "bathrooms": "Baños",
+                "assignedAgent": "Agente asignado",
                 "bedroomsNeeded": "Habitaciones necesarias",
                 "bathroomsNeeded": "Baños necesarios",
                 "featuresNeeded": "Características necesarias",

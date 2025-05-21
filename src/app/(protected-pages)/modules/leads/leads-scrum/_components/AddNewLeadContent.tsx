@@ -691,8 +691,11 @@ const AddNewLeadContent = () => {
             closable
             width={800}
         >
-            <h5 className="mb-4">
+            <h5 className="mb-4 flex items-center gap-2">
                 {t('title', { defaultValue: 'Añadir nuevo lead' })}
+                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
+                    {t('newLead', { defaultValue: 'Nuevo' })}
+                </span>
             </h5>
 
             {/* Componente Steps para mostrar progreso */}

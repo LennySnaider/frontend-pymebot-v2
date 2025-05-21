@@ -1,8 +1,8 @@
 /**
  * frontend/src/app/(protected-pages)/modules/superadmin/chatbot-builder/editor/_components/nodes/TTSNode.tsx
  * Nodo de Text-to-Speech para el flujo de chatbot
- * @version 1.0.0
- * @updated 2025-10-04
+ * @version 1.1.0
+ * @updated 2025-05-19 - Añadido indicador de etapa del sales funnel con wrapper
  */
 
 'use client'
@@ -10,15 +10,15 @@
 import React, { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import { PiSpeakerHighDuotone } from 'react-icons/pi'
+import NodeWrapper from './NodeWrapper'
 
 const TTSNode = ({ data, selected }: NodeProps) => {
     return (
-        <div
-            className={`px-4 py-2 rounded-lg shadow-md border-2 ${
-                selected
-                    ? 'border-blue-500'
-                    : 'border-teal-200 dark:border-teal-700'
-            } bg-white dark:bg-gray-800 min-w-[180px]`}
+        <NodeWrapper 
+            selected={selected} 
+            salesStageId={data.salesStageId}
+            className="min-w-[180px]"
+            borderColor="border-teal-200 dark:border-teal-700"
         >
             <div className="flex items-center">
                 <PiSpeakerHighDuotone className="text-teal-500 text-xl mr-2" />
@@ -43,7 +43,7 @@ const TTSNode = ({ data, selected }: NodeProps) => {
                 position={Position.Right}
                 className="w-2 h-2 !bg-teal-500"
             />
-        </div>
+        </NodeWrapper>
     )
 }
 

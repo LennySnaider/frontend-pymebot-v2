@@ -1,4 +1,4 @@
-import SalesFunnelProvider from './_components/SalesFunnelProvider'
+import ClientSalesFunnelProvider from './_components/ClientSalesFunnelProvider'
 import SalesFunnel from './_components/SalesFunnel'
 import getSalesFunnelDataWithAgents from '@/server/actions/getSalesFunnelDataWithAgents'
 import getSrcumboardMembers from '@/server/actions/getSrcumboardMembers'
@@ -23,10 +23,20 @@ export default async function Page() {
     }
 
     await getTranslations(['salesFunnel', 'common']) // Precargar traducciones
+    
+    // Debug: Log los datos que se están pasando
+    console.log('Page: Datos que se pasan al provider:')
+    console.log('Page: data keys:', Object.keys(data))
+    console.log('Page: data new:', data.new?.length || 0, 'leads')
+    console.log('Page: data prospecting:', data.prospecting?.length || 0, 'leads')
+    console.log('Page: data qualification:', data.qualification?.length || 0, 'leads')
+    console.log('Page: data opportunity:', data.opportunity?.length || 0, 'leads')
+    console.log('Page: salesTeam activeAgents:', salesTeam.activeAgents?.length || 0)
+    console.log('Page: salesTeam allAgents:', salesTeam.allAgents?.length || 0)
 
     return (
-        <SalesFunnelProvider data={data} salesTeam={salesTeam}>
+        <ClientSalesFunnelProvider data={data} salesTeam={salesTeam}>
             <SalesFunnel />
-        </SalesFunnelProvider>
+        </ClientSalesFunnelProvider>
     )
 }

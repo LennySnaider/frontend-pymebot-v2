@@ -24,6 +24,8 @@ export async function getTenantFromSession(): Promise<string> {
 
         // Obtener datos de sesión del usuario
         const session = await getServerSession()
+        
+        console.log('getTenantFromSession: Sesión completa:', JSON.stringify(session, null, 2))
 
         if (!session?.user) {
             // Si no hay sesión, no podemos determinar un tenant válido

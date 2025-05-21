@@ -315,5 +315,32 @@
     "module_created_message": "Módulo \"{name}\" creado correctamente",
     "error_saving_module": "Error al guardar el módulo",
     "error_saving_module_message": "Ha ocurrido un error al guardar el módulo. Por favor, inténtelo de nuevo."
+  },
+  "agents": {
+    "title": "Agentes",
+    "createAgent": "Crear Agente",
+    "agentsList": "Lista de Agentes",
+    "fields": {
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "fullName": "Nombre completo",
+      "phone": "Teléfono",
+      "bio": "Biografía",
+      "specializations": "Especializaciones",
+      "languages": "Idiomas"
+    },
+    "placeholders": {
+      "bioPlaceholder": "Breve descripción del agente...",
+      "specializationsPlaceholder": "Casas, Departamentos, Locales comerciales",
+      "languagesPlaceholder": "Español, Inglés"
+    },
+    "hints": {
+      "separateByCommas": "Separar por comas",
+      "temporaryPasswordHint": "El agente deberá cambiar esta contraseña en su primer inicio de sesión"
+    },
+    "messages": {
+      "agentCreatedSuccessfully": "Agente creado exitosamente",
+      "errorCreatingAgent": "Error al crear el agente"
+    }
   }
 }

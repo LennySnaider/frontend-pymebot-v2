@@ -74,16 +74,16 @@ interface TemplateData {
     version?: number
 }
 
-// Importar todos los nodos de negocio
-import {
-    BookAppointmentNode,
-    LeadQualificationNode,
-    RescheduleAppointmentNode,
-    CancelAppointmentNode,
-    ServicesNode,
-    ProductNode
-} from '@/modules/chatbot_business_nodes/components'
-import CheckAvailabilityNodeDark from '@/components/view/ChatbotBuilder/nodes/CheckAvailabilityNodeDark'
+// Importar nodos homologados
+import ProductNode from './nodes/ProductNode'
+import ServicesNode from './nodes/ServicesNode'
+import CheckAvailabilityNode from './nodes/CheckAvailabilityNode'
+import BookAppointmentNode from './nodes/BookAppointmentNode'
+import RescheduleAppointmentNode from './nodes/RescheduleAppointmentNode'
+import CancelAppointmentNode from './nodes/CancelAppointmentNode'
+
+// Importar nodos legacy que aún no están homologados
+import { LeadQualificationNode } from '@/modules/chatbot_business_nodes/components'
 import ActionNode from '@/components/view/ChatbotBuilder/nodes/ActionNode'
 
 // Definición de tipos de nodos personalizados
@@ -109,21 +109,25 @@ const nodeTypes: NodeTypes = {
     listNode: ListNode,
 
     // Nodos de negocio
-    'check-availability': CheckAvailabilityNodeDark,
-    check_availability: CheckAvailabilityNodeDark,
-    checkAvailability: CheckAvailabilityNodeDark,
+    'check-availability': CheckAvailabilityNode,
+    check_availability: CheckAvailabilityNode,
+    checkAvailability: CheckAvailabilityNode,
+    checkAvailabilityNode: CheckAvailabilityNode,
     'book-appointment': BookAppointmentNode,
     book_appointment: BookAppointmentNode,
     bookAppointment: BookAppointmentNode,
+    bookAppointmentNode: BookAppointmentNode,
     'lead-qualification': LeadQualificationNode,
     lead_qualification: LeadQualificationNode,
     leadQualification: LeadQualificationNode,
     'reschedule-appointment': RescheduleAppointmentNode,
     reschedule_appointment: RescheduleAppointmentNode,
     rescheduleAppointment: RescheduleAppointmentNode,
+    rescheduleAppointmentNode: RescheduleAppointmentNode,
     'cancel-appointment': CancelAppointmentNode,
     cancel_appointment: CancelAppointmentNode,
     cancelAppointment: CancelAppointmentNode,
+    cancelAppointmentNode: CancelAppointmentNode,
 
     // Nodos de productos y servicios
     'services': ServicesNode,
@@ -294,6 +298,21 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
 
                 // Capturar el estado actual del flujo
                 const flowJson = reactFlowInstance.toObject()
+
+                // Limpiar los nodos para eliminar movesToStage
+                if (flowJson.nodes && Array.isArray(flowJson.nodes)) {
+                    flowJson.nodes = flowJson.nodes.map((node: any) => {
+                        if (node.data && node.data.movesToStage) {
+                            // Eliminar movesToStage del nodo
+                            const { movesToStage, ...cleanData } = node.data
+                            return {
+                                ...node,
+                                data: cleanData
+                            }
+                        }
+                        return node
+                    })
+                }
 
                 // Verificar que tenemos la estructura correcta para la base de datos
                 if (!templateData.id) {

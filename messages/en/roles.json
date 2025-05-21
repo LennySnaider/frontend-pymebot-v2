@@ -1,0 +1,39 @@
+{
+    "editRole": "Edit role",
+    "createRole": "Create role",
+    "rolePermissions": "Role permissions",
+    "permissions": "Permissions",
+    "roleName": "Role name",
+    "description": "Description",
+    "createNewRole": "Create new role",
+    "deleteRole": "Delete role",
+    "confirmDeleteRole": "Are you sure you want to delete this role? This action cannot be undone and will remove all users from this role.",
+    "roleDeleted": "Role deleted",
+    "roleCreated": "Role created",
+    "roleUpdated": "Role updated",
+    "users": "Users",
+    "roleDescriptions": {
+        "super_admin": "Super Administrator with full system access",
+        "admin": "Administrator with most system access",
+        "agent": "Operational agent",
+        "viewer": "Read-only access"
+    },
+    "accessControl": {
+        "userManagement": "User management",
+        "productsAuthority": "Products authority",
+        "systemConfigurations": "System configurations",
+        "fileManagement": "File management",
+        "reports": "Reports"
+    },
+    "roleNames": {
+        "super_admin": "Super Administrator",
+        "admin": "Administrator",
+        "agent": "Agent",
+        "viewer": "Viewer"
+    },
+    "permissions": {
+        "read": "Read",
+        "write": "Write",
+        "delete": "Delete"
+    }
+}

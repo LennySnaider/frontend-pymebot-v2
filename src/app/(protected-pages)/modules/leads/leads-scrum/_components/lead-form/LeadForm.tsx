@@ -98,10 +98,18 @@ const LeadForm: React.FC<LeadFormProps> = ({
         resolver: zodResolver(validationSchema),
     })
 
-    // Manejar selección de propiedad con más datos - Simplificado
+    // Manejar selección de propiedad con más datos
     const handlePropertySelect = (propertyId: string) => {
-        // En la versión simplificada esta función no hace nada
-        console.log("Selector de propiedades desactivado");
+        // Buscar la propiedad seleccionada en las propiedades disponibles
+        const selectedProperty = availableProperties.find(
+            (property) => property.id === propertyId
+        );
+        
+        if (selectedProperty) {
+            console.log("Propiedad seleccionada:", selectedProperty);
+            // En este punto podríamos hacer más acciones con la propiedad seleccionada
+            // como precargar información relacionada, actualizar precios, etc.
+        }
     }
 
     /**
@@ -151,8 +159,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
                     values.source = 'sitio_web'
                 }
 
-                // Propiedades seleccionadas - Simplificado: siempre usar no-property
-                values.selectedProperties = ['no-property']
+                // Usar las propiedades seleccionadas del formulario o valor por defecto
+                if (!values.selectedProperties || values.selectedProperties.length === 0) {
+                    values.selectedProperties = ['no-property'];
+                }
 
                 // Determinar la columna de destino inicial
                 let uiTargetBoard = '' // Inicializar como string vacío
@@ -331,7 +341,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
                         />
                     </div>
 
-                    {/* Propiedades oculto pero mantiene funcionalidad */}
+                    {/* Selector de propiedades */}
                     <PropertySelector
                         control={control}
                         availableProperties={availableProperties}

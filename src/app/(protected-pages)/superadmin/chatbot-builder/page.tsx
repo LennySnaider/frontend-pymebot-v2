@@ -14,7 +14,8 @@ import { createClient } from '@supabase/supabase-js' // Added supabase
 import { v4 as uuidv4 } from 'uuid' // Added uuid
 import HeaderBreadcrumbs from '@/components/shared/HeaderBreadcrumbs'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
-import { Button, toast } from '@/components/ui' // Added toast
+import { Button } from '@/components/ui'
+import { toast } from '@/components/ui/toast'
 import { Drawer } from '@/components/ui'
 import SharedChatbotTemplatesList from '@/components/view/ChatbotBuilder/SharedChatbotTemplatesList'
 import { initializeChatbotDB } from '@/utils/setupChatbotTemplatesDB'
@@ -165,7 +166,11 @@ const ChatbotBuilderPage = () => {
 
                 // Actualizar la lista llamando a refreshTemplates
                 refreshTemplates() // Changed from setTemplates
-                toast.success('Plantilla importada correctamente')
+                toast.push({
+                    title: 'Plantilla importada correctamente',
+                    type: 'success',
+                    duration: 3000
+                })
             } catch (error) {
                 // Removed : any
                 console.error('Error al importar plantilla:', error)
@@ -173,7 +178,11 @@ const ChatbotBuilderPage = () => {
                     error instanceof Error
                         ? error.message
                         : 'Verifique el formato.'
-                toast.error(`Error al importar la plantilla: ${errorMessage}`)
+                toast.push({
+                    title: `Error al importar la plantilla: ${errorMessage}`,
+                    type: 'danger',
+                    duration: 5000
+                })
             }
 
             // Limpiar input

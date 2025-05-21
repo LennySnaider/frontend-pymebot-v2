@@ -1,8 +1,8 @@
 /**
  * frontend/src/app/(protected-pages)/modules/superadmin/chatbot-builder/editor/_components/nodes/StartNode.tsx
  * Nodo de inicio para el flujo de chatbot
- * @version 1.0.0
- * @updated 2025-04-08
+ * @version 1.1.0
+ * @updated 2025-05-19 - Añadido indicador de etapa del sales funnel con wrapper
  */
 
 'use client'
@@ -10,11 +10,15 @@
 import React, { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import { PiPlayCircleDuotone } from 'react-icons/pi'
+import NodeWrapper from './NodeWrapper'
 
 const StartNode = ({ data, selected }: NodeProps) => {
     return (
-        <div
-            className={`px-4 py-2 rounded-lg shadow-md border-2 ${selected ? 'border-blue-500' : 'border-green-500'} bg-white dark:bg-gray-800 min-w-[150px] text-center`}
+        <NodeWrapper 
+            selected={selected} 
+            salesStageId={data.salesStageId}
+            className="min-w-[150px] text-center"
+            borderColor="border-green-500"
         >
             <div className="flex items-center justify-center">
                 <PiPlayCircleDuotone className="text-green-500 text-xl mr-2" />
@@ -28,7 +32,7 @@ const StartNode = ({ data, selected }: NodeProps) => {
                 position={Position.Right}
                 className="w-2 h-2 !bg-green-500"
             />
-        </div>
+        </NodeWrapper>
     )
 }
 

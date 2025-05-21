@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const id = params.id;
+    const id = String(params?.id || '');
     const article = mockArticleData.find((item) => item.id === id);
 
     if (!article) {
@@ -59,7 +59,7 @@ export async function PUT(
       );
     }
 
-    const id = params.id;
+    const id = String(params?.id || '');
     const body = await req.json();
     
     // En un entorno real, aquí actualizaríamos la base de datos

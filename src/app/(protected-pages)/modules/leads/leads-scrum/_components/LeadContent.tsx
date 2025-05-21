@@ -9,7 +9,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { showSuccess, showError } from '@/utils/notifications'
 import { useSalesFunnelStore } from '../_store/salesFunnelStore'
 import LeadView from './LeadView'
@@ -126,23 +126,35 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
             
             // Intentar recuperar datos adicionales del almacenamiento local
             try {
-                const storedData = getStoredLeadData(selected.id);
+                // Obtener los datos almacenados en formato estructurado para el lead
+                const storedData = getStoredLeadData(selected.id, 'structured');
                 
                 if (storedData) {
                     console.log('Se encontraron datos guardados para lead:', storedData);
                     
-                    // Combinar con los datos actuales
+                    // Combinar con los datos actuales, priorizando los datos de la API
                     normalizedLead = {
-                        ...normalizedLead,
-                        // Usar datos almacenados solo si el lead actual no tiene valores
-                        agentId: normalizedLead.agentId || storedData.agentId,
-                        property_ids: normalizedLead.property_ids || storedData.propertyIds,
+                        ...storedData,              // Primero los datos almacenados como base
+                        ...normalizedLead,          // Sobrescribir con datos de la API
+                        // Combinar metadata de manera especial
                         metadata: {
-                            ...normalizedLead.metadata,
-                            // Aplicar datos almacenados a metadata también
-                            agentId: normalizedLead.metadata?.agentId || storedData.agentId,
-                            propertyType: normalizedLead.metadata?.propertyType || storedData.propertyType,
-                            property_ids: normalizedLead.metadata?.property_ids || storedData.propertyIds
+                            ...storedData.metadata,  // Datos almacenados en metadata
+                            ...normalizedLead.metadata, // Sobrescribir con los datos de la API
+                            // Asegurar que campos críticos estén disponibles
+                            propertyType: normalizedLead.metadata?.propertyType || storedData.metadata?.propertyType || normalizedLead.property_type,
+                            bedroomsNeeded: normalizedLead.metadata?.bedroomsNeeded !== undefined 
+                                ? normalizedLead.metadata?.bedroomsNeeded 
+                                : (storedData.metadata?.bedroomsNeeded !== undefined 
+                                    ? storedData.metadata?.bedroomsNeeded 
+                                    : normalizedLead.bedrooms_needed),
+                            bathroomsNeeded: normalizedLead.metadata?.bathroomsNeeded !== undefined 
+                                ? normalizedLead.metadata?.bathroomsNeeded 
+                                : (storedData.metadata?.bathroomsNeeded !== undefined 
+                                    ? storedData.metadata?.bathroomsNeeded 
+                                    : normalizedLead.bathrooms_needed),
+                            agentId: normalizedLead.metadata?.agentId || normalizedLead.agentId || storedData.metadata?.agentId || storedData.agentId,
+                            source: normalizedLead.metadata?.source || storedData.metadata?.source || 'web',
+                            interest: normalizedLead.metadata?.interest || storedData.metadata?.interest || 'medio'
                         }
                     }
                     
@@ -329,7 +341,7 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                         newId: result.data.id
                     })
                     
-                    // Guardar datos importantes en almacenamiento local para persistencia
+                    // Guardar datos completos en almacenamiento local para persistencia
                     try {
                         // Guardar con ambos IDs para mayor seguridad
                         const idsToStore = [updatedLeadData.id];
@@ -337,16 +349,18 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                             idsToStore.push(result.data.id);
                         }
                         
-                        // Guardar datos para cada ID
+                        // Guardar datos completos para cada ID
                         idsToStore.forEach(id => {
-                            storeLeadData(id, {
-                                propertyIds: updatedLeadData.property_ids,
-                                propertyType: updatedLeadData.metadata?.propertyType,
-                                agentId: updatedLeadData.metadata?.agentId || updatedLeadData.agentId
-                            });
+                            // Pasar el objeto completo para almacenar todos los campos relevantes
+                            storeLeadData(id, updatedLeadData);
+                            
+                            // También almacenar con el resultado API por si tiene más campos
+                            if (result.data) {
+                                storeLeadData(id, result.data);
+                            }
                         });
                         
-                        console.log('Datos del lead guardados en almacenamiento local');
+                        console.log('Datos completos del lead guardados en almacenamiento local');
                     } catch (error) {
                         console.error('Error guardando datos del lead:', error);
                     }
@@ -383,174 +397,114 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
         }
     }
 
-    const loadPropertiesByType = async (propertyType: string) => {
+    // Registrar las peticiones pendientes para no repetirlas
+    const pendingPropertyRequests = useRef<Record<string, Promise<void>>>({});
+    
+    // Función optimizada para cargar propiedades de un tipo específico usando useCallback
+    // para evitar recreaciones innecesarias y funcionar bien con useEffect
+    const loadPropertiesByType = useCallback(async (propertyType: string) => {
         if (!leadData?.id) return
-
-        setIsLoadingProperties(true)
-        setFilteredProperties([])
-
-        try {
-            console.log(`Cargando propiedades de tipo: ${propertyType}`)
-            
-            // Verificar si el tipo de propiedad es válido
-            if (!propertyType || propertyType === '') {
-                console.error('Tipo de propiedad vacío, no se pueden cargar propiedades')
-                setIsLoadingProperties(false)
-                return
-            }
-            
-            // Crear un mapa de posibles tipos equivalentes para intentar varias consultas si es necesario
-            let typesToTry = [propertyType];
-            
-            // Añadir variantes en minúsculas/mayúsculas
-            if (propertyType.toLowerCase() !== propertyType) {
-                typesToTry.push(propertyType.toLowerCase());
-            }
-            if (propertyType.toUpperCase() !== propertyType) {
-                typesToTry.push(propertyType.toUpperCase());
-            }
-            
-            // Mapeo de tipos en español a inglés para probar alternativas
-            const mappings: { [key: string]: string } = {
-                'casa': 'house',
-                'apartamento': 'apartment',
-                'departamento': 'apartment',
-                'local': 'commercial',
-                'local comercial': 'commercial',
-                'oficina': 'office',
-                'terreno': 'land',
-                'nave industrial': 'industrial',
-            };
-            
-            const englishMappings: { [key: string]: string } = {
-                'house': 'casa',
-                'apartment': 'apartamento',
-                'commercial': 'local comercial',
-                'office': 'oficina',
-                'land': 'terreno',
-                'industrial': 'nave industrial',
-            };
-            
-            // Añadir tipos alternativos a la lista
-            const lowerType = propertyType.toLowerCase();
-            if (mappings[lowerType]) {
-                typesToTry.push(mappings[lowerType]);
-            }
-            if (englishMappings[lowerType]) {
-                typesToTry.push(englishMappings[lowerType]);
-            }
-            
-            console.log(`Tipos de propiedad a consultar: ${typesToTry.join(', ')}`);
-            
-            // No normalizar, enviar el tipo tal como está ya que la API maneja el mapeo
-            const url = `/api/properties/filter?type=${encodeURIComponent(propertyType)}`
-            console.log('URL de consulta:', url)
-
-            const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), 8000)
-
-            const response = await fetch(url, {
-                signal: controller.signal,
-                headers: {
-                    Accept: 'application/json',
-                    'Cache-Control': 'no-cache',
-                },
-            })
-
-            clearTimeout(timeoutId)
-
-            let responseData
+        if (!propertyType || propertyType === '') return
+        
+        // Verificar si ya hay una petición en curso para este tipo
+        const cacheKey = `property_type_${propertyType}`;
+        if (pendingPropertyRequests.current[cacheKey]) {
+            console.log(`Ya existe una petición en curso para tipo: ${propertyType}, esperando...`);
             try {
-                responseData = await response.json()
-                console.log('Respuesta de la API:', responseData)
-                console.log('Número de propiedades encontradas:', responseData.length)
-
-                if (responseData.error) {
-                    console.error(
-                        'Error devuelto por la API:',
-                        responseData.error,
-                    )
-                    throw new Error(responseData.error)
-                }
-
-                if (!Array.isArray(responseData)) {
-                    console.error('La respuesta no es un array:', responseData)
-                    throw new Error('Formato de respuesta inválido')
-                }
-
-                if (responseData.length === 0) {
-                    console.warn(
-                        'No se encontraron propiedades para el tipo:',
-                        propertyType
-                    )
+                await pendingPropertyRequests.current[cacheKey];
+                return; // La petición anterior ya actualizó el estado
+            } catch (err) {
+                // La petición anterior falló, permitir un nuevo intento
+                console.warn(`Petición anterior para ${propertyType} falló:`, err);
+                delete pendingPropertyRequests.current[cacheKey];
+            }
+        }
+        
+        // Indicar carga y crear una promesa para esta petición
+        setIsLoadingProperties(true);
+        setFilteredProperties([]);
+        
+        // Crear una promesa para esta petición y almacenarla
+        const requestPromise = (async () => {
+            try {
+                console.log(`Iniciando carga de propiedades tipo: ${propertyType}`);
+                
+                // URL simple con un solo intento (evitar múltiples mapeos)
+                const url = `/api/properties/filter?type=${encodeURIComponent(propertyType)}`;
+                
+                // Timeout de seguridad
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                try {
+                    const response = await fetch(url, {
+                        signal: controller.signal,
+                        headers: {
+                            Accept: 'application/json',
+                            'Cache-Control': 'no-cache',
+                        },
+                    });
                     
-                    // Mostrar advertencia pero permitir continuar con lista vacía
-                    console.log('Mostrando lista vacía, los datos de ejemplo se generarán en la API')
-                    setFilteredProperties([])
-                    return
-                }
-
-                const processedData = responseData
-                    .map((property) => {
-                        if (!property.id) {
-                            console.warn('Propiedad sin ID:', property)
-                            return null
-                        }
-
-                        const name =
-                            property.name ||
-                            property.title ||
-                            property.code ||
-                            `Propiedad ${property.id.slice(0, 6)}`
-
-                        let location = property.location
-                        if (!location && property.colony && property.city) {
-                            location = `${property.colony}, ${property.city}`
-                        } else if (!location && property.address) {
-                            location = property.address
-                        } else if (!location) {
-                            location = 'Sin ubicación'
-                        }
-
-                        let price = property.price
-                        if (typeof price === 'string') {
-                            price =
-                                parseFloat(price.replace(/[^\d.-]/g, '')) || 0
-                        }
-
-                        return {
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (!Array.isArray(data)) {
+                        setFilteredProperties([]);
+                        return;
+                    }
+                    
+                    // Simplificar el procesamiento
+                    const processedData = data
+                        .filter(property => !!property.id)
+                        .map(property => ({
                             id: property.id,
-                            name,
-                            location,
-                            price,
+                            name: property.name || property.title || property.code || `Propiedad ${property.id.slice(0, 6)}`,
+                            location: property.location || 
+                                     (property.colony && property.city ? `${property.colony}, ${property.city}` : 
+                                     (property.address || 'Sin ubicación')),
+                            price: typeof property.price === 'string' 
+                                 ? parseFloat(property.price.replace(/[^\d.-]/g, '')) || 0 
+                                 : (property.price || 0),
                             currency: property.currency || 'MXN',
-                            propertyType:
-                                property.propertyType || property.property_type,
+                            propertyType: property.propertyType || property.property_type,
                             bedrooms: property.bedrooms,
                             bathrooms: property.bathrooms,
                             area: property.area,
-                            areaUnit:
-                                property.areaUnit || property.area_unit || 'm²',
+                            areaUnit: property.areaUnit || property.area_unit || 'm²',
                             description: property.description,
                             status: property.status || 'available',
-                        }
-                    })
-                    .filter(Boolean)
-
-                console.log('Propiedades procesadas:', processedData)
-                setFilteredProperties(processedData)
-            } catch (jsonError) {
-                console.error('Error al procesar la respuesta:', jsonError)
-                throw new Error(`Error al procesar datos: ${jsonError.message}`)
+                        }));
+                    
+                    setFilteredProperties(processedData);
+                    console.log(`Cargadas ${processedData.length} propiedades de tipo ${propertyType}`);
+                    
+                } catch (error) {
+                    console.warn(`Error cargando propiedades tipo ${propertyType}:`, error);
+                    // En caso de error, simplemente dejar la lista vacía
+                    setFilteredProperties([]);
+                    throw error; // Re-lanzar para que la promesa se rechace
+                }
+                
+            } finally {
+                setIsLoadingProperties(false);
+                // Eliminar esta petición de las pendientes una vez finalizada (éxito o error)
+                delete pendingPropertyRequests.current[cacheKey];
             }
-        } catch (error) {
-            console.error('Error al cargar propiedades:', error)
-            setFilteredProperties([])
-        } finally {
-            setIsLoadingProperties(false)
-        }
-    }
+        })();
+        
+        // Almacenar la promesa y retornarla
+        pendingPropertyRequests.current[cacheKey] = requestPromise;
+        return requestPromise;
+    }, [leadData?.id, setIsLoadingProperties, setFilteredProperties]);
 
+    // Usamos una ref para evitar múltiples cargas del mismo tipo de propiedad
+    const loadedPropertyTypes = useRef<Set<string>>(new Set());
+    
     useEffect(() => {
         if (mode === 'edit' && leadData?.metadata?.propertyType) {
             const propertyType =
@@ -558,15 +512,25 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                     ? leadData.metadata.propertyType.value || ''
                     : leadData.metadata.propertyType
 
-            if (propertyType && typeof propertyType === 'string') {
+            // Verificar que el tipo de propiedad no se haya cargado ya
+            if (propertyType && 
+                typeof propertyType === 'string' && 
+                !isLoadingProperties && 
+                !loadedPropertyTypes.current.has(propertyType)) {
+                
                 console.log(
-                    'Cargando propiedades iniciales para tipo:',
+                    'Cargando propiedades iniciales para tipo (primera vez):',
                     propertyType,
                 )
-                loadPropertiesByType(propertyType)
+                
+                // Marcar este tipo como ya cargado para evitar bucles
+                loadedPropertyTypes.current.add(propertyType);
+                
+                // Ejecutar la carga real
+                loadPropertiesByType(propertyType);
             }
         }
-    }, [mode, leadData?.metadata?.propertyType])
+    }, [mode, leadData?.metadata?.propertyType, isLoadingProperties, loadPropertiesByType])
 
     useEffect(() => {
         console.log('LeadContent Dialog - dialogOpen:', dialogOpen)

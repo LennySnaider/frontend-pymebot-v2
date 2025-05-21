@@ -114,7 +114,7 @@ export async function GET(
       }
     });
   } catch (error) {
-    console.error(`Error obteniendo permisos para tenant ${params.id}:`, error);
+    console.error(`Error obteniendo permisos para tenant ${String(params?.id || '')}:`, error);
     
     return NextResponse.json({
       error: 'Error interno al obtener permisos',
@@ -190,7 +190,7 @@ export async function PATCH(
       }
     }, { status: 200 });
   } catch (error) {
-    console.error(`Error actualizando permisos para tenant ${params.id}:`, error);
+    console.error(`Error actualizando permisos para tenant ${String(params?.id || '')}:`, error);
     
     return NextResponse.json({
       error: 'Error interno al actualizar permisos',

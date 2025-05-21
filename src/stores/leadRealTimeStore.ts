@@ -100,6 +100,36 @@ export const useLeadRealTimeStore = create<LeadRealTimeState & LeadRealTimeActio
             }
 
             window.addEventListener('lead-realtime-event' as any, customEventHandler)
+            
+            // Escuchar eventos del SalesFunnel
+            const salesFunnelHandler = (e: CustomEvent) => {
+                if (e.detail && e.detail.leadId) {
+                    console.log('leadRealTimeStore: Interceptando evento de SalesFunnel:', e.detail);
+                    
+                    // Convertir el evento de SalesFunnel a formato de evento de lead
+                    const leadEvent: LeadEvent = {
+                        type: 'update',
+                        leadId: e.detail.leadId, // Mantener el ID tal como viene del evento
+                        data: {
+                            ...e.detail.data,
+                            source: 'salesfunnel',
+                            // Si hay una nueva etapa, incluirla en los datos
+                            ...(e.detail.data?.newStage ? { stage: e.detail.data.newStage } : {})
+                        },
+                        timestamp: Date.now()
+                    };
+                    
+                    // Imprimir información de depuración ampliada
+                    console.log('leadRealTimeStore: Generando evento de lead desde SalesFunnel:', {
+                        originalEvent: e.detail,
+                        transformedEvent: leadEvent
+                    });
+                    
+                    get().processEvent(leadEvent);
+                }
+            }
+            
+            window.addEventListener('salesfunnel-lead-updated' as any, salesFunnelHandler);
 
             // Guardar handlers para limpieza y marcar como escuchando
             set({
@@ -109,7 +139,9 @@ export const useLeadRealTimeStore = create<LeadRealTimeState & LeadRealTimeActio
                 // @ts-ignore - Agregamos propiedades temporales
                 storageHandler,
                 // @ts-ignore
-                customEventHandler
+                customEventHandler,
+                // @ts-ignore
+                salesFunnelHandler
             })
 
             console.log('LeadRealTimeStore: Escucha de eventos iniciada')
@@ -145,6 +177,15 @@ export const useLeadRealTimeStore = create<LeadRealTimeState & LeadRealTimeActio
                     state.customEventHandler
                 )
             }
+            
+            // @ts-ignore
+            if (state.salesFunnelHandler) {
+                window.removeEventListener(
+                    'salesfunnel-lead-updated' as any,
+                    // @ts-ignore
+                    state.salesFunnelHandler
+                )
+            }
         }
 
         set({
@@ -153,7 +194,9 @@ export const useLeadRealTimeStore = create<LeadRealTimeState & LeadRealTimeActio
             // @ts-ignore
             storageHandler: undefined,
             // @ts-ignore
-            customEventHandler: undefined
+            customEventHandler: undefined,
+            // @ts-ignore
+            salesFunnelHandler: undefined
         })
 
         console.log('LeadRealTimeStore: Escucha de eventos detenida')
@@ -205,13 +248,19 @@ export const useLeadRealTimeStore = create<LeadRealTimeState & LeadRealTimeActio
     },
 
     processEvent: (event) => {
-        // Verificar que el evento no sea repetido (por timestamp)
+        console.log(`LeadRealTimeStore: Procesando evento ${event.type} para lead ${event.leadId}`);
+        
+        // Verificar que el evento no sea repetido (por timestamp) - SOLO PARA EVENTOS QUE NO SON DE SALESFUNNEL
+        // Para los eventos de salesfunnel siempre los procesamos por si acaso
         const events = get().events
-        if (events.some(e => 
-            e.leadId === event.leadId && 
-            e.type === event.type && 
-            Math.abs(e.timestamp - event.timestamp) < 500
-        )) {
+        if (!event.data?.source?.includes('salesfunnel') && 
+            events.some(e => 
+                e.leadId === event.leadId && 
+                e.type === event.type && 
+                Math.abs(e.timestamp - event.timestamp) < 500
+            )
+        ) {
+            console.log(`LeadRealTimeStore: Ignorando evento duplicado ${event.type} para lead ${event.leadId}`);
             return // Evento duplicado, ignorar
         }
 
@@ -221,7 +270,27 @@ export const useLeadRealTimeStore = create<LeadRealTimeState & LeadRealTimeActio
             lastEvent: event
         }))
 
-        console.log(`LeadRealTimeStore: Procesado evento ${event.type} para lead ${event.leadId}`)
+        console.log(`LeadRealTimeStore: Procesado evento ${event.type} para lead ${event.leadId}`, event.data)
+        
+        // Si es un evento de SalesFunnel, también disparar el evento específico de sincronización
+        if (event.data?.source === 'salesfunnel') {
+            console.log('LeadRealTimeStore: Propagando evento de SalesFunnel para sincronización de nombres');
+            
+            // Disparar un evento específico para que el sistema de chat sepa 
+            // que debe sincronizar los nombres de los leads
+            if (typeof window !== 'undefined') {
+                // Asegurar formato correcto del ID (sin prefijo 'lead_')
+                const normalizedLeadId = event.leadId.startsWith('lead_') ? event.leadId.substring(5) : event.leadId;
+                window.dispatchEvent(new CustomEvent('syncLeadNames', {
+                    detail: {
+                        leadId: normalizedLeadId,
+                        data: event.data
+                    },
+                    bubbles: true
+                }));
+                console.log(`leadRealTimeStore: Emitido evento syncLeadNames con ID normalizado: ${normalizedLeadId}`);
+            }
+        }
     },
 
     clearEvents: () => {

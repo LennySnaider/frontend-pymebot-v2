@@ -90,7 +90,7 @@ const getLead = async (params: { id: string }) => {
         }
     } catch (error) {
         console.error('Error general en getLead:', error)
-        return getMockLead(params.id)
+        throw new Error(`Error al obtener lead con ID ${params.id}`)
     }
 }
 
@@ -110,46 +110,6 @@ function getStatusColor(status: string): string {
     }
 }
 
-/**
- * Genera datos de ejemplo para un lead específico
- */
-function getMockLead(id: string) {
-    return {
-        id,
-        name: 'Juan Pérez',
-        email: 'juan.perez@example.com',
-        phone: '+52 55 1234 5678',
-        status: 'active',
-        stage: 'qualification',
-        source: 'referral',
-        interest_level: 'high',
-        budget_min: 2000000,
-        budget_max: 3500000,
-        property_type: 'house',
-        preferred_zones: ['Polanco', 'Condesa', 'Roma Norte'],
-        bedrooms_needed: 3,
-        bathrooms_needed: 2,
-        features_needed: ['garden', 'parking', 'security'],
-        notes: 'Busca casa para su familia, con 2 niños pequeños. Preferentemente cerca de escuelas.',
-        agent: {
-            id: 'agent-123',
-            name: 'Carlos Rodríguez',
-            email: 'carlos@agentprop.com'
-        },
-        last_contact_date: '2025-05-15T14:30:00Z',
-        next_contact_date: '2025-05-22T11:00:00Z',
-        contact_count: 2,
-        created_at: '2025-05-10T09:00:00Z',
-        updated_at: '2025-05-15T15:00:00Z',
-        tenant_id: 'afa60b0a-3046-4607-9c48-266af6e1d322',
-        appointments: [],
-        // Campos adicionales para compatibilidad con la interfaz de Customer
-        img: 'https://i.pravatar.cc/150?img=25',
-        role: 'Prospecto',
-        lastOnline: new Date().toISOString(),
-        status_color: 'bg-emerald-500',
-        tags: ['high']
-    }
-}
+// Función getMockLead eliminada - no usar datos mock
 
 export default getLead

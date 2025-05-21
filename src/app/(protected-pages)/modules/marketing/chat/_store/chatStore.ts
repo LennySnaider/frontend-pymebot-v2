@@ -35,6 +35,8 @@ export type ChatState = {
     activeTemplateId: string
     // Estado del sales funnel
     currentLeadStage?: string
+    // Estado de error para plantillas
+    templatesError: string | null
 }
 
 type ChatAction = {
@@ -54,9 +56,16 @@ type ChatAction = {
     setTemplates: (payload: ChatTemplate[]) => void
     setActiveTemplate: (templateId: string) => void
     fetchTemplates: () => Promise<void> // Nueva acción para cargar plantillas
+    setTemplatesError: (error: string | null) => void // Nueva acción para gestionar errores
     // Acciones del sales funnel
     setCurrentLeadStage: (stageId: string | undefined) => void
     updateLeadStage: (leadId: string, stageId: string) => Promise<void>
+    // Nueva acción para actualizar chats en tiempo real
+    refreshChatList: () => Promise<void>
+    // Nueva acción para actualizar nombres de chat/lead
+    updateChatName: (chatId: string, newName: string) => void
+    // Nueva acción para actualizar metadata de un chat
+    updateChatMetadata: (chatId: string, metadata: Record<string, any>) => void
 }
 
 const initialState: ChatState = {
@@ -78,6 +87,8 @@ const initialState: ChatState = {
     activeTemplateId: '',
     // Estado inicial del sales funnel
     currentLeadStage: undefined,
+    // Estado inicial de error para plantillas
+    templatesError: null,
 }
 
 export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
@@ -167,6 +178,200 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 chats: previousChats.filter((chat) => chat.id !== payload),
             }
         }),
+    
+    // Gestión de errores de plantillas
+    setTemplatesError: (error) => set(() => ({ templatesError: error })),
+    
+    // Nueva función para actualizar nombre de chat (especialmente útil para leads)
+    updateChatName: (chatId, newName) => 
+        set((state) => {
+            console.log(`ChatStore: Actualizando nombre de chat ${chatId} a "${newName}"`);
+            
+            // Actualizar en la lista de chats
+            const updatedChats = state.chats.map((chat) => {
+                if (chat.id === chatId) {
+                    console.log(`ChatStore: Encontrado chat ${chatId}, actualizando nombre de "${chat.name}" a "${newName}"`);
+                    return {
+                        ...chat,
+                        name: newName
+                    };
+                }
+                return chat;
+            });
+            
+            // Actualizar en el chat seleccionado si coincide
+            let updatedSelectedChat = state.selectedChat;
+            if (state.selectedChat.id === chatId) {
+                console.log(`ChatStore: Actualizando nombre en chat seleccionado a "${newName}"`);
+                updatedSelectedChat = {
+                    ...state.selectedChat,
+                    name: newName,
+                    user: state.selectedChat.user ? {
+                        ...state.selectedChat.user,
+                        name: newName
+                    } : undefined
+                };
+            }
+            
+            return {
+                chats: updatedChats,
+                selectedChat: updatedSelectedChat
+            };
+        }),
+
+    // Nueva función para actualizar metadata de un chat específico
+    updateChatMetadata: (chatId, metadata) =>
+        set((state) => {
+            console.log(`ChatStore: Actualizando metadata de chat ${chatId}:`, metadata);
+            
+            // Verificar si el chat existe
+            const chatExists = state.chats.some(chat => chat.id === chatId);
+            if (!chatExists) {
+                console.warn(`ChatStore: No se encontró chat con ID ${chatId} para actualizar metadata`);
+                // Si no está en la lista pero es un lead, podría necesitar un refresh completo
+                if (chatId.startsWith('lead_')) {
+                    console.log(`ChatStore: Intentando refrescar lista para incluir ${chatId}`);
+                    // Ejecutamos refreshChatList en el próximo ciclo para no interferir con este update
+                    setTimeout(() => {
+                        try {
+                            const refreshFn = get().refreshChatList;
+                            if (typeof refreshFn === 'function') {
+                                refreshFn();
+                            }
+                        } catch (error) {
+                            console.error('Error al refrescar lista:', error);
+                        }
+                    }, 0);
+                }
+                return state; // Mantener estado sin cambios
+            }
+            
+            // Actualizar en la lista de chats
+            const updatedChats = state.chats.map((chat) => {
+                if (chat.id === chatId) {
+                    // Combinar metadata existente con la nueva
+                    const updatedMetadata = {
+                        ...(chat.metadata || {}),
+                        ...metadata
+                    };
+                    
+                    // También actualizar lastActivity timestamp para que aparezca primero en la lista
+                    if (!updatedMetadata.lastActivity) {
+                        updatedMetadata.lastActivity = Date.now();
+                    }
+                    
+                    return {
+                        ...chat,
+                        metadata: updatedMetadata
+                    };
+                }
+                return chat;
+            });
+            
+            // Actualizar en el chat seleccionado si coincide
+            let updatedSelectedChat = state.selectedChat;
+            if (state.selectedChat.id === chatId) {
+                console.log(`ChatStore: Actualizando metadata en chat seleccionado:`, metadata);
+                updatedSelectedChat = {
+                    ...state.selectedChat,
+                    ...Object.entries(metadata).reduce((acc, [key, value]) => {
+                        // Solo actualizar propiedades directas que coincidan con nombres de metadata
+                        if (key === 'stage') acc.stage = value;
+                        return acc;
+                    }, {} as Partial<SelectedChat>)
+                };
+            }
+            
+            return {
+                chats: updatedChats,
+                selectedChat: updatedSelectedChat
+            };
+        }),
+    
+    // Nueva función para actualizar lista de chats (prospectos) en tiempo real
+    refreshChatList: async () => {
+        try {
+            console.log('ChatStore: Actualizando lista de chats...');
+            
+            // Solo ejecutar en el cliente
+            if (typeof window === 'undefined') {
+                console.log('ChatStore: No se puede actualizar en el servidor');
+                return;
+            }
+            
+            // Mantener la configuración actual
+            const currentChatType = get().selectedChatType;
+            const selectedChat = get().selectedChat;
+            
+            // Si está viendo prospectos/leads, actualizar específicamente esos
+            if (currentChatType === 'prospects' || currentChatType === 'leads') {
+                console.log('ChatStore: Actualizando lista de prospectos/leads');
+                
+                // Obtener el mejor servicio para obtener la lista
+                let chatListService;
+                
+                try {
+                    // Importación dinámica para evitar errores SSR
+                    const { getChatListFromLeads } = await import('@/services/ChatService/getChatListClient');
+                    chatListService = getChatListFromLeads;
+                } catch (error) {
+                    console.error('Error importando servicio de chat:', error);
+                    return;
+                }
+                
+                // Obtener lista actualizada
+                const updatedChats = await chatListService();
+                
+                if (updatedChats && Array.isArray(updatedChats)) {
+                    console.log('ChatStore: Lista actualizada:', updatedChats.length, 'chats');
+                    
+                    // Actualizar lista manteniendo chats no-lead existentes
+                    const existingNonLeadChats = get().chats.filter(
+                        chat => chat.chatType !== 'leads' && chat.chatType !== 'prospects'
+                    );
+                    
+                    set({
+                        chats: [...existingNonLeadChats, ...updatedChats],
+                        chatsFetched: true
+                    });
+                    
+                    // Verificar si el chat seleccionado sigue existiendo
+                    const selectedChatStillExists = updatedChats.some(chat => chat.id === selectedChat.id);
+                    
+                    if (!selectedChatStillExists && selectedChat.id && selectedChat.id.startsWith('lead_')) {
+                        console.log('ChatStore: El chat seleccionado ya no existe, seleccionando otro');
+                        
+                        // Seleccionar el primer chat disponible si el actual ya no existe
+                        if (updatedChats.length > 0) {
+                            const firstChat = updatedChats[0];
+                            get().setSelectedChat({
+                                id: firstChat.id,
+                                user: {
+                                    id: firstChat.userId || firstChat.groupId,
+                                    avatarImageUrl: firstChat.avatar,
+                                    name: firstChat.name,
+                                },
+                                muted: firstChat.muted,
+                                chatType: firstChat.chatType,
+                                stage: firstChat.metadata?.stage || 'new',
+                                name: firstChat.name,
+                                avatar: firstChat.avatar,
+                                tenantId: firstChat.tenantId,
+                            });
+                        } else {
+                            // No hay chats disponibles, limpiar selección
+                            get().setSelectedChat({});
+                        }
+                    }
+                }
+            } else {
+                console.log('ChatStore: Tipo de chat actual no es prospects/leads, no se actualiza');
+            }
+        } catch (error) {
+            console.error('Error actualizando lista de chats:', error);
+            throw error;
+        }
+    },
     // Nuevas acciones para las plantillas
     setTemplates: (templates) =>
         set(() => {
@@ -200,6 +405,7 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
             return {
                 templates: updatedTemplates,
                 activeTemplateId: activeId,
+                templatesError: null // Limpiar cualquier error al cargar plantillas exitosamente
             }
         }),
     setActiveTemplate: (templateId) =>
@@ -310,193 +516,189 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 // Mapear los nombres de etapas del frontend al backend si es necesario
                 let mappedStage = stageId;
                 const stageMapping: Record<string, string> = {
-                    'confirmar': 'confirmado',
-                    'confirmed': 'confirmado',
-                    'cerrado': 'cerrado',
-                    'closed': 'cerrado',
-                    'nuevos': 'nuevos',
-                    'new': 'nuevos',
-                    'prospectando': 'prospectando',
-                    'prospecting': 'prospectando',
-                    'calificacion': 'calificacion',
-                    'qualification': 'calificacion',
-                    'oportunidad': 'oportunidad',
-                    'opportunity': 'oportunidad'
+                    'nuevos': 'new',
+                    'prospectando': 'prospecting',
+                    'calificación': 'qualification',
+                    'calificacion': 'qualification',
+                    'oportunidad': 'opportunity',
+                    'confirmado': 'confirmed',
+                    'cerrado': 'closed'
                 };
                 
                 if (stageMapping[stageId]) {
                     mappedStage = stageMapping[stageId];
-                    console.log('ChatStore: Etapa mapeada de', stageId, 'a', mappedStage);
                 }
                 
-                window.dispatchEvent(new CustomEvent('lead-stage-updated', {
-                    detail: { leadId, newStage: mappedStage },
-                    bubbles: true,
-                    composed: true
-                }));
+                // Notificar a través de broadcast para actualizar UI
+                try {
+                    console.log('ChatStore: Llamando broadcastLeadUpdate con:', { type: 'update-stage', leadId, data: { newStage: mappedStage, rawStage: stageId } });
+                    broadcastLeadUpdate('update-stage', leadId, {
+                        newStage: mappedStage,
+                        rawStage: stageId
+                    });
+                } catch (error) {
+                    console.error('ChatStore: Error en broadcastLeadUpdate:', error);
+                }
                 
-                // Usar BroadcastChannel para comunicación instantánea entre pestañas
-                broadcastLeadUpdate(leadId, mappedStage);
+                // Usar también el store específico para leads disponible
+                if (simpleLeadUpdateStore && typeof simpleLeadUpdateStore.getState === 'function') {
+                    simpleLeadUpdateStore.getState().setChanged(true);
+                } else {
+                    console.warn('simpleLeadUpdateStore.getState no es una función');
+                }
                 
-                // También guardar en localStorage como fallback
-                simpleLeadUpdateStore.saveUpdate(leadId, mappedStage);
+                // Usar el nuevo leadUpdateStore con API mejorada
+                if (leadUpdateStore && typeof leadUpdateStore.addUpdate === 'function') {
+                    leadUpdateStore.addUpdate({
+                        type: 'update-stage',
+                        leadId: leadId,
+                        data: {
+                            newStage: mappedStage,
+                            rawStage: stageId
+                        },
+                        time: Date.now()
+                    });
+                } else {
+                    console.warn('leadUpdateStore.addUpdate no es una función o no está disponible');
+                }
                 
-                // También notificar a través del store global (para la misma pestaña)
-                leadUpdateStore.notifyUpdate(leadId, mappedStage);
+                // Actualizar el lead en la lista de chats si está en el chat
+                const leadChatId = `lead_${leadId}`;
+                const leadInChats = get().chats.find(chat => chat.id === leadChatId);
+                
+                if (leadInChats) {
+                    console.log(`ChatStore: Actualizando etapa de lead ${leadId} en lista de chats a ${mappedStage}`);
+                    get().refreshChatList();
+                }
             }
-        } catch (error: any) {
-            console.error('Error actualizando etapa del lead:', error);
             
-            // Si es un error de lead no encontrado y es una etapa especial, no es crítico
-            if (error.message && error.message.includes('No se encontró el lead') && 
-                (stageId === 'confirmado' || stageId === 'confirmed' || 
-                 stageId === 'cerrado' || stageId === 'closed')) {
-                console.warn('El lead no se encontró, pero como es una etapa especial, no es un error crítico');
-                // No lanzar el error hacia arriba, permitir que continúe el flujo
-                return;
-            }
+            // Actualizar el stage en el estado global
+            set(() => ({ currentLeadStage: stageId }));
             
-            // Para otros errores, lanzar hacia arriba
+            return data;
+        } catch (error) {
+            console.error('Error al actualizar etapa de lead:', error);
+            
+            // Revertir el state local en caso de error
+            set(() => ({ currentLeadStage: undefined }));
+            
             throw error;
         }
     },
     
-    // Implementación de la acción fetchTemplates compatible con backend
+    // Cargar plantillas de chat desde el backend
     fetchTemplates: async () => {
         try {
-            // Solo ejecutar fetch en el cliente, nunca en el servidor
-            if (typeof window !== 'undefined') {
-                console.log('Obteniendo plantillas desde API (cliente)...');
-
-                try {
-                    // Intentar obtener plantillas del backend
-                    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3090';
-                    
-                    // Obtener tenant_id de las cookies o usar el default
-                    const cookieStore = document.cookie.split('; ').find(row => row.startsWith('tenant_id='));
-                    let tenantId = cookieStore ? cookieStore.split('=')[1] : process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'default';
-                    
-                    // Si el tenant_id está vacío o es 'undefined', usar el default
-                    if (!tenantId || tenantId === 'undefined' || tenantId === 'null' || tenantId === '') {
-                        tenantId = process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'afa60b0a-3046-4607-9c48-266af6e1d322';
-                    }
-                    
-                    console.log('Frontend: Tenant ID obtenido:', tenantId);
-                    console.log('Frontend: URL backend:', BACKEND_URL);
-                    
-                    const url = `${BACKEND_URL}/api/text/templates?tenant_id=${tenantId}`;
-                    console.log('Frontend: Llamando a:', url);
-                    
-                    const response = await fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (response.ok) {
-                        const jsonData = await response.json();
-
-                        if (jsonData && jsonData.success && Array.isArray(jsonData.templates)) {
-                            const templates = jsonData.templates;
-                            console.log('Plantillas obtenidas desde API:', templates);
-
-                            if (templates.length > 0) {
-                                // Formatear las plantillas para el frontend
-                                const formattedTemplates = templates.map((template: any) => ({
-                                    id: template.id,
-                                    name: template.name,
-                                    description: template.description || 'Sin descripción',
-                                    isActive: template.isActive || false,
-                                    isEnabled: true,
-                                    avatarUrl: '/img/avatars/thumb-2.jpg',
-                                    tokensEstimated: template.tokensEstimated || 500,
-                                    category: template.category || 'general',
-                                    flowId: template.flowId || null
-                                }));
-
-                                // Si ninguna está activa, activar la primera
-                                if (!formattedTemplates.some((t: ChatTemplate) => t.isActive) && formattedTemplates.length > 0) {
-                                    // Buscar primero el "Flujo basico lead"
-                                    const leadTemplate = formattedTemplates.find((t: ChatTemplate) => 
-                                        t.name.toLowerCase().includes('flujo') && 
-                                        t.name.toLowerCase().includes('basico') && 
-                                        t.name.toLowerCase().includes('lead')
-                                    );
-                                    
-                                    if (leadTemplate) {
-                                        leadTemplate.isActive = true;
-                                    } else {
-                                        formattedTemplates[0].isActive = true;
-                                    }
-                                }
-
-                                get().setTemplates(formattedTemplates);
-
-                                // También establecer activeTemplateId si hay alguna activa
-                                const activeTemplate = formattedTemplates.find((t: ChatTemplate) => t.isActive);
-                                if (activeTemplate) {
-                                    get().setActiveTemplate(activeTemplate.id);
-                                }
-
-                                return;
-                            }
-                        }
-                    } else {
-                        console.warn('Error en la respuesta de la API:', response.status, response.statusText);
-                    }
-                } catch (fetchError) {
-                    console.warn('Error al obtener plantillas de la API:', fetchError);
-                }
+            console.log('ChatStore: Cargando plantillas de chat...');
+            
+            // Solo ejecutar en el cliente
+            if (typeof window === 'undefined') {
+                console.log('ChatStore: No se pueden cargar plantillas en SSR');
+                return;
             }
-
-            // Si estamos en el servidor o hubo un error, crear plantillas de demostración
-            console.log('No se pudieron cargar plantillas del backend. Creando plantillas de demostración.');
             
-            // Plantillas de demostración para desarrollo
-            const mockTemplates: ChatTemplate[] = [
-                {
-                    id: 'demo-basic-lead',
-                    name: 'Flujo básico de lead',
-                    description: 'Plantilla de demostración para captura de leads',
-                    isActive: true,
-                    isEnabled: true,
-                    avatarUrl: '/img/avatars/thumb-2.jpg',
-                    tokensEstimated: 500,
-                    category: 'lead',
-                    flowId: null
-                },
-                {
-                    id: 'demo-appointment',
-                    name: 'Agendar citas',
-                    description: 'Plantilla para agendar citas con clientes',
-                    isActive: false,
-                    isEnabled: true,
-                    avatarUrl: '/img/avatars/thumb-3.jpg',
-                    tokensEstimated: 750,
-                    category: 'appointment',
-                    flowId: null
-                },
-                {
-                    id: 'demo-support',
-                    name: 'Soporte al cliente',
-                    description: 'Plantilla de atención al cliente',
-                    isActive: false,
-                    isEnabled: true,
-                    avatarUrl: '/img/avatars/thumb-4.jpg',
-                    tokensEstimated: 600,
-                    category: 'support',
-                    flowId: null
+            // Limpiar cualquier error previo
+            set(() => ({ templatesError: null }));
+            
+            // Intentar cargar desde la API principal
+            try {
+                // Primero intentar con la API principal del backend
+                const mainApiUrl = '/api/chatbot/templates';
+                console.log(`ChatStore: Intentando cargar desde API principal: ${mainApiUrl}`);
+                
+                const mainResponse = await fetch(mainApiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        // Ya no enviamos token para evitar error de JWT
+                    }
+                });
+                
+                if (!mainResponse.ok) {
+                    console.error(`Error del servidor: ${mainResponse.status} ${mainResponse.statusText}`);
+                    
+                    // Intentar obtener detalles del error
+                    let errorDetails = '';
+                    try {
+                        const errorData = await mainResponse.json();
+                        errorDetails = errorData.error || errorData.message || errorData.details || '';
+                        console.error('Detalles del error:', errorDetails);
+                    } catch (e) {
+                        console.error('No se pudo obtener detalles del error');
+                    }
+                    
+                    // Establecer mensaje de error específico
+                    const errorMessage = `Error al cargar plantillas: ${mainResponse.status} ${mainResponse.statusText} ${errorDetails ? `- ${errorDetails}` : ''}`;
+                    set(() => ({ templatesError: errorMessage }));
+                    
+                    throw new Error(errorMessage);
                 }
-            ];
-            
-            get().setTemplates(mockTemplates);
-            
-            return;
+                
+                const mainData = await mainResponse.json();
+                if (!Array.isArray(mainData)) {
+                    const errorMessage = 'Formato de respuesta incorrecto. Se esperaba un array de plantillas.';
+                    console.error(errorMessage, mainData);
+                    set(() => ({ templatesError: errorMessage }));
+                    throw new Error(errorMessage);
+                }
+                
+                console.log('ChatStore: Plantillas cargadas exitosamente:', mainData.length);
+                
+                // Guardar en localStorage para uso futuro
+                try {
+                    localStorage.setItem('chatbot_templates', JSON.stringify(mainData));
+                } catch (saveError) {
+                    console.warn('ChatStore: No se pudieron guardar plantillas en localStorage:', saveError);
+                }
+                
+                // Actualizar el store
+                get().setTemplates(mainData);
+                
+                return;
+            } catch (error) {
+                // Si falla la API principal, intentamos recuperar de localStorage como último recurso
+                console.error('Error al cargar plantillas desde API:', error);
+                
+                try {
+                    const localTemplatesJSON = localStorage.getItem('chatbot_templates');
+                    if (localTemplatesJSON) {
+                        const localTemplates = JSON.parse(localTemplatesJSON);
+                        if (Array.isArray(localTemplates) && localTemplates.length > 0) {
+                            console.log('ChatStore: FALLBACK - Usando plantillas almacenadas en localStorage:', localTemplates.length);
+                            
+                            // Actualizar el store con las plantillas de localStorage
+                            get().setTemplates(localTemplates);
+                            
+                            // Establecer un mensaje de advertencia en vez de error
+                            set(() => ({ templatesError: 'Usando plantillas en caché. No se pudo conectar al servidor.' }));
+                            return;
+                        }
+                    }
+                } catch (localStorageError) {
+                    console.warn('ChatStore: Error al leer plantillas de localStorage:', localStorageError);
+                }
+                
+                // Si llegamos aquí, no pudimos obtener plantillas de ninguna fuente
+                const finalError = error instanceof Error 
+                    ? error.message 
+                    : 'No se pudieron cargar plantillas de chatbot. Verifica la conexión con el backend.';
+                
+                set(() => ({ templatesError: finalError }));
+                throw error;
+            }
         } catch (error) {
-            console.error('Error general al configurar plantillas en store:', error)
-            get().setTemplates([]);
-            return;
+            console.error('ChatStore: Error general en fetchTemplates:', error);
+            
+            // Asegurarse de que el error esté establecido
+            const errorMessage = error instanceof Error 
+                ? error.message 
+                : 'Error desconocido al cargar plantillas';
+            
+            set(() => ({ templatesError: errorMessage }));
+            
+            // Propagamos el error para que pueda ser manejado apropiadamente
+            throw error;
         }
-    },
+    }
 }))

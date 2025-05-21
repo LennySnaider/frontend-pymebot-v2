@@ -1,0 +1,39 @@
+{
+    "editRole": "Editar rol",
+    "createRole": "Crear rol",
+    "rolePermissions": "Permisos del rol",
+    "permissions": "Permisos",
+    "roleName": "Nombre del rol",
+    "description": "Descripción",
+    "createNewRole": "Crear nuevo rol",
+    "deleteRole": "Eliminar rol",
+    "confirmDeleteRole": "¿Estás seguro de que quieres eliminar este rol? Esta acción no se puede deshacer y eliminará todos los usuarios de este rol.",
+    "roleDeleted": "Rol eliminado",
+    "roleCreated": "Rol creado",
+    "roleUpdated": "Rol actualizado",
+    "users": "Usuarios",
+    "roleDescriptions": {
+        "super_admin": "Super Administrador con acceso completo al sistema",
+        "admin": "Administrador con acceso a la mayor parte del sistema",
+        "agent": "Agente operativo",
+        "viewer": "Acceso de solo lectura"
+    },
+    "accessControl": {
+        "userManagement": "Gestión de usuarios",
+        "productsAuthority": "Autoridad de productos",
+        "systemConfigurations": "Configuraciones del sistema",
+        "fileManagement": "Gestión de archivos",
+        "reports": "Reportes"
+    },
+    "roleNames": {
+        "super_admin": "Super Administrador",
+        "admin": "Administrador",
+        "agent": "Agente",
+        "viewer": "Visualizador"
+    },
+    "permissions": {
+        "read": "Lectura",
+        "write": "Escritura",
+        "delete": "Eliminación"
+    }
+}

@@ -57,19 +57,19 @@ const UsersAvatarGroup = (props: UsersAvatarGroupProps) => {
         >
             {users.map((elm, index) => (
                 <Tooltip
-                    key={elm[nameKey] + index}
+                    key={(elm[nameKey] || '') + index}
                     wrapperClass="flex"
-                    title={elm[nameKey]}
+                    title={elm[nameKey] || ''}
                 >
                     <Avatar
                         {...defaultAvatarProps}
                         className={`${
-                            elm[imgKey] ? '' : bgColor(elm[nameKey])
+                            elm[imgKey] ? '' : bgColor(elm[nameKey] || '')
                         } ${defaultAvatarProps.className}`}
                         src={elm[imgKey]}
                         onClick={() => handleAvatarClick(elm)}
                     >
-                        {acronym(elm.name)}
+                        {acronym(elm[nameKey] || '')}
                     </Avatar>
                 </Tooltip>
             ))}

@@ -5,21 +5,21 @@
  * @updated 2025-04-16
  */
 
-import { mockData } from './mockChatData'
-
 /**
  * Obtiene la lista de chats para el usuario actual
- * En modo desarrollo, simplemente devolvemos datos simulados
- * En producción, aquí se conectaría a una API real
+ * ACTUALIZADO: No usar datos mock
  */
 const getChatListClient = async () => {
     try {
-        // En una implementación real, aquí se haría una llamada a la API
-        // const response = await fetch('/api/chat/list')
-        // return await response.json()
+        // Llamar a la API real para obtener la lista de chats
+        const response = await fetch('/api/chat/list')
         
-        // Por ahora, devolvemos datos simulados para desarrollo
-        return mockData
+        if (!response.ok) {
+            throw new Error('Error al obtener la lista de chats')
+        }
+        
+        const data = await response.json()
+        return data || []
     } catch (error) {
         console.warn('Error obteniendo datos de chat:', error)
         // Devolver array vacío en caso de error

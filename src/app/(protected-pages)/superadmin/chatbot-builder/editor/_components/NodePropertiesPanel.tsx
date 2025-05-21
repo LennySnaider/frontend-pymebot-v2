@@ -19,6 +19,8 @@ import SystemVariableSelector from '@/components/shared/SystemVariableSelector'
 import SystemVariableHighlighter from '@/components/shared/SystemVariableHighlighter'
 import { containsVariables } from '@/services/SystemVariablesService'
 import APIConfigModal from './APIConfigModal'
+import SalesFunnelStageSelector, { MoveToStageSelector } from './SalesFunnelStageSelector'
+import { SALES_FUNNEL_STAGES } from '../types/salesFunnelIntegration'
 
 // Tipos de propiedades
 interface NodePropertiesPanelProps {
@@ -81,6 +83,22 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                         }
                     />
                 </FormItem>
+
+                {/* Integración con Sales Funnel */}
+                <div className="border-t pt-4 mt-4">
+                    <h4 className="text-sm font-medium mb-3">Sales Funnel</h4>
+                    
+                    <div className="space-y-3">
+                        <SalesFunnelStageSelector
+                            value={node.data.salesStageId}
+                            onChange={(stageId) => handlePropertyChange('salesStageId', stageId)}
+                            label="Etapa asociada"
+                            helperText="Etapa del sales funnel asociada a este nodo"
+                        />
+                        
+                        {/* REMOVIDO: Selector redundante "Mover a etapa" - La etapa del lead cambia según la etapa asociada al nodo */}
+                    </div>
+                </div>
 
                 {/* Propiedades específicas según el tipo de nodo */}
                 {node.type === 'messageNode' && (
@@ -1444,6 +1462,615 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 <span className="ml-2 text-xs text-gray-500 italic">
                                     {node.data.waitForResponse ? "Pausa hasta seleccionar opción" : "Continúa automáticamente"}
                                 </span>
+                            </div>
+                        </FormItem>
+                    </>
+                )}
+
+                {/* Nodos homologados - ProductNode */}
+                {node.type === 'productNode' && (
+                    <>
+                        <FormItem label="Plantilla de mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message_template || ''}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'message_template',
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Estos son nuestros productos disponibles: {{products_list}}"
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            const textarea = document.activeElement as HTMLTextAreaElement
+                                            if (textarea && textarea.tagName === 'TEXTAREA') {
+                                                const start = textarea.selectionStart
+                                                const end = textarea.selectionEnd
+                                                const newValue = node.data.message_template.substring(0, start) + variable + node.data.message_template.substring(end)
+                                                handlePropertyChange('message_template', newValue)
+                                            } else {
+                                                handlePropertyChange('message_template', (node.data.message_template || '') + variable)
+                                            }
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                        </FormItem>
+                        <FormItem label="Categoría">
+                            <Select
+                                options={[
+                                    { value: "", label: "Todas las categorías" },
+                                    { value: "1", label: "Electrónica" },
+                                    { value: "2", label: "Ropa" },
+                                    { value: "3", label: "Hogar" }
+                                ]}
+                                value={{value: node.data.category_id || '', label: node.data.category_id ? 'Categoría ' + node.data.category_id : 'Todas las categorías'}}
+                                onChange={(option) => handlePropertyChange('category_id', option?.value)}
+                            />
+                        </FormItem>
+                        <FormItem label="Límite de productos">
+                            <Input
+                                type="number"
+                                value={node.data.limit || 5}
+                                onChange={(e) => handlePropertyChange('limit', parseInt(e.target.value))}
+                                min={1}
+                                max={20}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="filter_by_price"
+                                    checked={node.data.filter_by_price || false}
+                                    onChange={(e) => handlePropertyChange('filter_by_price', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="filter_by_price" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Filtrar por precio
+                                </label>
+                            </div>
+                        </FormItem>
+                        {node.data.filter_by_price && (
+                            <>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <FormItem label="Precio mínimo">
+                                        <Input
+                                            type="number"
+                                            value={node.data.min_price || ''}
+                                            onChange={(e) => handlePropertyChange('min_price', parseFloat(e.target.value))}
+                                            min={0}
+                                            step="0.01"
+                                        />
+                                    </FormItem>
+                                    <FormItem label="Precio máximo">
+                                        <Input
+                                            type="number"
+                                            value={node.data.max_price || ''}
+                                            onChange={(e) => handlePropertyChange('max_price', parseFloat(e.target.value))}
+                                            min={0}
+                                            step="0.01"
+                                        />
+                                    </FormItem>
+                                </div>
+                            </>
+                        )}
+                        <FormItem label="Ordenar por">
+                            <Select
+                                options={[
+                                    { value: 'name', label: 'Nombre' },
+                                    { value: 'price', label: 'Precio' },
+                                    { value: 'popularity', label: 'Popularidad' },
+                                    { value: 'newest', label: 'Más recientes' }
+                                ]}
+                                value={{value: node.data.sort_by || 'name', label: node.data.sort_by || 'Nombre'}}
+                                onChange={(option) => handlePropertyChange('sort_by', option?.value)}
+                            />
+                        </FormItem>
+                        <FormItem label="Dirección">
+                            <Select
+                                options={[
+                                    { value: 'asc', label: 'Ascendente' },
+                                    { value: 'desc', label: 'Descendente' }
+                                ]}
+                                value={{value: node.data.sort_direction || 'asc', label: node.data.sort_direction === 'desc' ? 'Descendente' : 'Ascendente'}}
+                                onChange={(option) => handlePropertyChange('sort_direction', option?.value)}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="include_images"
+                                    checked={node.data.include_images || false}
+                                    onChange={(e) => handlePropertyChange('include_images', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="include_images" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Incluir imágenes (solo WhatsApp)
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) => handlePropertyChange('delay', parseInt(e.target.value))}
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">milisegundos</span>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) => handlePropertyChange('waitForResponse', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                            </div>
+                        </FormItem>
+                    </>
+                )}
+
+                {/* ServicesNode */}
+                {node.type === 'servicesNode' && (
+                    <>
+                        <FormItem label="Plantilla de mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message_template || ''}
+                                    onChange={(e) => handlePropertyChange('message_template', e.target.value)}
+                                    placeholder="Estos son nuestros servicios disponibles: {{services_list}}"
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            handlePropertyChange('message_template', (node.data.message_template || '') + variable)
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                        </FormItem>
+                        <FormItem label="Categoría">
+                            <Select
+                                options={[
+                                    { value: "", label: "Todas las categorías" },
+                                    { value: "1", label: "Servicios básicos" },
+                                    { value: "2", label: "Servicios premium" },
+                                    { value: "3", label: "Servicios especiales" }
+                                ]}
+                                value={{value: node.data.category_id || '', label: node.data.category_id ? 'Categoría ' + node.data.category_id : 'Todas las categorías'}}
+                                onChange={(option) => handlePropertyChange('category_id', option?.value)}
+                            />
+                        </FormItem>
+                        <FormItem label="Límite de servicios">
+                            <Input
+                                type="number"
+                                value={node.data.limit || 5}
+                                onChange={(e) => handlePropertyChange('limit', parseInt(e.target.value))}
+                                min={1}
+                                max={20}
+                            />
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) => handlePropertyChange('delay', parseInt(e.target.value))}
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">milisegundos</span>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) => handlePropertyChange('waitForResponse', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                            </div>
+                        </FormItem>
+                    </>
+                )}
+
+                {/* CheckAvailabilityNode */}
+                {node.type === 'checkAvailabilityNode' && (
+                    <>
+                        <FormItem label="Tipo de cita">
+                            <Select
+                                options={[
+                                    { value: "", label: "Cualquier tipo" },
+                                    { value: "1", label: "Consulta Inicial" },
+                                    { value: "2", label: "Seguimiento" },
+                                    { value: "3", label: "Tratamiento" }
+                                ]}
+                                value={{value: node.data.appointment_type_id || '', label: node.data.appointment_type_id ? 'Tipo ' + node.data.appointment_type_id : 'Cualquier tipo'}}
+                                onChange={(option) => handlePropertyChange('appointment_type_id', option?.value)}
+                            />
+                        </FormItem>
+                        <FormItem label="Ubicación">
+                            <Select
+                                options={[
+                                    { value: "", label: "Cualquier ubicación" },
+                                    { value: "1", label: "Oficina Central" },
+                                    { value: "2", label: "Sucursal Norte" },
+                                    { value: "3", label: "Sucursal Sur" }
+                                ]}
+                                value={{value: node.data.location_id || '', label: node.data.location_id ? 'Ubicación ' + node.data.location_id : 'Cualquier ubicación'}}
+                                onChange={(option) => handlePropertyChange('location_id', option?.value)}
+                            />
+                        </FormItem>
+                        <FormItem label="Agente">
+                            <Select
+                                options={[
+                                    { value: "", label: "Cualquier agente" },
+                                    { value: "1", label: "Carlos Rodríguez" },
+                                    { value: "2", label: "Ana Martínez" },
+                                    { value: "3", label: "Miguel Sánchez" }
+                                ]}
+                                value={{value: node.data.agent_id || '', label: node.data.agent_id ? 'Agente ' + node.data.agent_id : 'Cualquier agente'}}
+                                onChange={(option) => handlePropertyChange('agent_id', option?.value)}
+                            />
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) => handlePropertyChange('delay', parseInt(e.target.value))}
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">milisegundos</span>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) => handlePropertyChange('waitForResponse', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                            </div>
+                        </FormItem>
+                    </>
+                )}
+
+                {/* BookAppointmentNode */}
+                {node.type === 'bookAppointmentNode' && (
+                    <>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="update_lead_stage"
+                                    checked={node.data.update_lead_stage || true}
+                                    onChange={(e) => handlePropertyChange('update_lead_stage', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                />
+                                <label htmlFor="update_lead_stage" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Actualizar etapa del lead
+                                </label>
+                            </div>
+                        </FormItem>
+                        {node.data.update_lead_stage && (
+                            <FormItem label="Nueva etapa">
+                                <Select
+                                    options={[
+                                        { value: 'qualification', label: 'Calificación' },
+                                        { value: 'opportunity', label: 'Oportunidad' },
+                                        { value: 'confirmed', label: 'Confirmado' }
+                                    ]}
+                                    value={{value: node.data.new_lead_stage || 'confirmed', label: node.data.new_lead_stage || 'Confirmado'}}
+                                    onChange={(option) => handlePropertyChange('new_lead_stage', option?.value)}
+                                />
+                            </FormItem>
+                        )}
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="send_confirmation"
+                                    checked={node.data.send_confirmation !== false}
+                                    onChange={(e) => handlePropertyChange('send_confirmation', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                />
+                                <label htmlFor="send_confirmation" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Enviar confirmación por email
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="create_follow_up_task"
+                                    checked={node.data.create_follow_up_task !== false}
+                                    onChange={(e) => handlePropertyChange('create_follow_up_task', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                />
+                                <label htmlFor="create_follow_up_task" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Crear tarea de seguimiento
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) => handlePropertyChange('delay', parseInt(e.target.value))}
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">milisegundos</span>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) => handlePropertyChange('waitForResponse', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                            </div>
+                        </FormItem>
+                    </>
+                )}
+
+                {/* RescheduleAppointmentNode */}
+                {node.type === 'rescheduleAppointmentNode' && (
+                    <>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="update_lead_on_reschedule"
+                                    checked={node.data.update_lead_on_reschedule !== false}
+                                    onChange={(e) => handlePropertyChange('update_lead_on_reschedule', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <label htmlFor="update_lead_on_reschedule" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Actualizar etapa del lead al reprogramar
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="require_reason"
+                                    checked={node.data.require_reason !== false}
+                                    onChange={(e) => handlePropertyChange('require_reason', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <label htmlFor="require_reason" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Requerir motivo de reprogramación
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="notify_agent"
+                                    checked={node.data.notify_agent !== false}
+                                    onChange={(e) => handlePropertyChange('notify_agent', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <label htmlFor="notify_agent" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Notificar al agente
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="send_confirmation"
+                                    checked={node.data.send_confirmation !== false}
+                                    onChange={(e) => handlePropertyChange('send_confirmation', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <label htmlFor="send_confirmation" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Enviar confirmación
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="send_whatsapp"
+                                    checked={node.data.send_whatsapp || false}
+                                    onChange={(e) => handlePropertyChange('send_whatsapp', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <label htmlFor="send_whatsapp" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Enviar por WhatsApp
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem label="Máximo de reprogramaciones">
+                            <Input
+                                type="number"
+                                value={node.data.max_reschedule_attempts || 3}
+                                onChange={(e) => handlePropertyChange('max_reschedule_attempts', parseInt(e.target.value))}
+                                min={1}
+                                max={10}
+                            />
+                        </FormItem>
+                        <FormItem label="Mensaje de éxito">
+                            <Input
+                                value={node.data.success_message || ''}
+                                onChange={(e) => handlePropertyChange('success_message', e.target.value)}
+                                placeholder="Tu cita ha sido reprogramada correctamente..."
+                            />
+                        </FormItem>
+                        <FormItem label="Mensaje de error">
+                            <Input
+                                value={node.data.failure_message || ''}
+                                onChange={(e) => handlePropertyChange('failure_message', e.target.value)}
+                                placeholder="Lo siento, no pudimos reprogramar tu cita..."
+                            />
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) => handlePropertyChange('delay', parseInt(e.target.value))}
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">milisegundos</span>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) => handlePropertyChange('waitForResponse', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                            </div>
+                        </FormItem>
+                    </>
+                )}
+
+                {/* CancelAppointmentNode */}
+                {node.type === 'cancelAppointmentNode' && (
+                    <>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="update_lead_on_cancel"
+                                    checked={node.data.update_lead_on_cancel !== false}
+                                    onChange={(e) => handlePropertyChange('update_lead_on_cancel', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                />
+                                <label htmlFor="update_lead_on_cancel" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Actualizar etapa del lead al cancelar
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="require_reason"
+                                    checked={node.data.require_reason !== false}
+                                    onChange={(e) => handlePropertyChange('require_reason', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                />
+                                <label htmlFor="require_reason" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Requerir motivo de cancelación
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="notify_agent"
+                                    checked={node.data.notify_agent !== false}
+                                    onChange={(e) => handlePropertyChange('notify_agent', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                />
+                                <label htmlFor="notify_agent" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Notificar al agente
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="blacklist_time_slot"
+                                    checked={node.data.blacklist_time_slot || false}
+                                    onChange={(e) => handlePropertyChange('blacklist_time_slot', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                />
+                                <label htmlFor="blacklist_time_slot" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Bloquear horario para futuras citas
+                                </label>
+                            </div>
+                        </FormItem>
+                        <FormItem label="Mensaje de éxito">
+                            <Input
+                                value={node.data.success_message || ''}
+                                onChange={(e) => handlePropertyChange('success_message', e.target.value)}
+                                placeholder="Tu cita ha sido cancelada correctamente..."
+                            />
+                        </FormItem>
+                        <FormItem label="Mensaje de error">
+                            <Input
+                                value={node.data.failure_message || ''}
+                                onChange={(e) => handlePropertyChange('failure_message', e.target.value)}
+                                placeholder="Lo siento, no pudimos cancelar tu cita..."
+                            />
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) => handlePropertyChange('delay', parseInt(e.target.value))}
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">milisegundos</span>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) => handlePropertyChange('waitForResponse', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
                             </div>
                         </FormItem>
                     </>

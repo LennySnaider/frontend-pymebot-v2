@@ -122,8 +122,10 @@ const AddNewLead = () => {
                 'afa60b0a-3046-4607-9c48-266af6e1d322'
 
             // Filtros para propiedades activas del tenant actual
+            // Específicamente buscamos propiedades de tipo "casa/house"
             const filters: Record<string, unknown> = {
                 is_active: true,
+                property_type: 'house'  // Buscamos específicamente casas
             }
 
             if (currentTenantId) {
@@ -137,6 +139,7 @@ const AddNewLead = () => {
                         .from('properties')
                         .select('*')
                         .eq('is_active', true)
+                        .eq('property_type', 'house')  // Buscamos específicamente casas
 
                 if (directError) {
                     console.error('Error directo de Supabase:', directError)
@@ -174,11 +177,15 @@ const AddNewLead = () => {
                 // Continuar con el flujo normal
             }
 
-            // Obtener propiedades usando el servicio si la consulta directa falló
-            let result
+            // Continuar con el flujo normal de consulta a la API sin mostrar error
+            console.log('Obteniendo propiedades usando el método general...');
+            // No añadimos datos mock, seguimos con el flujo normal de consulta a la API
+            
+            // Si falla la obtención directa de Casa Claudia, intentar con propiedades normales
+            let result;
             try {
-                result = await PropertyService.apiGetProperties(1, 20, filters)
-                console.log('RESULTADO DEL PROPERTY SERVICE:', result)
+                result = await PropertyService.apiGetProperties(1, 20, filters);
+                console.log('RESULTADO DEL PROPERTY SERVICE:', result);
             } catch (serviceError) {
                 console.warn(
                     'Error controlado en llamada a apiGetProperties:',
@@ -187,11 +194,11 @@ const AddNewLead = () => {
                         Object.keys(serviceError).length === 0
                         ? 'Objeto vacío {}'
                         : serviceError,
-                )
+                );
                 // Usar el dato de prueba si hay un error
-                setAvailableProperties([testProperty])
-                setIsLoadingProperties(false)
-                return
+                setAvailableProperties([testProperty]);
+                setIsLoadingProperties(false);
+                return;
             }
 
             // Verificar si tenemos datos válidos y propiedades para mostrar
@@ -213,21 +220,23 @@ const AddNewLead = () => {
                         area: property.area,
                         address: property.address,
                         city: property.city,
+                        colony: property.colony,
+                        property_type: property.property_type,
                     }),
-                )
+                );
 
                 console.log(
                     `Cargadas ${formattedProperties.length} propiedades del inventario a través del servicio`,
-                )
-                setAvailableProperties(formattedProperties)
+                );
+                setAvailableProperties(formattedProperties);
             } else {
                 console.log(
                     'No se encontraron propiedades o hubo un error:',
                     result.error,
-                )
+                );
 
                 // Usar el dato de prueba en lugar de dejar vacío
-                setAvailableProperties([testProperty])
+                setAvailableProperties([testProperty]);
             }
         } catch (error) {
             console.error('Error completo al cargar propiedades:', error)

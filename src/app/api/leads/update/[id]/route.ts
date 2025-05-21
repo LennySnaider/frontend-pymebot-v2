@@ -2,20 +2,31 @@
  * API route for updating leads
  * 
  * This endpoint is called when a lead is updated from the form
- * @version 1.0.0
- * @updated 2025-04-12
+ * @version 1.0.3
+ * @updated 2025-05-19
+ * 
+ * NOTA: Se corrigió la sintaxis para manejar params.id en NextJS 15.
+ * En NextJS 15, los params deben ser accedidos de forma segura con validación
+ * ya que el comportamiento cambió respecto a versiones anteriores.
  */
+
+// Forzar runtime de Node.js para evitar problemas con Edge Runtime
+export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server'
 import { updateLead } from '@/server/actions/leads/updateLead'
+import { validateLeadData } from '@/utils/validateLeadPhone'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id?: string, [key: string]: string | string[] }> }
 ) {
   try {
-    // Extract the lead ID from the URL params
-    const leadId = params.id
+    // En NextJS 15, los params deben ser esperados (awaited) primero
+    const resolvedParams = await params;
+    
+    // Ahora extraer el ID de forma segura
+    const leadId = resolvedParams?.id ? String(resolvedParams.id) : '';
     
     // Extract the lead data from the request body
     const leadData = await request.json()
@@ -74,13 +85,29 @@ export async function PUT(
 
     console.log('Datos formateados para actualización:', updateData);
 
+    // Validar los datos antes de actualizar, incluyendo el ID
+    const dataWithId = { ...updateData, id: leadId };
+    const validatedData = validateLeadData(dataWithId);
+    
+    // Remover el ID del objeto validado ya que no debe ser actualizado
+    const { id, ...updateDataValidated } = validatedData;
+
     // Call the server action to update the lead
-    const updatedLead = await updateLead(leadId, updateData)
+    const updatedLead = await updateLead(leadId, updateDataValidated)
+
+    // En el lado del servidor no podemos disparar eventos al navegador directamente
+    // En su lugar, incluiremos información en el response para que el cliente
+    // pueda disparar el evento usando nuestro sistema de leads en tiempo real
 
     return NextResponse.json(
       {
         success: true,
         data: updatedLead,
+        // Incluir información para que el cliente pueda disparar evento
+        event: {
+          type: 'update',
+          leadId: leadId
+        }
       },
       { status: 200 }
     )

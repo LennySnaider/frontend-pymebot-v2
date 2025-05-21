@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         // First verify if the lead exists
         const { data: existingLead, error: fetchError } = await supabase
             .from('leads')
-            .select('id, stage, name')
+            .select('id, stage, name, metadata')
             .eq('id', leadId)
             .single();
 
@@ -58,14 +58,30 @@ export async function POST(request: NextRequest) {
         }
 
         // Update the lead with special stage
+        const updateData: any = {
+            stage: normalizedStage,
+            updated_at: new Date().toISOString()
+        }
+
+        // Si es confirmado, actualizar metadata para indicar que tiene cita
+        if (normalizedStage === 'confirmado') {
+            updateData.metadata = {
+                ...(existingLead as any).metadata,
+                has_appointment: true
+            }
+        }
+
+        // Si es cerrado, actualizar metadata para indicar que está inactivo
+        if (normalizedStage === 'cerrado') {
+            updateData.metadata = {
+                ...(existingLead as any).metadata,
+                is_active: false
+            }
+        }
+
         const { error, data } = await supabase
             .from('leads')
-            .update({
-                stage: normalizedStage,
-                ...(normalizedStage === 'confirmado' && { has_appointment: true }),
-                ...(normalizedStage === 'cerrado' && { is_active: false }),
-                updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('id', leadId)
             .select('*')
             .single();

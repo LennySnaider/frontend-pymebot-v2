@@ -21,6 +21,7 @@ import {
     PiGearDuotone,
     PiCalendarDuotone,
     PiCalendarCheckDuotone,
+    PiCalendarXDuotone,
     PiUserGearDuotone,
     PiCalendarPlusDuotone,
     PiListBold,
@@ -148,6 +149,12 @@ const NODE_CATEGORIES = [
                 label: 'Reprogramar Cita',
                 description: 'Permite reprogramar una cita existente',
                 icon: <PiCalendarCheckDuotone className="text-orange-500" />,
+            },
+            {
+                type: 'cancel-appointment',
+                label: 'Cancelar Cita',
+                description: 'Permite cancelar una cita existente',
+                icon: <PiCalendarXDuotone className="text-red-500" />,
             }
         ]
     },

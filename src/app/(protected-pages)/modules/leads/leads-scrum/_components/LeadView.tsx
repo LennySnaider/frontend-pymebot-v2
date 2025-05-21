@@ -70,7 +70,13 @@ const LeadView = ({ leadData, onEdit, updateLead }: LeadViewProps) => {
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
                 <h4 className="text-2xl font-semibold">{leadData.name}</h4>
-                <Button variant="solid" onClick={onEdit}>
+                <Button 
+                    variant="solid" 
+                    onClick={() => {
+                        // Usar setTimeout para evitar loop de renderizado
+                        setTimeout(onEdit, 0);
+                    }}
+                >
                     {text('leads.lead.edit')}
                 </Button>
             </div>

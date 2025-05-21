@@ -329,12 +329,33 @@ export function useLeadStageSync() {
             }
             
             // También verificar localStorage como fallback
-            const legacyUpdates = simpleLeadUpdateStore.getRecentUpdates(60000);
-            if (legacyUpdates.length > 0) {
-                console.log('useLeadStageSync: Encontradas', legacyUpdates.length, 'actualizaciones legacy');
-                legacyUpdates.forEach(update => {
-                    processStageUpdate(update.leadId, update.newStage);
-                });
+            try {
+                // Verificar si la función existe
+                if (simpleLeadUpdateStore && typeof simpleLeadUpdateStore.getRecentUpdates === 'function') {
+                    const legacyUpdates = simpleLeadUpdateStore.getRecentUpdates(60000);
+                    if (legacyUpdates.length > 0) {
+                        console.log('useLeadStageSync: Encontradas', legacyUpdates.length, 'actualizaciones legacy');
+                        legacyUpdates.forEach(update => {
+                            processStageUpdate(update.leadId, update.newStage);
+                        });
+                    }
+                } else {
+                    // Intentar usar la utilidad legacy directamente
+                    const { leadUpdateUtils } = require('@/stores/simpleLeadUpdateStore');
+                    if (leadUpdateUtils && typeof leadUpdateUtils.getRecentUpdates === 'function') {
+                        const utilityUpdates = leadUpdateUtils.getRecentUpdates(60000);
+                        if (utilityUpdates.length > 0) {
+                            console.log('useLeadStageSync: Encontradas', utilityUpdates.length, 'actualizaciones desde utility');
+                            utilityUpdates.forEach(update => {
+                                processStageUpdate(update.leadId, update.newStage);
+                            });
+                        }
+                    } else {
+                        console.log('useLeadStageSync: No se encontró método getRecentUpdates');
+                    }
+                }
+            } catch (error) {
+                console.error('useLeadStageSync: Error al obtener actualizaciones legacy:', error);
             }
         };
         

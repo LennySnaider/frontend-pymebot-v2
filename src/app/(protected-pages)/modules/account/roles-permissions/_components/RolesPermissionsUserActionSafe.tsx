@@ -16,6 +16,7 @@ import { TbSearch } from 'react-icons/tb'
 import { components } from 'react-select'
 import { SafeSelect } from '@/components/shared/safe-components'
 import type { ControlProps, OptionProps } from 'react-select'
+import { useAuthContext } from '@/components/providers/AuthProvider'
 
 type StatusOption = {
     label: string
@@ -34,15 +35,7 @@ const statusOptions = [
     { label: 'Blocked', value: 'blocked', dotBackground: 'bg-error' },
 ]
 
-const roleOptions = [
-    { label: 'All', value: '' },
-    { label: 'Admin', value: 'admin' },
-    { label: 'Supervisor', value: 'supervisor' },
-    { label: 'Support', value: 'support' },
-    { label: 'User', value: 'user' },
-    { label: 'Auditor', value: 'auditor' },
-    { label: 'Guest', value: 'guest' },
-]
+// Esta lista ahora se genera dinámicamente en el componente
 
 // Componente seguro para la opción de Select con Badge
 const StatusSelectOption = (props: OptionProps<StatusOption>) => {
@@ -88,6 +81,7 @@ const RolesPermissionsUserActionSafe = () => {
     const setFilterData = useRolePermissionsStore(
         (state) => state.setFilterData,
     )
+    const { role: userRole } = useAuthContext()
 
     const { onAppendQueryParams } = useAppendQueryParams()
 
@@ -110,6 +104,25 @@ const RolesPermissionsUserActionSafe = () => {
             query,
         })
     }
+
+    // Generar opciones de roles basadas en el rol del usuario
+    const roleOptions = [
+        { label: 'All', value: '' },
+        ...(userRole === 'super_admin' 
+            ? [
+                { label: 'Super Admin', value: 'super_admin' },
+                { label: 'Admin', value: 'admin' },
+                { label: 'Agent', value: 'agent' },
+                { label: 'Viewer', value: 'viewer' },
+              ]
+            : [
+                // Los admins NO ven super_admin
+                { label: 'Admin', value: 'admin' },
+                { label: 'Agent', value: 'agent' },
+                { label: 'Viewer', value: 'viewer' },
+              ]
+        ),
+    ]
 
     return (
         <div className="flex items-center justify-between">

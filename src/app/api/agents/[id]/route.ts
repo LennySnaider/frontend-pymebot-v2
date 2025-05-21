@@ -11,10 +11,13 @@ import { SupabaseClient } from '@/services/supabase/SupabaseClient'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const agentId = params.id
+    // Fix para NextJS 15: Primero esperar los parámetros
+    const resolvedParams = await params;
+    // Luego extraer el ID de manera segura
+    const agentId = resolvedParams?.id ? String(resolvedParams.id) : ''
     
     if (!agentId) {
       return NextResponse.json(
@@ -33,18 +36,21 @@ export async function GET(
       )
     }
     
-    // Intentar obtener datos del agente
+    // Intentar obtener datos del agente desde la tabla users
+    // Nota: En esta app, los agentes son users con role = 'agent'
     const { data, error } = await supabase
-      .from('agents')
+      .from('users')
       .select(`
         id,
-        name,
+        full_name, 
         email,
-        profile_image,
-        tenant_id
+        avatar_url,
+        tenant_id,
+        metadata
       `)
       .eq('id', agentId)
-      .single()
+      .eq('role', 'agent')
+      .maybeSingle()
     
     if (error) {
       console.error('Error al obtener agente:', error)
@@ -54,9 +60,9 @@ export async function GET(
         return NextResponse.json({
           agent: {
             id: agentId,
-            name: 'Agente',
+            full_name: 'Agente',
             email: '',
-            profile_image: '',
+            avatar_url: '',
             tenant_id: null
           }
         })
@@ -73,9 +79,9 @@ export async function GET(
       return NextResponse.json({
         agent: {
           id: agentId,
-          name: 'Agente',
+          full_name: 'Agente',
           email: '',
-          profile_image: '',
+          avatar_url: '',
           tenant_id: null
         }
       })

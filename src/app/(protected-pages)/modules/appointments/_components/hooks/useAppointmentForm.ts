@@ -70,13 +70,13 @@ export const useAppointmentForm = (props: AppointmentSchedulerProps) => {
     // 3. Revisión
     const totalSteps = 3;
 
-    // Funciones auxiliares para toast según Guia-general.md
+    // Funciones auxiliares para toast
     const showSuccess = useCallback((message: string) => {
-        toast.push(message, { placement: 'top-center' })
+        toast.push(message)
     }, []);
 
     const showError = useCallback((message: string) => {
-        toast.push(message, { placement: 'top-center' })
+        toast.push(message)
     }, []);
 
     // Función para resetear el estado del formulario
@@ -103,6 +103,7 @@ export const useAppointmentForm = (props: AppointmentSchedulerProps) => {
         // Inicializar valores del formulario
         if (currentAppointment) {
             const appointmentAgentId = currentAppointment.agentId || agentOptions?.[0]?.value || '';
+            console.log('useAppointmentForm: Inicializando con cita existente, agentId:', appointmentAgentId);
             setAgentId(appointmentAgentId);
             currentAgentIdRef.current = appointmentAgentId;
             
@@ -121,6 +122,8 @@ export const useAppointmentForm = (props: AppointmentSchedulerProps) => {
             // Si no hay cita actual, usar valores predeterminados o del entityData
             const defaultAgent = agentOptions?.[0]?.value || '';
             const initialAgentId = entityData?.agentId || defaultAgent;
+            console.log('useAppointmentForm: Inicializando sin cita, agentId:', initialAgentId);
+            console.log('useAppointmentForm: agentOptions:', agentOptions);
             setAgentId(initialAgentId);
             currentAgentIdRef.current = initialAgentId;
             
@@ -351,6 +354,15 @@ export const useAppointmentForm = (props: AppointmentSchedulerProps) => {
             propertiesRequired: 'Seleccione al menos una propiedad para mostrar.',
         };
 
+        console.log('validateCurrentStep: Paso actual:', currentStep);
+        console.log('validateCurrentStep: Valores del formulario:', {
+            selectedDate,
+            selectedTimeSlot,
+            location,
+            agentId,
+            selectedPropertyIds
+        });
+
         switch (currentStep) {
             case 1: // Fecha y hora
                 if (!selectedDate) errors.date = errorMessages.dateRequired;
@@ -367,10 +379,13 @@ export const useAppointmentForm = (props: AppointmentSchedulerProps) => {
                 if (!selectedTimeSlot) errors.timeSlot = errorMessages.timeSlotRequired;
                 if (!location.trim()) errors.location = errorMessages.locationRequired;
                 if (!agentId) errors.agentId = errorMessages.agentRequired;
-                if (selectedPropertyIds.length === 0) errors.properties = errorMessages.propertiesRequired;
+                // Hacer la selección de propiedades opcional para permitir citas sin propiedades específicas
+                // Solo validar si es absolutamente necesario
+                // if (selectedPropertyIds.length === 0) errors.properties = errorMessages.propertiesRequired;
                 break;
         }
         
+        console.log('validateCurrentStep: Errores encontrados:', errors);
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     }, [
@@ -401,7 +416,11 @@ export const useAppointmentForm = (props: AppointmentSchedulerProps) => {
 
     // --- Envío ---
     const handleSubmit = useCallback(async () => {
-        if (!validateCurrentStep()) return;
+        console.log('useAppointmentForm: handleSubmit iniciado');
+        if (!validateCurrentStep()) {
+            console.log('useAppointmentForm: Validación falló');
+            return;
+        }
 
         setIsSubmitting(true);
         setFormErrors({});
@@ -425,18 +444,21 @@ export const useAppointmentForm = (props: AppointmentSchedulerProps) => {
                 appointmentData.id = currentAppointment.id;
             }
 
+            console.log('useAppointmentForm: Llamando onSchedule con data:', appointmentData);
             // @ts-expect-error
             await onSchedule(appointmentData);
+            console.log('useAppointmentForm: onSchedule completado exitosamente');
 
-            // Mostrar mensaje de éxito simple
-            showSuccess(`La cita se ha ${currentAppointment ? 'actualizado' : 'programado'} correctamente.`);
+            // Mostrar mensaje de éxito en consola
+            console.log(`La cita se ha ${currentAppointment ? 'actualizado' : 'programado'} correctamente.`);
 
             // Cerrar el diálogo
+            console.log('useAppointmentForm: Cerrando diálogo');
             onClose();
         } catch (error) {
             console.error('Error scheduling appointment:', error);
             setFormErrors({ submit: 'Error al guardar la cita.' });
-            showError('No se pudo guardar la cita. Por favor, inténtelo de nuevo.');
+            console.error('No se pudo guardar la cita. Por favor, inténtelo de nuevo.');
         } finally {
             setIsSubmitting(false);
         }

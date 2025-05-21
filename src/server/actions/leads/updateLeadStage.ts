@@ -3,11 +3,11 @@
  * Esta acción es llamada cuando se mueve un lead entre columnas en el tablero Kanban
  * Mejorada para mejor compatibilidad y manejo de IDs internos vs. externos.
  * 
- * @version 1.2.0
- * @updated 2025-04-14
+ * @version 1.3.0
+ * @updated 2025-05-18
  */
 
-import { SupabaseClient } from '@/services/supabase/SupabaseClient'
+import { createClient } from '@/services/supabase/server'
 
 type UpdateResult = {
   success: boolean
@@ -25,8 +25,8 @@ export const updateLeadStage = async (
   try {
     console.log(`Iniciando updateLeadStage - leadId: ${leadId}, newStage: ${newStage}`);
 
-    // Obtener el cliente Supabase
-    const supabase = SupabaseClient.getInstance()
+    // Obtener el cliente Supabase autenticado
+    const supabase = await createClient()
     
     if (!supabase) {
       console.error('Error: No se pudo obtener el cliente Supabase.');
@@ -48,29 +48,75 @@ export const updateLeadStage = async (
     console.log(`Buscando lead con ID: ${leadId}`);
     
     // Consulta para ver si el lead existe directamente en la tabla leads
-    const { data: existingLead, error: fetchError } = await supabase
+    const { data: existingLeads, error: fetchError } = await supabase
       .from('leads')
       .select('stage, id, full_name')
       .eq('id', leadId)
-      .single()
+      .limit(2) // Limitamos a 2 para detectar duplicados
     
-    console.log('SQL ejecutado:', `SELECT stage, id, full_name FROM leads WHERE id = '${leadId}'`);
+    console.log('SQL ejecutado:', `SELECT stage, id, full_name FROM leads WHERE id = '${leadId}' LIMIT 2`);
 
     if (fetchError) {
-      // Si hay un error al buscar por ID principal, buscar si hay un lead con este ID en metadata
-      console.log(`Error al buscar lead directo, buscando en metadata.original_lead_id: ${leadId}`);
+      console.error('Error al buscar lead:', fetchError);
+      return {
+        success: false,
+        error: `Error al buscar el lead: ${fetchError.message}`,
+        leadId
+      }
+    }
+
+    // Verificar si encontramos exactamente un lead
+    if (!existingLeads || existingLeads.length === 0) {
+      // Si no encontramos lead por ID principal, buscar si hay un lead con este ID en metadata
+      console.log(`No se encontró lead directo, buscando en metadata.original_lead_id: ${leadId}`);
       
-      const { data: metadataLeads, error: metadataError } = await supabase
+      // Intentar múltiples búsquedas en metadata
+      let metadataLeads = null;
+      let metadataError = null;
+      
+      // Primero buscar por original_lead_id
+      console.log('Buscando por original_lead_id en metadata...');
+      const result1 = await supabase
         .from('leads')
         .select('id, full_name, stage, metadata')
         .contains('metadata', { original_lead_id: leadId })
         .limit(10);
+      console.log('Resultado búsqueda original_lead_id:', result1.data?.length || 0, 'leads encontrados');
+      
+      if (!result1.error && result1.data && result1.data.length > 0) {
+        metadataLeads = result1.data;
+      } else {
+        // Buscar por db_id
+        const result2 = await supabase
+          .from('leads')
+          .select('id, full_name, stage, metadata')
+          .contains('metadata', { db_id: leadId })
+          .limit(10);
+          
+        if (!result2.error && result2.data && result2.data.length > 0) {
+          metadataLeads = result2.data;
+        } else {
+          // Buscar por real_id
+          const result3 = await supabase
+            .from('leads')
+            .select('id, full_name, stage, metadata')
+            .contains('metadata', { real_id: leadId })
+            .limit(10);
+            
+          if (!result3.error && result3.data && result3.data.length > 0) {
+            metadataLeads = result3.data;
+          } else {
+            metadataError = result1.error || result2.error || result3.error || 
+                          new Error('No se encontró el lead en ninguna búsqueda de metadata');
+          }
+        }
+      }
       
       if (metadataError || !metadataLeads || metadataLeads.length === 0) {
         console.error('Error al buscar lead en metadata:', metadataError || 'No se encontraron resultados');
         return {
           success: false,
-          error: `Error al buscar el lead: ${fetchError.message}`,
+          error: `No se encontró el lead con ID: ${leadId}`,
           leadId
         }
       }
@@ -85,6 +131,17 @@ export const updateLeadStage = async (
       // Continuar con el ID real
       return updateLeadWithRealId(supabase, realLeadId, newStage, mappedLead);
     }
+    
+    if (existingLeads.length > 1) {
+      console.error(`Se encontraron múltiples leads con el mismo ID: ${leadId}. Cantidad: ${existingLeads.length}`);
+      return {
+        success: false,
+        error: `Se encontraron múltiples leads con el mismo ID: ${leadId}`,
+        leadId
+      }
+    }
+    
+    const existingLead = existingLeads[0];
 
     if (!existingLead) {
       console.error(`No se encontró el lead con ID: ${leadId}`);
@@ -129,8 +186,7 @@ const updateLeadWithRealId = async (
         updated_at: new Date().toISOString()
       })
       .eq('id', realLeadId)
-      .select('stage, id, full_name')
-      .single();
+      .select('stage, id, full_name');
 
     if (error) {
       console.error(`Error al forzar etapa ${newStage}:`, error);
@@ -155,11 +211,16 @@ const updateLeadWithRealId = async (
   
   // Para otras etapas, usar el proceso normal
   // Asegurarnos que estamos hablando de la misma columna/etapa
-  // En algunos casos la columna podría llamarse "qualification" y el campo stage "qualified"
-  // Hacemos un mapeo para asegurar consistencia
+  // Mapeo de los nombres en español del backend a los nombres en inglés de la BD
   const stageMap: Record<string, string> = {
-    'new': 'first_contact', // Usamos first_contact como el valor real en la base de datos
-    'first_contact': 'first_contact',
+    'nuevos': 'new',
+    'prospectando': 'prospecting',
+    'calificacion': 'qualification',
+    'oportunidad': 'opportunity',
+    'confirmado': 'confirmed',
+    'cerrado': 'closed',
+    // También incluir los nombres en inglés por si vienen así
+    'new': 'new',
     'prospecting': 'prospecting',
     'qualification': 'qualification',
     'opportunity': 'opportunity',
@@ -199,8 +260,7 @@ const updateLeadWithRealId = async (
       updated_at: new Date().toISOString()
     })
     .eq('id', realLeadId)
-    .select('stage, id, full_name')
-    .single();
+    .select('stage, id, full_name');
 
   if (error) {
     console.error('Error al actualizar la etapa del lead:', error);

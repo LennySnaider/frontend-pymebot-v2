@@ -7,12 +7,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import getConversationForLead from '@/server/actions/getConversationForLead'
-import { getMockConversation } from '@/services/ChatService/mockChatData'
-import { conversationList } from '@/mock/data/chatData'
 
 /**
  * GET - Obtener conversación para un chatId específico
- * Soporta tanto IDs de lead reales (lead_XXX) como chats mock (chat_X)
+ * Solo soporta IDs de lead reales (lead_XXX)
  */
 export async function GET(
   req: NextRequest,
@@ -37,19 +35,14 @@ export async function GET(
       })
     } 
     
-    // Si es un ID de chat de prueba, buscar en los datos de prueba
-    const existingConversation = conversationList.find(conv => conv.id === id)
-    if (existingConversation) {
-      return NextResponse.json(existingConversation, { status: 200 })
-    }
-    
-    // Si no está en conversationList, intentar obtener de mockData
-    const mockConversation = getMockConversation(id)
-    
-    return NextResponse.json({
-      success: true,
-      ...mockConversation
-    })
+    // Si no es un ID de lead, devolver error
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'ID de conversación inválido. Solo se soportan IDs de lead reales.' 
+      },
+      { status: 400 }
+    )
     
   } catch (error: any) {
     console.error('Error al obtener conversación:', error)

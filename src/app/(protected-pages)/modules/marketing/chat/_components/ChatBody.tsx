@@ -45,9 +45,10 @@ import { v4 as uuidv4 } from 'uuid' // Import uuid
 
 const ChatBody = () => {
     const scrollRef = useRef<ScrollBarRef>(null)
-    const userIdRef = useRef(uuidv4()) // Generate and store user ID as UUID
-    const tenantIdRef = useRef(uuidv4()) // Generate and store tenant ID as UUID
-    const botIdRef = useRef(uuidv4()) // Generate and store bot ID as UUID
+    // Generar id's con formatos que funcionen correctamente en el backend
+    const userIdRef = useRef('525591234567') // Usar formato de teléfono para crear lead
+    const tenantIdRef = useRef('afa60b0a-3046-4607-9c48-266af6e1d322') // Tenant ID fijo
+    const botIdRef = useRef(uuidv4()) // ID de bot
 
     // Estado para el modo de prueba que permite enviar mensajes como si fuéramos el lead
     // Inicializado desde localStorage para mantener sincronizado con el header

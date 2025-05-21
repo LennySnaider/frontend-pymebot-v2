@@ -12,6 +12,7 @@ import { SupabaseClient } from '@/services/supabase/SupabaseClient'
 import { getTenantFromSession } from '../tenant/getTenantFromSession'
 import type { AppointmentData } from './getAppointments'
 import { format } from 'date-fns'
+import { filterValidUUIDs } from '@/utils/uuid'
 
 export interface CreateAppointmentData {
     lead_id: string | object
@@ -33,6 +34,8 @@ export async function createAppointment(appointmentData: CreateAppointmentData) 
         
         // Obtener el tenant actual
         const tenant_id = await getTenantFromSession()
+        
+        console.log('createAppointment - tenant_id obtenido de la sesión:', tenant_id)
         
         if (!tenant_id) {
             throw new Error('No se pudo obtener el tenant_id')
@@ -65,29 +68,53 @@ export async function createAppointment(appointmentData: CreateAppointmentData) 
             }
         }
         
-        // Normalizar property_ids - convertir objetos a sus IDs
-        const property_ids: string[] = []
+        // Normalizar property_ids - convertir objetos a sus IDs y validar UUIDs
+        let property_ids: string[] = []
         if (appointmentData.property_ids && Array.isArray(appointmentData.property_ids)) {
-            appointmentData.property_ids.forEach(item => {
-                if (typeof item === 'string') {
-                    property_ids.push(item)
-                } else if (typeof item === 'object' && item !== null && 'id' in item && typeof item.id === 'string') {
-                    property_ids.push(item.id)
-                }
-            })
+            property_ids = filterValidUUIDs(appointmentData.property_ids)
+            
+            // Log para debug
+            console.log('Property IDs antes de validación:', appointmentData.property_ids)
+            console.log('Property IDs después de validación (solo UUIDs válidos):', property_ids)
         }
+        
+        // Log para debug
+        console.log('Buscando lead con id:', lead_id, 'y tenant_id:', tenant_id)
         
         // Verificar que el lead existe y pertenece al tenant actual
         const { data: existingLead, error: leadError } = await supabase
             .from('leads')
-            .select('id, agent_id')
+            .select('id, agent_id, tenant_id')
             .eq('id', lead_id)
             .eq('tenant_id', tenant_id)
             .single()
         
         if (leadError || !existingLead) {
             console.error('Error al verificar lead:', leadError)
-            throw new Error('El lead no existe o no tienes permiso para crear una cita')
+            console.error('Detalles del error:', {
+                leadError,
+                existingLead,
+                lead_id,
+                tenant_id
+            })
+            
+            // Intentar buscar el lead sin el filtro de tenant para debug
+            const { data: leadWithoutTenant, error: leadWithoutTenantError } = await supabase
+                .from('leads')
+                .select('id, tenant_id')
+                .eq('id', lead_id)
+                .single()
+            
+            if (leadWithoutTenant) {
+                console.error('El lead existe pero con un tenant diferente:', {
+                    lead_tenant_id: leadWithoutTenant.tenant_id,
+                    expected_tenant_id: tenant_id
+                })
+                throw new Error(`El lead existe pero pertenece a un tenant diferente. Lead tenant: ${leadWithoutTenant.tenant_id}, esperado: ${tenant_id}`)
+            } else {
+                console.error('El lead no existe en la base de datos')
+                throw new Error('El lead no existe en la base de datos')
+            }
         }
         
         // Si no se proporciona agente, usar el agente del lead si existe
