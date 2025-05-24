@@ -14,8 +14,24 @@ const DeleteTemplateDialog: React.FC<DeleteTemplateDialogProps> = ({
     onDelete,
 }) => {
     return (
-        <Dialog isOpen={isOpen} onClose={onClose} onRequestClose={onClose}>
-            <div className="p-6">
+        <Dialog 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            onRequestClose={onClose}
+            overlayClassName="!z-[9999]"
+            className="!z-[10000]"
+            style={{
+                overlay: {
+                    zIndex: 9999,
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    backdropFilter: 'blur(8px)'
+                },
+                content: {
+                    zIndex: 10000
+                }
+            }}
+        >
+            <div className="p-6 relative z-[10001]">
                 <p className="mb-6">
                     ¿Está seguro de que desea eliminar esta plantilla? Esta
                     acción no se puede deshacer.

@@ -17,7 +17,7 @@ const ChatSegment = () => {
             value={selectedChatType}
             onChange={(value) => setSelectedChatType(value as ChatType)}
         >
-            <Segment.Item className="flex-1" value="personal">
+            <Segment.Item className="flex-1" value="leads">
                 <div className="flex items-center justify-center gap-2">
                     <TbUserCircle className="text-xl" />
                     <span>Prospectos</span>

@@ -356,6 +356,28 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 }
                             />
                         </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'waitForResponse',
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa hasta recibir respuesta" : "Continúa automáticamente"}
+                                </span>
+                            </div>
+                        </FormItem>
                     </>
                 )}
 
@@ -514,6 +536,28 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 </Button>
                             </div>
                         </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'waitForResponse',
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa hasta que se cumpla condición" : "Evalúa y continúa automáticamente"}
+                                </span>
+                            </div>
+                        </FormItem>
                     </>
                 )}
 
@@ -623,6 +667,20 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                         </div>
                                     </button>
                                 ))}
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse !== false}
+                                    onChange={(e) => handlePropertyChange('waitForResponse', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
                             </div>
                         </FormItem>
                     </>
@@ -810,6 +868,28 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 </span>
                             </div>
                         </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'waitForResponse',
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa hasta recibir audio" : "Continúa automáticamente"}
+                                </span>
+                            </div>
+                        </FormItem>
                     </>
                 )}
 
@@ -925,6 +1005,28 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 </span>
                             </div>
                         </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'waitForResponse',
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa hasta recibir texto" : "Procesa y continúa automáticamente"}
+                                </span>
+                            </div>
+                        </FormItem>
                     </>
                 )}
 
@@ -940,6 +1042,28 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                     )
                                 }
                             />
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) =>
+                                        handlePropertyChange(
+                                            'waitForResponse',
+                                            e.target.checked,
+                                        )
+                                    }
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa antes de finalizar" : "Finaliza automáticamente"}
+                                </span>
+                            </div>
                         </FormItem>
                     </>
                 )}
@@ -1468,20 +1592,20 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                 )}
 
                 {/* Nodos homologados - ProductNode */}
-                {node.type === 'productNode' && (
+                {(node.type === 'productNode' || node.type === 'products' || node.type === 'products_list' || node.type === 'products-list') && (
                     <>
-                        <FormItem label="Plantilla de mensaje">
+                        <FormItem label="Mensaje">
                             <div className="relative">
                                 <textarea
                                     className="w-full h-24 p-2 border border-gray-300 rounded-md"
-                                    value={node.data.message_template || ''}
+                                    value={node.data.message || ''}
                                     onChange={(e) =>
                                         handlePropertyChange(
-                                            'message_template',
+                                            'message',
                                             e.target.value,
                                         )
                                     }
-                                    placeholder="Estos son nuestros productos disponibles: {{products_list}}"
+                                    placeholder="Estos son nuestros productos disponibles:"
                                 />
                                 <div className="flex justify-end mt-2">
                                     <SystemVariableSelector
@@ -1490,10 +1614,10 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                             if (textarea && textarea.tagName === 'TEXTAREA') {
                                                 const start = textarea.selectionStart
                                                 const end = textarea.selectionEnd
-                                                const newValue = node.data.message_template.substring(0, start) + variable + node.data.message_template.substring(end)
-                                                handlePropertyChange('message_template', newValue)
+                                                const newValue = node.data.message.substring(0, start) + variable + node.data.message.substring(end)
+                                                handlePropertyChange('message', newValue)
                                             } else {
-                                                handlePropertyChange('message_template', (node.data.message_template || '') + variable)
+                                                handlePropertyChange('message', (node.data.message || '') + variable)
                                             }
                                         }}
                                         buttonLabel="+ {{...}}"
@@ -1502,6 +1626,17 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                     />
                                 </div>
                             </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
                         </FormItem>
                         <FormItem label="Categoría">
                             <Select
@@ -1598,6 +1733,20 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 </label>
                             </div>
                         </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="show_categories"
+                                    checked={node.data.show_categories || false}
+                                    onChange={(e) => handlePropertyChange('show_categories', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="show_categories" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Mostrar categorías
+                                </label>
+                            </div>
+                        </FormItem>
                         <FormItem label="Retraso (ms)">
                             <div className="flex items-center">
                                 <Input
@@ -1627,20 +1776,28 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                 )}
 
                 {/* ServicesNode */}
-                {node.type === 'servicesNode' && (
+                {(node.type === 'servicesNode' || node.type === 'services' || node.type === 'services_list' || node.type === 'services-list') && (
                     <>
-                        <FormItem label="Plantilla de mensaje">
+                        <FormItem label="Mensaje">
                             <div className="relative">
                                 <textarea
                                     className="w-full h-24 p-2 border border-gray-300 rounded-md"
-                                    value={node.data.message_template || ''}
-                                    onChange={(e) => handlePropertyChange('message_template', e.target.value)}
-                                    placeholder="Estos son nuestros servicios disponibles: {{services_list}}"
+                                    value={node.data.message || ''}
+                                    onChange={(e) => handlePropertyChange('message', e.target.value)}
+                                    placeholder="Estos son nuestros servicios disponibles:"
                                 />
                                 <div className="flex justify-end mt-2">
                                     <SystemVariableSelector
                                         onSelectVariable={(variable) => {
-                                            handlePropertyChange('message_template', (node.data.message_template || '') + variable)
+                                            const textarea = document.activeElement as HTMLTextAreaElement
+                                            if (textarea && textarea.tagName === 'TEXTAREA') {
+                                                const start = textarea.selectionStart
+                                                const end = textarea.selectionEnd
+                                                const newValue = node.data.message.substring(0, start) + variable + node.data.message.substring(end)
+                                                handlePropertyChange('message', newValue)
+                                            } else {
+                                                handlePropertyChange('message', (node.data.message || '') + variable)
+                                            }
                                         }}
                                         buttonLabel="+ {{...}}"
                                         tooltipText="Insertar variable"
@@ -1648,6 +1805,17 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                     />
                                 </div>
                             </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
                         </FormItem>
                         <FormItem label="Categoría">
                             <Select
@@ -1669,6 +1837,20 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 min={1}
                                 max={20}
                             />
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="show_categories_services"
+                                    checked={node.data.show_categories || false}
+                                    onChange={(e) => handlePropertyChange('show_categories', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                />
+                                <label htmlFor="show_categories_services" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Mostrar categorías
+                                </label>
+                            </div>
                         </FormItem>
                         <FormItem label="Retraso (ms)">
                             <div className="flex items-center">
@@ -1699,8 +1881,47 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                 )}
 
                 {/* CheckAvailabilityNode */}
-                {node.type === 'checkAvailabilityNode' && (
+                {(node.type === 'checkAvailabilityNode' || node.type === 'check-availability' || node.type === 'check_availability' || node.type === 'checkAvailability') && (
                     <>
+                        <FormItem label="Mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message || ''}
+                                    onChange={(e) => handlePropertyChange('message', e.target.value)}
+                                    placeholder="Voy a verificar la disponibilidad para tu cita..."
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            const textarea = document.activeElement as HTMLTextAreaElement
+                                            if (textarea && textarea.tagName === 'TEXTAREA') {
+                                                const start = textarea.selectionStart
+                                                const end = textarea.selectionEnd
+                                                const newValue = node.data.message.substring(0, start) + variable + node.data.message.substring(end)
+                                                handlePropertyChange('message', newValue)
+                                            } else {
+                                                handlePropertyChange('message', (node.data.message || '') + variable)
+                                            }
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
+                        </FormItem>
                         <FormItem label="Tipo de cita">
                             <Select
                                 options={[
@@ -1766,8 +1987,47 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                 )}
 
                 {/* BookAppointmentNode */}
-                {node.type === 'bookAppointmentNode' && (
+                {(node.type === 'bookAppointmentNode' || node.type === 'book-appointment' || node.type === 'book_appointment' || node.type === 'bookAppointment') && (
                     <>
+                        <FormItem label="Mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message || ''}
+                                    onChange={(e) => handlePropertyChange('message', e.target.value)}
+                                    placeholder="Perfecto, voy a agendar tu cita..."
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            const textarea = document.activeElement as HTMLTextAreaElement
+                                            if (textarea && textarea.tagName === 'TEXTAREA') {
+                                                const start = textarea.selectionStart
+                                                const end = textarea.selectionEnd
+                                                const newValue = node.data.message.substring(0, start) + variable + node.data.message.substring(end)
+                                                handlePropertyChange('message', newValue)
+                                            } else {
+                                                handlePropertyChange('message', (node.data.message || '') + variable)
+                                            }
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
+                        </FormItem>
                         <FormItem>
                             <div className="flex items-center">
                                 <input
@@ -1852,8 +2112,47 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                 )}
 
                 {/* RescheduleAppointmentNode */}
-                {node.type === 'rescheduleAppointmentNode' && (
+                {(node.type === 'rescheduleAppointmentNode' || node.type === 'reschedule-appointment' || node.type === 'reschedule_appointment' || node.type === 'rescheduleAppointment') && (
                     <>
+                        <FormItem label="Mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message || ''}
+                                    onChange={(e) => handlePropertyChange('message', e.target.value)}
+                                    placeholder="Voy a reprogramar tu cita..."
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            const textarea = document.activeElement as HTMLTextAreaElement
+                                            if (textarea && textarea.tagName === 'TEXTAREA') {
+                                                const start = textarea.selectionStart
+                                                const end = textarea.selectionEnd
+                                                const newValue = node.data.message.substring(0, start) + variable + node.data.message.substring(end)
+                                                handlePropertyChange('message', newValue)
+                                            } else {
+                                                handlePropertyChange('message', (node.data.message || '') + variable)
+                                            }
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
+                        </FormItem>
                         <FormItem>
                             <div className="flex items-center">
                                 <input
@@ -1976,8 +2275,47 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                 )}
 
                 {/* CancelAppointmentNode */}
-                {node.type === 'cancelAppointmentNode' && (
+                {(node.type === 'cancelAppointmentNode' || node.type === 'cancel-appointment' || node.type === 'cancel_appointment' || node.type === 'cancelAppointment') && (
                     <>
+                        <FormItem label="Mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message || ''}
+                                    onChange={(e) => handlePropertyChange('message', e.target.value)}
+                                    placeholder="Voy a cancelar tu cita..."
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            const textarea = document.activeElement as HTMLTextAreaElement
+                                            if (textarea && textarea.tagName === 'TEXTAREA') {
+                                                const start = textarea.selectionStart
+                                                const end = textarea.selectionEnd
+                                                const newValue = node.data.message.substring(0, start) + variable + node.data.message.substring(end)
+                                                handlePropertyChange('message', newValue)
+                                            } else {
+                                                handlePropertyChange('message', (node.data.message || '') + variable)
+                                            }
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
+                        </FormItem>
                         <FormItem>
                             <div className="flex items-center">
                                 <input

@@ -6,9 +6,9 @@
  * @updated 2025-06-11
  */
 
-import { executeCheckAvailability } from '@/components/view/ChatbotBuilder/nodes/CheckAvailabilityNode';
-import { executeBookAppointment } from '@/components/view/ChatbotBuilder/nodes/BookAppointmentNode';
-import { executeLeadQualification } from '@/components/view/ChatbotBuilder/nodes/LeadQualificationNode';
+import { executeCheckAvailability } from '@/utils/nodeExecutors/checkAvailabilityExecutor';
+import { executeBookAppointment } from '@/utils/nodeExecutors/bookAppointmentExecutor';
+import { executeLeadQualification } from '@/utils/nodeExecutors/leadQualificationExecutor';
 
 // Mapa de ejecutores de nodos disponibles
 export const businessNodeExecutors = {

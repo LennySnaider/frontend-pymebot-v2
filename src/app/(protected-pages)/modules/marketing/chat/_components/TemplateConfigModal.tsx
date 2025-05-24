@@ -1,8 +1,8 @@
 /**
  * frontend/agentprop/src/app/(protected-pages)/modules/marketing/chat/_components/TemplateConfigModal.tsx
  * Modal para configuración y activación de plantillas de chatbot
- * @version 2.0.0
- * @updated 2025-11-05
+ * @version 3.0.0
+ * @updated 2025-05-23
  */
 
 'use client'
@@ -16,14 +16,14 @@ import {
     Spinner,
     Switcher,
     toast,
-    Notification
+    Notification,
+    Tabs
 } from '@/components/ui'
 import { useChatStore } from '../_store/chatStore'
 import { ChatTemplate } from './TemplateSelector'
-// import apiSetActiveTemplate from '@/services/ChatService/apiSetActiveTemplate' // Ya no se usa directamente aquí
-import apiSetTemplateEnabled from '@/services/ChatService/apiSetTemplateEnabled' // Importado previamente
-import apiActivateFlow from '@/services/ChatService/apiActivateFlow' // Nuevo servicio para activar flujo
-import apiActivateTemplate from '@/services/ChatService/apiActivateTemplate' // Servicio para activar plantilla
+import apiSetTemplateEnabled from '@/services/ChatService/apiSetTemplateEnabled'
+import apiActivateTemplate from '@/services/ChatService/apiActivateTemplate'
+import { HiTrash } from 'react-icons/hi'
 
 // Funciones auxiliares para notificaciones
 const showSuccess = (message: string, title = 'Éxito') => {
@@ -61,131 +61,146 @@ interface ExtendedChatTemplate extends ChatTemplate {
     isLoadingToggle?: boolean
     verticalId?: string | null
     verticalName?: string | null
+    isDeleted?: boolean // Nueva propiedad para marcar plantillas eliminadas
 }
 
 const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
     const [loading, setLoading] = useState(false)
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
     const [isClient, setIsClient] = useState(false)
-    const [extendedTemplates, setExtendedTemplates] = useState<
-        ExtendedChatTemplate[]
-    >([])
+    const [extendedTemplates, setExtendedTemplates] = useState<ExtendedChatTemplate[]>([])
+    const [activeTab, setActiveTab] = useState('sales') // Tab activo
+    const [deletedTemplateIds, setDeletedTemplateIds] = useState<Set<string>>(new Set())
 
     // Obtener plantillas y funciones del store
     const templates = useChatStore((state) => state.templates || [])
     const activeTemplateId = useChatStore((state) => state.activeTemplateId)
     const setTemplates = useChatStore((state) => state.setTemplates)
     const setActiveTemplate = useChatStore((state) => state.setActiveTemplate)
+    const fetchTemplatesFromStore = useChatStore((state) => state.fetchTemplates)
 
     // Detección de cliente para evitar errores de hidratación
     useEffect(() => {
         setIsClient(true)
+        
+        // Cargar plantillas eliminadas de localStorage
+        const savedDeletedIds = localStorage.getItem('deletedTemplateIds')
+        if (savedDeletedIds) {
+            try {
+                const ids = JSON.parse(savedDeletedIds)
+                setDeletedTemplateIds(new Set(ids))
+            } catch (e) {
+                console.error('Error al cargar plantillas eliminadas:', e)
+            }
+        }
     }, [])
 
     // Cuando cambian las plantillas, actualizamos el estado extendido
     useEffect(() => {
         if (templates.length > 0 && isClient) {
-            console.log('Actualizando extended templates desde templates:', templates);
-
-            // Primero obtener las activaciones guardadas en localStorage
-            let enabledStates = {};
+            // Obtener las activaciones guardadas en localStorage
+            let enabledStates = {}
 
             try {
-                const savedStates = localStorage.getItem('templateEnabledStates');
+                const savedStates = localStorage.getItem('templateEnabledStates')
                 if (savedStates) {
-                    enabledStates = JSON.parse(savedStates);
-                    console.log('Estados de activación cargados:', enabledStates);
+                    enabledStates = JSON.parse(savedStates)
                 }
             } catch (e) {
-                console.error('Error al cargar estados de activación:', e);
+                console.error('Error al cargar estados de activación:', e)
             }
 
-            const extended = templates.map((template) => ({
-                ...template,
-                // isEnabled debe reflejar si la plantilla está habilitada para uso
-                // Prioridad: 1. Estado guardado localmente, 2. Estado traído del servidor, 3. true por defecto
-                isEnabled: enabledStates[template.id] !== undefined ?
-                    enabledStates[template.id] :
-                    (template.isEnabled !== undefined ? template.isEnabled : true),
-                // isActive viene directamente de los templates (no modificar)
-                tokenCost: Math.floor(Math.random() * 500) + 500, // Simulación de costo de tokens
-            }));
+            const extended = templates
+                .filter(template => !deletedTemplateIds.has(template.id)) // Filtrar plantillas eliminadas
+                .map((template) => ({
+                    ...template,
+                    isEnabled: enabledStates[template.id] !== undefined ?
+                        enabledStates[template.id] :
+                        (template.isEnabled !== undefined ? template.isEnabled : true),
+                    tokenCost: Math.floor(Math.random() * 500) + 500,
+                }))
 
             // Verificar si hay una plantilla activa
-            const hasActiveTemplate = extended.some(t => t.isActive);
-            console.log('¿Hay plantilla activa en templates?', hasActiveTemplate);
+            const hasActiveTemplate = extended.some(t => t.isActive)
 
             // Si no hay ninguna activa pero hay activeTemplateId, activar esa
-            if (!hasActiveTemplate && activeTemplateId) {
-                console.log('No hay plantilla activa pero hay activeTemplateId:', activeTemplateId);
+            if (!hasActiveTemplate && activeTemplateId && extended.some(t => t.id === activeTemplateId)) {
                 const updatedExtended = extended.map(template => ({
                     ...template,
                     isActive: template.id === activeTemplateId
-                }));
-                setExtendedTemplates(updatedExtended);
+                }))
+                setExtendedTemplates(updatedExtended)
             } else {
-                setExtendedTemplates(extended);
+                setExtendedTemplates(extended)
             }
         }
-    }, [templates, activeTemplateId, isClient])
+    }, [templates, activeTemplateId, isClient, deletedTemplateIds])
 
     // Establecer la plantilla activa por defecto
     useEffect(() => {
         if (isClient && isOpen) {
-            // Si hay un activeTemplateId en el store, usarlo primero
             if (activeTemplateId) {
-                console.log(`Seleccionando plantilla activa del store: ${activeTemplateId}`);
-                setSelectedTemplateId(activeTemplateId);
-            }
-            // Si no hay activeTemplateId pero hay templates, buscar una plantilla activa
-            else if (templates.length > 0) {
-                const activeTemplate = templates.find((t) => t.isActive);
+                setSelectedTemplateId(activeTemplateId)
+            } else if (templates.length > 0) {
+                const activeTemplate = templates.find((t) => t.isActive)
                 if (activeTemplate) {
-                    console.log(`Seleccionando plantilla activa: ${activeTemplate.name} (${activeTemplate.id})`);
-                    setSelectedTemplateId(activeTemplate.id);
-                    // Asegurarnos de que esta plantilla también esté marcada como activa en el store
-                    setActiveTemplate(activeTemplate.id);
+                    setSelectedTemplateId(activeTemplate.id)
+                    setActiveTemplate(activeTemplate.id)
                 } else {
-                    console.log(`No hay plantilla activa, seleccionando la primera: ${templates[0].name} (${templates[0].id})`);
-                    setSelectedTemplateId(templates[0].id);
+                    setSelectedTemplateId(templates[0].id)
                 }
             }
         }
     }, [activeTemplateId, templates, isOpen, isClient, setActiveTemplate])
 
-    // Cargar plantillas disponibles desde el servidor
-    const fetchTemplatesFromStore = useChatStore((state) => state.fetchTemplates)
-    
+    // Cargar plantillas cuando se abre el modal
     const fetchTemplates = async () => {
         try {
             setLoading(true)
-            // Usar la función del store que ya maneja la lógica de obtener plantillas
             await fetchTemplatesFromStore()
         } catch (error) {
             console.error('Error al cargar plantillas:', error)
+            showError('No se pudieron cargar las plantillas')
         } finally {
             setLoading(false)
         }
     }
 
-    // Cargar plantillas cuando se abre el modal
     useEffect(() => {
         if (isClient && isOpen && templates.length === 0) {
             fetchTemplates()
         }
-
-        // Log para depuración: identificar la plantilla activa cada vez que cambia
-        if (isClient && activeTemplateId && extendedTemplates.length > 0) {
-            const activeTemplate = extendedTemplates.find(t => t.id === activeTemplateId);
-            if (activeTemplate) {
-                console.log(`Plantilla activa actualmente: ${activeTemplate.name} (ID: ${activeTemplate.id})`);
-            }
-        }
-    }, [isOpen, isClient, activeTemplateId, extendedTemplates])
+    }, [isOpen, isClient])
 
     // Manejar el cambio de selección
     const handleTemplateChange = (value: string) => {
         setSelectedTemplateId(value)
+    }
+
+    // Manejar eliminación de plantilla (ocultar localmente)
+    const handleDeleteTemplate = (templateId: string) => {
+        // Confirmar eliminación
+        if (!confirm('¿Está seguro de que desea eliminar esta plantilla?')) {
+            return
+        }
+
+        // Agregar a la lista de eliminados
+        const newDeletedIds = new Set(deletedTemplateIds)
+        newDeletedIds.add(templateId)
+        setDeletedTemplateIds(newDeletedIds)
+
+        // Guardar en localStorage
+        localStorage.setItem('deletedTemplateIds', JSON.stringify(Array.from(newDeletedIds)))
+
+        // Si es la plantilla seleccionada, deseleccionarla
+        if (templateId === selectedTemplateId) {
+            setSelectedTemplateId('')
+        }
+
+        // Actualizar la lista de plantillas
+        setExtendedTemplates(prev => prev.filter(t => t.id !== templateId))
+
+        showSuccess('Plantilla eliminada correctamente')
     }
 
     // Manejar cambio de estado de activación de plantilla
@@ -194,10 +209,8 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
         isEnabled: boolean,
     ) => {
         try {
-            // Verificar si es una ID de plantilla predeterminada (como "default-*")
-            const isDefaultTemplate = templateId.startsWith('default-');
+            const isDefaultTemplate = templateId.startsWith('default-')
 
-            // Mostrar estado de carga para la plantilla específica
             setExtendedTemplates((prevTemplates) =>
                 prevTemplates.map((template) =>
                     template.id === templateId
@@ -206,13 +219,8 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                 ),
             )
 
-            // Si es una plantilla predeterminada, solo actualizamos el estado local
             if (isDefaultTemplate) {
-                console.log(`Plantilla predeterminada "${templateId}" detectada - actualizando solo estado local`);
-
-                // Simular un pequeño retraso para el efecto visual
                 setTimeout(() => {
-                    // Actualizar el estado local
                     setExtendedTemplates((prevTemplates) =>
                         prevTemplates.map((template) =>
                             template.id === templateId
@@ -220,58 +228,47 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                                     ...template,
                                     isEnabled,
                                     isLoadingToggle: false,
-                                    // Si se está activando, también actualizar isActive
                                     isActive: isEnabled ? true : template.isActive
                                   }
                                 : template,
                         ),
                     )
 
-                    // También actualizar en el store global si se está activando
                     if (isEnabled) {
-                        setActiveTemplate(templateId);
+                        setActiveTemplate(templateId)
                     }
 
-                    // Guardar el estado en localStorage para persistencia
+                    // Guardar el estado en localStorage
                     if (isClient) {
                         try {
-                            // Obtener estados actuales
-                            const savedStates = localStorage.getItem('templateEnabledStates');
-                            let enabledStates = {};
+                            const savedStates = localStorage.getItem('templateEnabledStates')
+                            let enabledStates = {}
 
                             if (savedStates) {
-                                enabledStates = JSON.parse(savedStates);
+                                enabledStates = JSON.parse(savedStates)
                             }
 
-                            // Actualizar el estado para esta plantilla
-                            enabledStates[templateId] = isEnabled;
-
-                            // Guardar en localStorage
-                            localStorage.setItem('templateEnabledStates', JSON.stringify(enabledStates));
-                            console.log(`Estado de plantilla ${templateId} guardado como ${isEnabled ? 'activado' : 'desactivado'}`);
+                            enabledStates[templateId] = isEnabled
+                            localStorage.setItem('templateEnabledStates', JSON.stringify(enabledStates))
                         } catch (e) {
-                            console.error('Error al guardar estado de activación:', e);
+                            console.error('Error al guardar estado de activación:', e)
                         }
                     }
 
-                    // Si se está desactivando la plantilla actualmente seleccionada, deseleccionarla
                     if (!isEnabled && templateId === selectedTemplateId) {
-                        setSelectedTemplateId('');
+                        setSelectedTemplateId('')
                     }
 
-                    // Mostrar notificación de éxito
-                    showSuccess(`Plantilla ${isEnabled ? 'activada' : 'desactivada'} exitosamente`);
-                }, 500); // Pequeño retraso para simular procesamiento
+                    showSuccess(`Plantilla ${isEnabled ? 'activada' : 'desactivada'} exitosamente`)
+                }, 500)
 
-                return; // Salir aquí, ya hemos manejado las plantillas predeterminadas
+                return
             }
 
-            // Este código solo se ejecuta para plantillas reales (no predeterminadas)
-            // Llamar al servicio para actualizar el estado "enabled" de la plantilla
+            // Para plantillas reales
             const { success, errorMessage } = await apiSetTemplateEnabled(templateId, isEnabled)
 
             if (success) {
-                // Actualizar el estado local si la operación fue exitosa
                 setExtendedTemplates((prevTemplates) =>
                     prevTemplates.map((template) =>
                         template.id === templateId
@@ -279,49 +276,39 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                                 ...template,
                                 isEnabled,
                                 isLoadingToggle: false,
-                                // Si se está activando, también actualizar isActive
                                 isActive: isEnabled ? true : template.isActive
                               }
                             : template,
                     ),
                 )
 
-                // También actualizar en el store global si se está activando
                 if (isEnabled) {
-                    setActiveTemplate(templateId);
+                    setActiveTemplate(templateId)
                 }
 
-                // Guardar el estado en localStorage para persistencia
+                // Guardar el estado en localStorage
                 if (isClient) {
                     try {
-                        // Obtener estados actuales
-                        const savedStates = localStorage.getItem('templateEnabledStates');
-                        let enabledStates = {};
+                        const savedStates = localStorage.getItem('templateEnabledStates')
+                        let enabledStates = {}
 
                         if (savedStates) {
-                            enabledStates = JSON.parse(savedStates);
+                            enabledStates = JSON.parse(savedStates)
                         }
 
-                        // Actualizar el estado para esta plantilla
-                        enabledStates[templateId] = isEnabled;
-
-                        // Guardar en localStorage
-                        localStorage.setItem('templateEnabledStates', JSON.stringify(enabledStates));
-                        console.log(`Estado de plantilla ${templateId} guardado como ${isEnabled ? 'activado' : 'desactivado'}`);
+                        enabledStates[templateId] = isEnabled
+                        localStorage.setItem('templateEnabledStates', JSON.stringify(enabledStates))
                     } catch (e) {
-                        console.error('Error al guardar estado de activación:', e);
+                        console.error('Error al guardar estado de activación:', e)
                     }
                 }
 
-                // Si se está desactivando la plantilla actualmente seleccionada, deseleccionarla
                 if (!isEnabled && templateId === selectedTemplateId) {
                     setSelectedTemplateId('')
                 }
 
-                // Mostrar notificación de éxito
-                showSuccess(`Plantilla ${isEnabled ? 'activada' : 'desactivada'} exitosamente`);
+                showSuccess(`Plantilla ${isEnabled ? 'activada' : 'desactivada'} exitosamente`)
             } else {
-                // Revertir el cambio visual si hubo un error
                 setExtendedTemplates((prevTemplates) =>
                     prevTemplates.map((template) =>
                         template.id === templateId
@@ -330,16 +317,9 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                     ),
                 )
 
-                console.error(
-                    'No se pudo cambiar el estado de la plantilla:',
-                    errorMessage || 'Operación rechazada por el servidor.'
-                )
-
-                // Mostrar notificación de error
-                showError(errorMessage || 'No se pudo cambiar el estado de la plantilla. Inténtelo de nuevo más tarde.');
+                showError(errorMessage || 'No se pudo cambiar el estado de la plantilla')
             }
         } catch (error) {
-            // Revertir el cambio visual si hubo una excepción
             setExtendedTemplates((prevTemplates) =>
                 prevTemplates.map((template) =>
                     template.id === templateId
@@ -348,13 +328,7 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                 ),
             )
 
-            console.error(
-                'Error al establecer el estado "enabled" de la plantilla:',
-                error,
-            )
-
-            // Mostrar notificación de error
-            showError('Error al procesar la solicitud. Por favor, inténtelo de nuevo más tarde.');
+            showError('Error al procesar la solicitud')
         }
     }
 
@@ -362,88 +336,94 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
     const handleSave = async () => {
         setLoading(true)
         try {
-            // Solo se puede activar la plantilla seleccionada y que esté habilitada
             const selectedTemplate = extendedTemplates.find(
                 (t) => t.id === selectedTemplateId,
             )
 
             if (selectedTemplate && selectedTemplate.isEnabled) {
-                // Verificar si es una plantilla predeterminada
-                const isDefaultTemplate = selectedTemplate.id.startsWith('default-');
+                const isDefaultTemplate = selectedTemplate.id.startsWith('default-')
 
                 if (isDefaultTemplate) {
-                    console.log(`Activando plantilla predeterminada: ${selectedTemplate.name} (${selectedTemplate.id})`);
+                    // Para plantillas predeterminadas
+                    setActiveTemplate(selectedTemplateId)
 
-                    // Para plantillas predeterminadas, simplemente actualizamos el estado en la interfaz
-                    // Actualizar plantilla activa en el store
-                    setActiveTemplate(selectedTemplateId);
-
-                    // Actualizar el estado local para reflejar que esta plantilla está activa
+                    // Actualizar el estado local
                     setExtendedTemplates((prevTemplates) =>
                         prevTemplates.map((template) => ({
                             ...template,
                             isActive: template.id === selectedTemplateId
                         }))
-                    );
+                    )
 
-                    // Mostrar notificación de éxito
-                    showSuccess(`Plantilla "${selectedTemplate.name}" activada como chatbot principal`);
-                }
-                // Si no es plantilla predeterminada, proceder con la lógica normal
-                else {
-                    // Obtener tenant_id de las cookies o usar el default
-                    const cookieStore = document.cookie.split('; ').find(row => row.startsWith('tenant_id='));
-                    const tenantId = cookieStore ? cookieStore.split('=')[1] : process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'default';
+                    // Actualizar las plantillas en el store para reflejar el cambio
+                    const updatedTemplates = templates.map(template => ({
+                        ...template,
+                        isActive: template.id === selectedTemplateId
+                    }))
+                    setTemplates(updatedTemplates)
+
+                    showSuccess(`Plantilla "${selectedTemplate.name}" activada como chatbot principal`)
+                } else {
+                    // Para plantillas reales
+                    const cookieStore = document.cookie.split('; ').find(row => row.startsWith('tenant_id='))
+                    const tenantId = cookieStore ? cookieStore.split('=')[1] : process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'default'
                     
-                    // Llamar al servicio para activar/crear la activación de la plantilla
                     const { success, activationId, error } = await apiActivateTemplate(
                         selectedTemplateId,
                         tenantId
-                    );
+                    )
 
                     if (success) {
-                        // Actualizar plantilla activa en el store
-                        setActiveTemplate(selectedTemplateId);
+                        setActiveTemplate(selectedTemplateId)
 
-                        // Actualizar el estado local para reflejar que esta plantilla está activa
+                        // Actualizar el estado local
                         setExtendedTemplates((prevTemplates) =>
                             prevTemplates.map((template) => ({
                                 ...template,
                                 isActive: template.id === selectedTemplateId
                             }))
-                        );
+                        )
 
-                        console.log(
-                            `Plantilla ${selectedTemplateId} activada con ID de activación: ${activationId}`,
-                        );
-                        
-                        // Mostrar notificación de éxito
-                        showSuccess(`Plantilla "${selectedTemplate.name}" activada como chatbot principal`);
+                        // Actualizar las plantillas en el store
+                        const updatedTemplates = templates.map(template => ({
+                            ...template,
+                            isActive: template.id === selectedTemplateId
+                        }))
+                        setTemplates(updatedTemplates)
+
+                        // Emitir evento para actualizar el chat
+                        if (typeof window !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('template-changed', {
+                                detail: {
+                                    templateId: selectedTemplateId,
+                                    templateName: selectedTemplate.name,
+                                    activationId
+                                },
+                                bubbles: true
+                            }))
+                        }
+
+                        showSuccess(`Plantilla "${selectedTemplate.name}" activada como chatbot principal`)
                     } else {
-                        console.error(
-                            `Error al activar la plantilla: ${error}`,
-                        );
-                        // Mostrar notificación de error
-                        showError(`Error al activar la plantilla: ${error}`);
-                        setLoading(false);
-                        return; // No cerrar el modal en caso de error
+                        showError(`Error al activar la plantilla: ${error}`)
+                        setLoading(false)
+                        return
                     }
                 }
             } else if (selectedTemplate && !selectedTemplate.isEnabled) {
-                showWarning(`La plantilla "${selectedTemplate.name}" está deshabilitada. Debe activarla primero utilizando el interruptor.`);
-                setLoading(false);
-                return; // No cerramos el modal para que pueda activarla
+                showWarning(`La plantilla "${selectedTemplate.name}" está deshabilitada. Debe activarla primero.`)
+                setLoading(false)
+                return
             } else {
-                showWarning('Por favor, seleccione una plantilla válida para activar.');
-                setLoading(false);
-                return; // No cerramos el modal para que pueda seleccionar una
+                showWarning('Por favor, seleccione una plantilla válida para activar.')
+                setLoading(false)
+                return
             }
 
-            // Cerrar el modal solo si todo fue exitoso
             onClose()
         } catch (error) {
             console.error('Error al guardar configuración:', error)
-            showError(`Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+            showError(`Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`)
         } finally {
             setLoading(false)
         }
@@ -455,7 +435,7 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
     }
 
     // Componente para mostrar una plantilla individual
-    const TemplateCard = ({ template }) => (
+    const TemplateCard = ({ template }: { template: ExtendedChatTemplate }) => (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
             <div className="p-3">
                 <div className="flex items-center gap-2">
@@ -467,17 +447,14 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                     <Avatar
                         size={28}
                         shape="circle"
-                        src={
-                            template.avatarUrl ||
-                            '/img/avatars/thumb-2.jpg'
-                        }
+                        src={template.avatarUrl || '/img/avatars/thumb-2.jpg'}
                     />
-                    <div className="flex flex-col">
+                    <div className="flex-1 flex flex-col">
                         <div className="flex items-center gap-1">
                             <div className="font-medium text-xs">
                                 {template.name}
                             </div>
-                            {selectedTemplateId === template.id && (
+                            {template.id === activeTemplateId && (
                                 <span className="text-xs text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded-sm">
                                     Activa
                                 </span>
@@ -491,6 +468,17 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                             )}
                         </div>
                     </div>
+                    {/* Botón de eliminar */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteTemplate(template.id)
+                        }}
+                        className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        title="Eliminar plantilla"
+                    >
+                        <HiTrash className="w-4 h-4 text-red-500" />
+                    </button>
                 </div>
                 {template.description && (
                     <div className="mt-1 ml-8">
@@ -501,9 +489,7 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                 )}
                 <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
                     <div className="text-xs text-gray-500">
-                        {template.isEnabled
-                            ? 'Plantilla activada'
-                            : 'Activar plantilla'}
+                        {template.isEnabled ? 'Plantilla activada' : 'Activar plantilla'}
                     </div>
                     <div className="flex items-center gap-2">
                         <span className={`text-xs font-medium ${template.isEnabled ? 'text-emerald-500' : 'text-gray-400'}`}>
@@ -514,12 +500,7 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                         ) : (
                             <Switcher
                                 checked={template.isEnabled}
-                                onChange={(checked) =>
-                                    handleToggleTemplate(
-                                        template.id,
-                                        checked,
-                                    )
-                                }
+                                onChange={(checked) => handleToggleTemplate(template.id, checked)}
                                 size="sm"
                             />
                         )}
@@ -527,38 +508,61 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                 </div>
             </div>
         </div>
-    );
+    )
 
-    // Simplificamos la categorización de plantillas
-    const isInCategory = (templateName, keywords) => {
-        const name = templateName.toLowerCase();
-        return keywords.some(keyword => name.includes(keyword));
-    };
+    // Categorización de plantillas
+    const isInCategory = (templateName: string, keywords: string[]) => {
+        const name = templateName.toLowerCase()
+        return keywords.some(keyword => name.includes(keyword))
+    }
 
     // Keywords para cada categoría
-    const salesKeywords = ['venta', 'mercadeo', 'marketing', 'oferta', 'promoción', 'lead', 'embudo'];
-    const supportKeywords = ['atención', 'soporte', 'cliente', 'ayuda', 'consulta', 'servicio'];
-    const appointmentKeywords = ['cita', 'agenda', 'programación', 'reprogramación'];
-    
-    // Nota: Movimos el useEffect que estaba aquí para evitar errores en el orden de hooks
+    const salesKeywords = ['venta', 'mercadeo', 'marketing', 'oferta', 'promoción', 'lead', 'embudo']
+    const supportKeywords = ['atención', 'soporte', 'cliente', 'ayuda', 'consulta', 'servicio']
+    const appointmentKeywords = ['cita', 'agenda', 'programación', 'reprogramación']
 
     // Filtramos plantillas por categoría
     const salesTemplates = extendedTemplates.filter(template =>
         isInCategory(template.name, salesKeywords)
-    );
+    )
 
     const supportTemplates = extendedTemplates.filter(template =>
         isInCategory(template.name, supportKeywords)
-    );
+    )
 
     const appointmentTemplates = extendedTemplates.filter(template =>
         isInCategory(template.name, appointmentKeywords)
-    );
+    )
 
-    // Las que no caen en ninguna categoría definida
     const otherTemplates = extendedTemplates.filter(template =>
         !isInCategory(template.name, [...salesKeywords, ...supportKeywords, ...appointmentKeywords])
-    );
+    )
+
+    // Función para obtener plantillas según el tab activo
+    const getTemplatesByTab = () => {
+        switch (activeTab) {
+            case 'sales':
+                return salesTemplates
+            case 'appointments':
+                return appointmentTemplates
+            case 'support':
+                return supportTemplates
+            case 'other':
+                return otherTemplates
+            case 'all':
+                return extendedTemplates
+            default:
+                return []
+        }
+    }
+
+    const tabList = [
+        { key: 'sales', label: 'Ventas y Marketing', count: salesTemplates.length },
+        { key: 'appointments', label: 'Gestión de Citas', count: appointmentTemplates.length },
+        { key: 'support', label: 'Atención al Cliente', count: supportTemplates.length },
+        { key: 'other', label: 'Otras', count: otherTemplates.length },
+        { key: 'all', label: 'Todas', count: extendedTemplates.length }
+    ]
 
     return (
         <Dialog isOpen={isOpen} onClose={onClose} width={900}>
@@ -571,90 +575,48 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                 <div>
                     <h5 className="text-base font-medium mb-4">Plantillas Disponibles</h5>
 
-                    <Radio.Group
-                        value={selectedTemplateId}
-                        onChange={handleTemplateChange}
-                    >
-                        <div className="space-y-6">
-                            {/* Encabezados de categorías */}
-                            <div className="grid grid-cols-3 gap-4 border-b pb-2">
-                                <h6 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Ventas y Marketing
-                                </h6>
-                                <h6 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Gestión de Citas
-                                </h6>
-                                <h6 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Otras Plantillas
-                                </h6>
-                            </div>
-
-                            {/* Contenido de plantillas en filas */}
-                            <div className="grid grid-cols-3 gap-4">
-                                {/* Columna 1: Ventas y Marketing */}
-                                <div className="space-y-4">
-                                    {salesTemplates.map((template) => (
-                                        <TemplateCard
-                                            key={template.id}
-                                            template={template}
-                                        />
-                                    ))}
-                                    {salesTemplates.length === 0 && (
-                                        <div className="text-center text-xs text-gray-500 p-3">
-                                            No hay plantillas en esta categoría
+                    {/* Tabs para categorías */}
+                    <Tabs value={activeTab} onChange={(val) => setActiveTab(val)}>
+                        <Tabs.TabList>
+                            {tabList.map(tab => (
+                                <Tabs.TabNav key={tab.key} value={tab.key}>
+                                    {tab.label}
+                                    <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                                        {tab.count}
+                                    </span>
+                                </Tabs.TabNav>
+                            ))}
+                        </Tabs.TabList>
+                        <div className="mt-4">
+                            <Tabs.TabContent value={activeTab}>
+                                <Radio.Group
+                                    value={selectedTemplateId}
+                                    onChange={handleTemplateChange}
+                                >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {getTemplatesByTab().map((template) => (
+                                            <TemplateCard
+                                                key={template.id}
+                                                template={template}
+                                            />
+                                        ))}
+                                    </div>
+                                    {getTemplatesByTab().length === 0 && (
+                                        <div className="py-6 text-center text-gray-500">
+                                            No hay plantillas en esta categoría.
                                         </div>
                                     )}
-                                </div>
-
-                                {/* Columna 2: Gestión de Citas */}
-                                <div className="space-y-4">
-                                    {appointmentTemplates.map((template) => (
-                                        <TemplateCard
-                                            key={template.id}
-                                            template={template}
-                                        />
-                                    ))}
-                                    {appointmentTemplates.length === 0 && (
-                                        <div className="text-center text-xs text-gray-500 p-3">
-                                            No hay plantillas en esta categoría
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Columna 3: Combina Otras Plantillas y Atención al Cliente */}
-                                <div className="space-y-4">
-                                    {/* Primero mostrar otras plantillas */}
-                                    {otherTemplates.map((template) => (
-                                        <TemplateCard
-                                            key={template.id}
-                                            template={template}
-                                        />
-                                    ))}
-
-                                    {/* Luego mostrar plantillas de atención al cliente */}
-                                    {supportTemplates.map((template) => (
-                                        <TemplateCard
-                                            key={template.id}
-                                            template={template}
-                                        />
-                                    ))}
-
-                                    {otherTemplates.length === 0 && supportTemplates.length === 0 && (
-                                        <div className="text-center text-xs text-gray-500 p-3">
-                                            No hay plantillas en esta categoría
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Mensaje cuando no hay plantillas */}
-                            {extendedTemplates.length === 0 && (
-                                <div className="py-6 text-center text-gray-500">
-                                    No hay plantillas disponibles en este momento.
-                                </div>
-                            )}
+                                </Radio.Group>
+                            </Tabs.TabContent>
                         </div>
-                    </Radio.Group>
+                    </Tabs>
+
+                    {/* Mensaje cuando no hay plantillas */}
+                    {extendedTemplates.length === 0 && (
+                        <div className="py-6 text-center text-gray-500">
+                            No hay plantillas disponibles en este momento.
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -671,7 +633,7 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                 <Button
                     variant="solid"
                     onClick={handleSave}
-                    disabled={loading}
+                    disabled={loading || !selectedTemplateId}
                     size="sm"
                     className="px-4"
                 >

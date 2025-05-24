@@ -82,9 +82,9 @@ import BookAppointmentNode from './nodes/BookAppointmentNode'
 import RescheduleAppointmentNode from './nodes/RescheduleAppointmentNode'
 import CancelAppointmentNode from './nodes/CancelAppointmentNode'
 
-// Importar nodos legacy que aún no están homologados
-import { LeadQualificationNode } from '@/modules/chatbot_business_nodes/components'
-import ActionNode from '@/components/view/ChatbotBuilder/nodes/ActionNode'
+// Importar nodos migrados
+import LeadQualificationNode from './nodes/LeadQualificationNode'
+import ActionNode from './nodes/ActionNode'
 
 // Definición de tipos de nodos personalizados
 const nodeTypes: NodeTypes = {
@@ -402,26 +402,27 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                     setTemplateData(data[0])
                     setUnsavedChanges(false)
 
-                    // Invalidar caché del sistema para que los cambios se reflejen inmediatamente
-                    try {
-                        // Notificar al sistema que la plantilla fue actualizada
-                        await fetch('/api/chatbot/invalidate-cache', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                template_id: data[0].id,
-                                action: 'update'
-                            })
-                        });
+                    // Invalidar caché del sistema de forma asíncrona sin bloquear la UI
+                    // No usar await para que no bloquee el guardado
+                    fetch('/api/chatbot/invalidate-cache', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            template_id: data[0].id,
+                            action: 'update'
+                        })
+                    })
+                    .then(() => {
                         console.log('Caché de plantilla invalidada correctamente');
-                    } catch (cacheError) {
+                    })
+                    .catch((cacheError) => {
                         console.warn('No se pudo invalidar el caché de la plantilla:', cacheError);
                         // No falla el guardado, solo es una advertencia
-                    }
+                    });
 
-                    // Mostrar notificación de éxito
+                    // Mostrar notificación de éxito inmediatamente
                     notifications.success(
                         options?.status === 'published' // Usar el estado de las opciones para el mensaje
                             ? 'Plantilla publicada correctamente'
@@ -681,6 +682,7 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                         question: '¿Qué pregunta quieres hacer?',
                         variableName: 'respuesta',
                         inputType: 'text',
+                        waitForResponse: true,
                     }
                 case 'ttsNode':
                     return {

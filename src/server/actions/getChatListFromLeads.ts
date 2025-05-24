@@ -8,8 +8,7 @@
 
 import { auth } from '@/auth'
 import dayjs from 'dayjs'
-import { createClient } from '@supabase/supabase-js'
-import { getLeadsForChat, UNIFIED_STAGE_MAPPING } from '@/services/leads/leadCountService'
+import { createClient } from '@/services/supabase/server'
 
 /**
  * Convierte un lead de la base de datos en un chat para el componente de chat
@@ -125,17 +124,8 @@ const getChatListFromLeads = async () => {
     if (!tenantId) {
       console.warn('No se pudo obtener el tenant_id del usuario desde la sesión');
 
-      // Obtenemos el cliente Supabase con service role para evitar RLS en desarrollo
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        }
-      )
+      // Obtenemos el cliente Supabase
+      const supabase = await createClient()
 
       // Si tenemos el ID del usuario en la sesión, intentamos obtener su tenant_id directamente
       if (session?.user?.id) {
@@ -177,32 +167,109 @@ const getChatListFromLeads = async () => {
   }
 }
 
+// Mapeo de etapas
+const UNIFIED_STAGE_MAPPING: Record<string, string> = {
+  'nuevos': 'new',
+  'prospectando': 'prospecting',
+  'calificacion': 'qualification',
+  'calificación': 'qualification',
+  'oportunidad': 'opportunity',
+  'confirmado': 'confirmed',
+  'cerrado': 'closed',
+  'first_contact': 'new',
+  'new': 'new',
+  'prospecting': 'prospecting',
+  'qualification': 'qualification',
+  'opportunity': 'opportunity',
+  'confirmed': 'confirmed',
+  'closed': 'closed'
+}
+
+const DISPLAY_STAGES = ['new', 'prospecting', 'qualification', 'opportunity']
+
 /**
  * Obtiene la lista de chats para un tenant específico
  * Extracción de la lógica principal para permitir múltiples caminos de entrada
  */
 const getChatListForTenant = async (tenantId: string) => {
   try {
-    console.log('Obteniendo leads con criterios unificados para chat, tenant:', tenantId);
+    console.log('Obteniendo leads para chat, tenant:', tenantId);
     
-    // Usar el servicio centralizado para obtener leads
-    const leadsData = await getLeadsForChat(tenantId);
+    // Crear cliente de Supabase
+    const supabase = await createClient()
+    
+    // Query base
+    let query = supabase
+      .from('leads')
+      .select(`
+        id,
+        full_name,
+        email,
+        phone,
+        stage,
+        status,
+        metadata,
+        created_at,
+        updated_at,
+        tenant_id,
+        agent_id,
+        property_type,
+        bedrooms_needed,
+        bathrooms_needed,
+        budget_min,
+        budget_max,
+        preferred_zones,
+        notes,
+        description,
+        source,
+        interest_level,
+        contact_count,
+        next_contact_date,
+        last_contact_date,
+        cover,
+        selected_property_id,
+        property_ids
+      `)
+      .eq('tenant_id', tenantId)
+      .not('status', 'eq', 'closed')
+      .order('created_at', { ascending: false })
+
+    const { data: leadsData, error } = await query
+
+    if (error) {
+      console.error('Error al obtener leads:', error)
+      return []
+    }
     
     if (!leadsData || leadsData.length === 0) {
       console.log('No se encontraron leads para este tenant');
-      const emptyChats: any[] = []
-      return emptyChats;
+      return [];
     }
 
-    console.log(`Obtenidos ${leadsData.length} leads para convertir en chats.`);
+    // Filtrar leads
+    let filteredLeads = leadsData.filter(lead => {
+      if (!lead.stage) return false
+      
+      const normalizedStage = UNIFIED_STAGE_MAPPING[lead.stage.toLowerCase()] || lead.stage.toLowerCase()
+      
+      // Filtrar por etapas de display
+      if (!DISPLAY_STAGES.includes(normalizedStage)) return false
+      
+      // Filtrar leads removidos del funnel
+      if (lead.metadata?.removed_from_funnel) return false
+      
+      // Filtrar leads eliminados
+      if (lead.metadata?.is_deleted) return false
+      
+      return true
+    })
 
-    // Los leads ya vienen filtrados y con las etapas mapeadas del servicio centralizado
-    // Solo necesitamos convertirlos al formato de chat
-    const chatList = leadsData.map(lead => {
+    console.log(`Obtenidos ${filteredLeads.length} leads para convertir en chats.`);
+
+    // Convertir a formato de chat
+    const chatList = filteredLeads.map(lead => {
       // Verificar si tiene mensajes sin leer en metadata
       const hasUnreadMessages = lead.metadata?.unread_messages === true;
-
-      // El servicio centralizado ya maneja el mapeo de etapas
       return convertLeadToChat(lead, hasUnreadMessages);
     });
 
@@ -211,8 +278,7 @@ const getChatListForTenant = async (tenantId: string) => {
     return chatList;
   } catch (error) {
     console.error('Error en getChatListForTenant:', error)
-    const fallbackEmpty: any[] = []
-    return fallbackEmpty
+    return []
   }
 }
 

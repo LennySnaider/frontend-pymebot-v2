@@ -1,4 +1,4 @@
-export type ChatType = 'personal' | 'groups'
+export type ChatType = 'personal' | 'groups' | 'leads' | 'prospects'
 
 export type Chat = {
     id: string
@@ -11,6 +11,15 @@ export type Chat = {
     muted: boolean
     chatType: ChatType
     groupId: string
+    tenantId?: string
+    metadata?: {
+        stage?: string
+        email?: string
+        phone?: string
+        lastActivity?: number
+        lastLocalUpdate?: number
+        [key: string]: any
+    }
 }
 
 export type Message = {
@@ -34,6 +43,12 @@ export type Message = {
         body: string
         id?: string
     }>
+    listItems?: Array<{
+        text: string
+        description?: string
+        value: string
+    }>
+    listTitle?: string
 }
 
 export type SelectedChat = {

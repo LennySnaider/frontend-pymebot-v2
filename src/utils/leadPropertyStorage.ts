@@ -32,6 +32,19 @@ interface StoredLeadData {
   name?: string;
   description?: string;
   
+  // Estado del formulario
+  formState?: {
+    currentStep?: number;
+    formattedBudget?: string;
+    formattedBudgetMax?: string;
+    selectedBudgetRange?: string;
+    lastEditMode?: 'view' | 'edit';
+    labels?: string[];
+    leadStatus?: string;
+    interest?: string;
+    source?: string;
+  };
+  
   // Timestamp para expiración
   timestamp: number;
 }
@@ -88,7 +101,10 @@ export function storeLeadData(leadId: string, data: Partial<StoredLeadData> | an
         email: data.email || data.metadata?.email || '',
         phone: data.phone || data.metadata?.phone || '',
         name: data.name || data.full_name || '',
-        description: data.description || data.notes || ''
+        description: data.description || data.notes || '',
+        
+        // Preservar estado del formulario si existe
+        formState: data.formState || data._formState
       };
     }
     
@@ -296,5 +312,89 @@ export function cleanupLeadStorage(): void {
     console.log(`[LeadPropertyStorage] Limpieza completada. ${Object.keys(cleanedData).length} leads en caché.`);
   } catch (error) {
     console.error('[LeadPropertyStorage] Error limpiando caché:', error);
+  }
+}
+
+/**
+ * Guarda el estado del formulario de edición del lead
+ * @param leadId ID del lead
+ * @param formState Estado del formulario a guardar
+ */
+export function storeLeadFormState(leadId: string, formState: StoredLeadData['formState']): void {
+  if (!leadId || typeof window === 'undefined') return;
+  
+  try {
+    const storedData: LeadDataCache = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    
+    // Actualizar solo el estado del formulario
+    if (storedData[leadId]) {
+      storedData[leadId].formState = {
+        ...storedData[leadId].formState,
+        ...formState
+      };
+      storedData[leadId].timestamp = Date.now();
+    } else {
+      // Si no existe el lead, crear una entrada mínima
+      storedData[leadId] = {
+        formState: formState,
+        timestamp: Date.now()
+      };
+    }
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+    console.log(`[LeadPropertyStorage] Estado del formulario guardado para lead ${leadId}:`, formState);
+  } catch (error) {
+    console.error('[LeadPropertyStorage] Error guardando estado del formulario:', error);
+  }
+}
+
+/**
+ * Recupera el estado del formulario de edición del lead
+ * @param leadId ID del lead
+ * @returns Estado del formulario o undefined si no hay
+ */
+export function getLeadFormState(leadId: string): StoredLeadData['formState'] | undefined {
+  if (!leadId || typeof window === 'undefined') return undefined;
+  
+  try {
+    const storedData: LeadDataCache = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const leadData = storedData[leadId];
+    
+    if (!leadData || !leadData.formState) {
+      console.log(`[LeadPropertyStorage] No hay estado del formulario para lead ${leadId}`);
+      return undefined;
+    }
+    
+    const now = Date.now();
+    if (now - leadData.timestamp > CACHE_EXPIRY) {
+      console.log(`[LeadPropertyStorage] Estado del formulario expirado para lead ${leadId}`);
+      return undefined;
+    }
+    
+    console.log(`[LeadPropertyStorage] Estado del formulario recuperado para lead ${leadId}:`, leadData.formState);
+    return leadData.formState;
+  } catch (error) {
+    console.error('[LeadPropertyStorage] Error recuperando estado del formulario:', error);
+    return undefined;
+  }
+}
+
+/**
+ * Limpia el estado del formulario de un lead específico
+ * @param leadId ID del lead
+ */
+export function clearLeadFormState(leadId: string): void {
+  if (!leadId || typeof window === 'undefined') return;
+  
+  try {
+    const storedData: LeadDataCache = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    
+    if (storedData[leadId] && storedData[leadId].formState) {
+      delete storedData[leadId].formState;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+      console.log(`[LeadPropertyStorage] Estado del formulario limpiado para lead ${leadId}`);
+    }
+  } catch (error) {
+    console.error('[LeadPropertyStorage] Error limpiando estado del formulario:', error);
   }
 }

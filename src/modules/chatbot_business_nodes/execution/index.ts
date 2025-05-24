@@ -2,14 +2,14 @@
  * Exportación de las funciones de ejecución para los nodos de negocio del chatbot
  */
 
-// Importar las funciones de ejecución de los nodos
-import { executeCheckAvailability } from '@/components/view/ChatbotBuilder/nodes/CheckAvailabilityNode';
-import { executeBookAppointment } from '@/components/view/ChatbotBuilder/nodes/BookAppointmentNode';
-import { executeLeadQualification } from '@/components/view/ChatbotBuilder/nodes/LeadQualificationNode';
-import { executeRescheduleAppointment } from '@/components/view/ChatbotBuilder/nodes/RescheduleAppointmentNode';
-import { executeCancelAppointment } from '@/components/view/ChatbotBuilder/nodes/CancelAppointmentNode';
-import { executeServicesNode } from '@/components/view/ChatbotBuilder/nodes/ServicesNode';
-import { executeProductNode } from '@/components/view/ChatbotBuilder/nodes/ProductNode';
+// Importar las funciones de ejecución desde los nuevos ejecutores migrados
+import { executeCheckAvailability } from '@/utils/nodeExecutors/checkAvailabilityExecutor';
+import { executeBookAppointment } from '@/utils/nodeExecutors/bookAppointmentExecutor';
+import { executeLeadQualification } from '@/utils/nodeExecutors/leadQualificationExecutor';
+import { executeRescheduleAppointment } from '@/utils/nodeExecutors/rescheduleAppointmentExecutor';
+import { executeCancelAppointment } from '@/utils/nodeExecutors/cancelAppointmentExecutor';
+import { executeServicesNode } from '@/utils/nodeExecutors/servicesNodeExecutor';
+import { executeProductNode } from '@/utils/nodeExecutors/productNodeExecutor';
 
 // Re-exportar para uso en el motor de ejecución del chatbot
 export {

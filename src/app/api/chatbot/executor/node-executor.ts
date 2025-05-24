@@ -52,6 +52,7 @@ function replaceVariables(text: string, stateData: Record<string, any>): string 
     'nombre_usuario': stateData.nombre_usuario || 'Usuario',
     'user_name': stateData.user_name || 'Usuario',
     'nombre': stateData.nombre || 'Usuario',
+    'nombre_lead': stateData.nombre_lead || 'Usuario',
     'email_usuario': stateData.email_usuario || 'correo@ejemplo.com',
     'telefono_usuario': stateData.telefono_usuario || '123456789',
     'company_name': stateData.company_name || 'PymeBot',
@@ -290,6 +291,19 @@ export async function executeNode(
             nodeType: 'buttons',
             options: data.options || [],
             buttons: data.buttons || []
+          }
+        };
+
+      case 'listNode': // Add support for list node
+        console.log(`Procesando nodo de tipo listNode: ${nodeConfig.id}`);
+        return {
+          nextNodeId: null, // Detener flujo hasta que el usuario seleccione una opción
+          responseMessage: replaceVariables(data.message || 'Por favor selecciona una opción:', stateData),
+          metadata: { 
+            nodeType: 'list',
+            listItems: data.listItems || [],
+            listTitle: data.listTitle,
+            waitForResponse: data.waitForResponse !== false // Por defecto true para listas
           }
         };
 

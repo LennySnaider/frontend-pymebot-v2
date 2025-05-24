@@ -36,7 +36,63 @@ import {
 import { Drawer, Button } from '@/components/ui'
 
 // Importamos los tipos de nodos disponibles desde el registro
-import { availableNodeTypes } from '@/components/view/ChatbotBuilder/nodes'
+// Tipos de nodos disponibles (migrado desde index.ts)
+const availableNodeTypes = [
+    {
+        type: 'messageNode',
+        label: 'Mensaje',
+        description: 'Enviar un mensaje de texto al usuario',
+        icon: 'message',
+    },
+    {
+        type: 'inputNode',
+        label: 'Entrada',
+        description: 'Solicitar información al usuario',
+        icon: 'input',
+    },
+    {
+        type: 'buttonsNode',
+        label: 'Botones',
+        description: 'Mostrar botones interactivos (máx. 3)',
+        icon: 'buttons',
+    },
+    {
+        type: 'listNode',
+        label: 'Lista',
+        description: 'Mostrar lista de opciones (máx. 10)',
+        icon: 'list',
+    },
+    {
+        type: 'aiNode',
+        label: 'IA',
+        description: 'Generar respuesta con inteligencia artificial',
+        icon: 'brain',
+    },
+    {
+        type: 'conditionNode',
+        label: 'Condición',
+        description: 'Evaluar condición y bifurcar flujo',
+        icon: 'condition',
+    },
+    {
+        type: 'productNode',
+        label: 'Productos',
+        description: 'Mostrar catálogo de productos',
+        icon: 'package',
+    },
+    {
+        type: 'servicesNode',
+        label: 'Servicios',
+        description: 'Mostrar lista de servicios',
+        icon: 'ruler',
+    },
+    {
+        type: 'bookAppointmentNode',
+        label: 'Agendar Cita',
+        description: 'Programar cita con cliente',
+        icon: 'calendar',
+    },
+]
 
 // Nodos organizados por categorías
 const NODE_CATEGORIES = [

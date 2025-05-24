@@ -16,7 +16,7 @@
     "operationPlaceholder": "Tipo de operación",
     "propertyType": "Tipo de Propiedad",
     "propertyTypePlaceholder": "Seleccionar tipo",
-    "budget": "Presupuesto (€)",
+    "budget": "Presupuesto ($)",
     "budgetPlaceholder": "Presupuesto aproximado",
     "source": "Origen del Prospecto",
     "sourcePlaceholder": "Fuente de contacto",
@@ -159,7 +159,13 @@
             "new": "Nuevos",
             "prospecting": "Prospectando",
             "qualification": "Calificación",
-            "opportunity": "Oportunidad"
+            "opportunity": "Oportunidad",
+            "nuevos": "Nuevos",
+            "prospectando": "Prospectando",
+            "calificación": "Calificación",
+            "oportunidad": "Oportunidad",
+            "adquisición": "Adquisición",
+            "prospección": "Prospección"
         },
         "finalStates": {
             "confirmed": "Confirmado",
@@ -186,7 +192,7 @@
         "operationPlaceholder": "Tipo de operación",
         "propertyType": "Tipo de Propiedad",
         "propertyTypePlaceholder": "Seleccionar tipo",
-        "budget": "Presupuesto (€)",
+        "budget": "Presupuesto ($)",
         "budgetPlaceholder": "Presupuesto aproximado",
         "source": "Origen del Prospecto",
         "sourcePlaceholder": "Fuente de contacto",

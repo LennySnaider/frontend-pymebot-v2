@@ -9,6 +9,8 @@ import { useChatStore } from '@/app/(protected-pages)/modules/marketing/chat/_st
 import { simpleLeadUpdateStore } from '@/stores/simpleLeadUpdateStore';
 import { leadUpdateStore } from '@/stores/leadUpdateStore';
 import globalLeadCache from '@/stores/globalLeadCache';
+import { registerLeadName } from '@/utils/directSyncLeadNames';
+import { publishLeadNameChange } from '@/utils/globalSyncEvent';
 
 /**
  * Fuerza la actualización completa de la lista de chats desde cero
@@ -121,7 +123,15 @@ export function forceSyncLead(leadId: string, name: string, stage?: string) {
     // 1. Actualizar en caché global
     globalLeadCache.updateLeadData(leadId, { name, stage });
     
-    // 2. Actualizar nombre en chatStore
+    // 2. Registrar nombre en el sistema de sincronización directa
+    const normalizedId = leadId.startsWith('lead_') ? leadId.substring(5) : leadId;
+    registerLeadName(normalizedId, name);
+    registerLeadName(leadId, name); // También con el ID original por si acaso
+    
+    // 3. Publicar cambio en el sistema de eventos globales
+    publishLeadNameChange(normalizedId, name);
+    
+    // 4. Actualizar nombre en chatStore
     if (useChatStore && typeof useChatStore.getState === 'function') {
       const chatId = leadId.startsWith('lead_') ? leadId : `lead_${leadId}`;
       const store = useChatStore.getState();
@@ -135,7 +145,7 @@ export function forceSyncLead(leadId: string, name: string, stage?: string) {
       }
     }
     
-    // 3. Crear evento DOM para otros componentes
+    // 5. Crear evento DOM para otros componentes
     if (typeof window !== 'undefined') {
       const detail = {
         leadId: leadId,

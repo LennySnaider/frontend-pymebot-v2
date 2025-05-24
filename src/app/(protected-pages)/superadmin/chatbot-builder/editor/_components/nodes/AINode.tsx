@@ -20,15 +20,25 @@ const AINode = ({ data, selected }: NodeProps) => {
             className="min-w-[180px]"
             borderColor="border-purple-200 dark:border-purple-700"
         >
-            <div className="flex items-center">
-                <PiRobotDuotone className="text-purple-500 text-xl mr-2" />
-                <span className="font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                    {data.label || 'Respuesta AI'}
-                    {data.mode === 'auto' && (
-                        <span className="ml-2 text-xs bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-100 px-1.5 py-0.5 rounded-full">
-                            AUTO
-                        </span>
-                    )}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                    <PiRobotDuotone className="text-purple-500 text-xl mr-2" />
+                    <span className="font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                        {data.label || 'Respuesta AI'}
+                        {data.mode === 'auto' && (
+                            <span className="ml-2 text-xs bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-100 px-1.5 py-0.5 rounded-full">
+                                AUTO
+                            </span>
+                        )}
+                    </span>
+                </div>
+                {/* Indicador visual de flujo continuo o pausa */}
+                <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                    data.waitForResponse
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-green-100 text-green-800'
+                }`}>
+                    {data.waitForResponse ? 'Espera' : 'Continuo'}
                 </span>
             </div>
             <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">

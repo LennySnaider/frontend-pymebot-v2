@@ -133,7 +133,13 @@
             "new": "New",
             "prospecting": "Prospecting",
             "qualification": "Qualification",
-            "opportunity": "Opportunity"
+            "opportunity": "Opportunity",
+            "nuevos": "New",
+            "prospectando": "Prospecting",
+            "calificación": "Qualification",
+            "oportunidad": "Opportunity",
+            "adquisición": "Acquisition",
+            "prospección": "Prospecting"
         },
         "finalStates": {
             "confirmed": "Confirmed",

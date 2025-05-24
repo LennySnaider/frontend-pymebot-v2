@@ -109,6 +109,7 @@ export default {
                         id: payload.token.sub,
                         role: userRole,
                         tenant_id: userData?.tenant_id || null,
+                        tenantId: userData?.tenant_id || null, // Agregar también como tenantId para compatibilidad
                         authority: userAuthority,
                     },
                 }

@@ -24,6 +24,7 @@ export type MessageListProps = {
     messageListClass?: string
     ref?: Ref<ScrollBarRef>
     onButtonClick?: (buttonText: string) => void
+    onListItemClick?: (value: string, text: string) => void
 }
 
 const MessageList = (props: MessageListProps) => {
@@ -38,6 +39,7 @@ const MessageList = (props: MessageListProps) => {
         bubbleClass,
         ref,
         onButtonClick,
+        onListItemClick,
     } = props
 
     return (
@@ -57,6 +59,7 @@ const MessageList = (props: MessageListProps) => {
                                 bubbleClass={bubbleClass}
                                 {...message}
                                 onButtonClick={onButtonClick}
+                                onListItemClick={onListItemClick}
                                 {...(customRenderer
                                     ? {
                                           customRenderer: () =>

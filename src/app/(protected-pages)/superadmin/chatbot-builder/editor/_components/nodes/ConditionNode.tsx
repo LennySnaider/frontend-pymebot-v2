@@ -45,9 +45,19 @@ const ConditionNode = ({ data, selected }: NodeProps) => {
       className="min-w-[180px]"
       borderColor="border-yellow-200 dark:border-yellow-700"
     >
-      <div className="flex items-center">
-        <PiArrowsSplitDuotone className="text-yellow-500 text-xl mr-2" />
-        <span className="font-semibold text-gray-900 dark:text-gray-100">{data.label || 'Condición'}</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <PiArrowsSplitDuotone className="text-yellow-500 text-xl mr-2" />
+          <span className="font-semibold text-gray-900 dark:text-gray-100">{data.label || 'Condición'}</span>
+        </div>
+        {/* Indicador visual de flujo continuo o pausa */}
+        <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+          data.waitForResponse
+            ? 'bg-amber-100 text-amber-800'
+            : 'bg-green-100 text-green-800'
+        }`}>
+          {data.waitForResponse ? 'Espera' : 'Continuo'}
+        </span>
       </div>
       <div className="mt-2 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded text-sm text-gray-700 dark:text-gray-300 max-w-[250px] break-words">
         {data.condition || 'Define una condición...'}

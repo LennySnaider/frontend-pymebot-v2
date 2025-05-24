@@ -37,6 +37,8 @@ export type ChatState = {
     currentLeadStage?: string
     // Estado de error para plantillas
     templatesError: string | null
+    // Trigger para forzar re-renders
+    triggerUpdate: number
 }
 
 type ChatAction = {
@@ -66,6 +68,8 @@ type ChatAction = {
     updateChatName: (chatId: string, newName: string) => void
     // Nueva acción para actualizar metadata de un chat
     updateChatMetadata: (chatId: string, metadata: Record<string, any>) => void
+    // Forzar re-render
+    setTriggerUpdate: (value: number) => void
 }
 
 const initialState: ChatState = {
@@ -73,7 +77,7 @@ const initialState: ChatState = {
     selectedChat: {},
     mobileSideBarExpand: false,
     chats: [],
-    selectedChatType: 'personal',
+    selectedChatType: 'leads',
     chatsFetched: false,
     contactListDialog: false,
     contactInfoDrawer: {
@@ -89,11 +93,14 @@ const initialState: ChatState = {
     currentLeadStage: undefined,
     // Estado inicial de error para plantillas
     templatesError: null,
+    // Trigger inicial
+    triggerUpdate: 0,
 }
 
 export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
     ...initialState,
     setChats: (payload) => set(() => ({ chats: payload })),
+    setTriggerUpdate: (value) => set(() => ({ triggerUpdate: value })),
     setChatsFetched: (payload) => set(() => ({ chatsFetched: payload })),
     setSelectedChat: (payload) => set(() => ({ selectedChat: payload })),
     setContactInfoDrawer: (payload) =>
@@ -215,7 +222,9 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
             
             return {
                 chats: updatedChats,
-                selectedChat: updatedSelectedChat
+                selectedChat: updatedSelectedChat,
+                // Forzar actualización del triggerUpdate para garantizar re-render
+                triggerUpdate: Date.now()
             };
         }),
 
@@ -319,31 +328,116 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                     return;
                 }
                 
+                // Guardar cambios locales pendientes antes del refresh
+                const localPendingChanges = new Map<string, { name: string; timestamp: number }>();
+                const currentChats = get().chats;
+                
+                // Importar globalLeadCache dinámicamente
+                let globalLeadCache: any = null;
+                try {
+                    const cacheModule = await import('@/stores/globalLeadCache');
+                    globalLeadCache = cacheModule.default;
+                } catch (e) {
+                    console.warn('No se pudo importar globalLeadCache:', e);
+                }
+                
+                // Capturar cambios locales recientes del caché global
+                currentChats.forEach(chat => {
+                    if (chat.id.startsWith('lead_') && globalLeadCache) {
+                        const leadId = chat.id.substring(5);
+                        const cachedData = globalLeadCache.getLeadData(leadId);
+                        
+                        if (cachedData && cachedData.name && cachedData.updatedAt > Date.now() - 5000) {
+                            // Solo preservar cambios de los últimos 5 segundos
+                            localPendingChanges.set(chat.id, {
+                                name: cachedData.name,
+                                timestamp: cachedData.updatedAt
+                            });
+                            console.log(`ChatStore: Preservando cambio local para ${chat.id}: "${cachedData.name}"`);
+                        }
+                    }
+                });
+                
                 // Obtener lista actualizada
                 const updatedChats = await chatListService();
                 
                 if (updatedChats && Array.isArray(updatedChats)) {
                     console.log('ChatStore: Lista actualizada:', updatedChats.length, 'chats');
                     
+                    // Aplicar cambios locales pendientes a los chats actualizados
+                    const mergedChats = updatedChats.map(chat => {
+                        const pendingChange = localPendingChanges.get(chat.id);
+                        
+                        if (pendingChange) {
+                            console.log(`ChatStore: Aplicando cambio local preservado para ${chat.id}: "${pendingChange.name}"`);
+                            return {
+                                ...chat,
+                                name: pendingChange.name,
+                                metadata: {
+                                    ...chat.metadata,
+                                    lastLocalUpdate: pendingChange.timestamp
+                                }
+                            };
+                        }
+                        
+                        // Si hay datos en el caché global, usarlos
+                        if (chat.id.startsWith('lead_') && globalLeadCache) {
+                            const leadId = chat.id.substring(5);
+                            const cachedData = globalLeadCache.getLeadData(leadId);
+                            
+                            if (cachedData && cachedData.name) {
+                                console.log(`ChatStore: Usando nombre del caché global para ${chat.id}: "${cachedData.name}"`);
+                                return {
+                                    ...chat,
+                                    name: cachedData.name,
+                                    metadata: {
+                                        ...chat.metadata,
+                                        stage: cachedData.stage || chat.metadata?.stage
+                                    }
+                                };
+                            }
+                        }
+                        
+                        return chat;
+                    });
+                    
                     // Actualizar lista manteniendo chats no-lead existentes
                     const existingNonLeadChats = get().chats.filter(
                         chat => chat.chatType !== 'leads' && chat.chatType !== 'prospects'
                     );
                     
+                    // Eliminar duplicados por ID antes de actualizar
+                    const uniqueChatsMap = new Map();
+                    
+                    // Primero agregar chats no-lead
+                    existingNonLeadChats.forEach(chat => {
+                        uniqueChatsMap.set(chat.id, chat);
+                    });
+                    
+                    // Luego agregar/actualizar con los nuevos chats (leads)
+                    mergedChats.forEach(chat => {
+                        uniqueChatsMap.set(chat.id, chat);
+                    });
+                    
+                    // Convertir el Map de vuelta a array
+                    const uniqueChats = Array.from(uniqueChatsMap.values());
+                    
+                    console.log(`ChatStore: Actualizando con ${uniqueChats.length} chats únicos (de ${existingNonLeadChats.length + mergedChats.length} total)`);
+                    
                     set({
-                        chats: [...existingNonLeadChats, ...updatedChats],
+                        chats: uniqueChats,
                         chatsFetched: true
                     });
                     
                     // Verificar si el chat seleccionado sigue existiendo
-                    const selectedChatStillExists = updatedChats.some(chat => chat.id === selectedChat.id);
+                    const selectedChatStillExists = mergedChats.some(chat => chat.id === selectedChat.id);
                     
                     if (!selectedChatStillExists && selectedChat.id && selectedChat.id.startsWith('lead_')) {
                         console.log('ChatStore: El chat seleccionado ya no existe, seleccionando otro');
                         
                         // Seleccionar el primer chat disponible si el actual ya no existe
-                        if (updatedChats.length > 0) {
-                            const firstChat = updatedChats[0];
+                        if (mergedChats.length > 0) {
+                            const firstChat = mergedChats[0];
                             get().setSelectedChat({
                                 id: firstChat.id,
                                 user: {
@@ -363,6 +457,18 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                             get().setSelectedChat({});
                         }
                     }
+                    
+                    // Re-aplicar cambios locales después de un breve delay
+                    // Esto asegura que los cambios se mantengan visibles
+                    setTimeout(() => {
+                        localPendingChanges.forEach((change, chatId) => {
+                            const updateFn = get().updateChatName;
+                            if (typeof updateFn === 'function') {
+                                console.log(`ChatStore: Re-aplicando cambio local para ${chatId}: "${change.name}"`);
+                                updateFn(chatId, change.name);
+                            }
+                        });
+                    }, 100);
                 }
             } else {
                 console.log('ChatStore: Tipo de chat actual no es prospects/leads, no se actualiza');

@@ -14,8 +14,13 @@ import ChatSidebar from './_components/ChatSidebar'
 import ChatBody from './_components/ChatBody'
 import ContactInfoDrawer from './_components/ContactInfoDrawer'
 import ClientChatHeader from './_components/ClientChatHeader'
+import LeadNameSyncListener from './_components/LeadNameSyncListener'
+// import LeadSyncDebugger from './_components/LeadSyncDebugger' // Eliminado por solicitud
+import ChatForceUpdater from './_components/ChatForceUpdater'
 import getChatListFromLeads from '@/server/actions/getChatListFromLeads'
 import { auth } from '@/auth'
+// import ChatPersistenceInitializer from './_components/ChatPersistenceInitializer' // Ya incluido en StoreInitializer
+import ChatSyncDebugPanel from './_components/ChatSyncDebugPanel'
 
 export default async function Page() {
     // Obtener la sesión actual para tener acceso al tenant_id
@@ -27,7 +32,16 @@ export default async function Page() {
 
     return (
         <ChatProvider chats={data}>
+            {/* Sistema de persistencia mejorado - Ya incluido en StoreInitializer */}
+            <ChatSyncDebugPanel />
+            
             <Card className="h-full border-0" bodyClass="h-full flex flex-col">
+                {/* Listener de sincronización de nombres de leads */}
+                <LeadNameSyncListener />
+                
+                {/* Forzador de actualización del chat */}
+                <ChatForceUpdater />
+                
                 {/* Usando el componente cliente para el header */}
                 <ClientChatHeader />
                 
@@ -37,6 +51,7 @@ export default async function Page() {
                 </div>
             </Card>
             <ContactInfoDrawer />
+            {/* <LeadSyncDebugger /> // Eliminado por solicitud */}
         </ChatProvider>
     )
 }

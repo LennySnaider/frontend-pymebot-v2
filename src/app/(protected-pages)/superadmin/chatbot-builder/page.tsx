@@ -17,6 +17,7 @@ import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import { Button } from '@/components/ui'
 import { toast } from '@/components/ui/toast'
 import { Drawer } from '@/components/ui'
+import Notification from '@/components/ui/Notification'
 import SharedChatbotTemplatesList from '@/components/view/ChatbotBuilder/SharedChatbotTemplatesList'
 import { initializeChatbotDB } from '@/utils/setupChatbotTemplatesDB'
 import {
@@ -166,11 +167,11 @@ const ChatbotBuilderPage = () => {
 
                 // Actualizar la lista llamando a refreshTemplates
                 refreshTemplates() // Changed from setTemplates
-                toast.push({
-                    title: 'Plantilla importada correctamente',
-                    type: 'success',
-                    duration: 3000
-                })
+                toast.push(
+                    <Notification type="success" closable duration={3000}>
+                        Plantilla importada correctamente
+                    </Notification>
+                )
             } catch (error) {
                 // Removed : any
                 console.error('Error al importar plantilla:', error)
@@ -178,11 +179,11 @@ const ChatbotBuilderPage = () => {
                     error instanceof Error
                         ? error.message
                         : 'Verifique el formato.'
-                toast.push({
-                    title: `Error al importar la plantilla: ${errorMessage}`,
-                    type: 'danger',
-                    duration: 5000
-                })
+                toast.push(
+                    <Notification type="danger" closable duration={5000}>
+                        Error al importar la plantilla: {errorMessage}
+                    </Notification>
+                )
             }
 
             // Limpiar input

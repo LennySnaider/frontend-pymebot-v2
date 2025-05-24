@@ -13,6 +13,26 @@ const nextConfig = {
             config.optimization.minimize = true;
         }
         
+        // Mejorar el manejo de chunks para evitar errores de carga
+        config.optimization.splitChunks = {
+            ...config.optimization.splitChunks,
+            chunks: 'all',
+            cacheGroups: {
+                default: false,
+                vendors: false,
+                vendor: {
+                    chunks: 'all',
+                    name: 'vendor',
+                    test: /node_modules/,
+                },
+                common: {
+                    minChunks: 2,
+                    priority: -10,
+                    reuseExistingChunk: true,
+                },
+            },
+        };
+        
         // Evitar procesar algunos archivos grandes en desarrollo
         if (dev) {
             config.watchOptions = {

@@ -32,8 +32,14 @@ const InputNode = ({ data, selected }: NodeProps) => {
             )}
           </span>
         </div>
-        {/* Indicador visual de ESPERA */}
-        <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full">Espera</span>
+        {/* Indicador visual de flujo continuo o pausa */}
+        <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+          data.waitForResponse !== false
+            ? 'bg-amber-100 text-amber-800'
+            : 'bg-green-100 text-green-800'
+        }`}>
+          {data.waitForResponse !== false ? 'Espera' : 'Continuo'}
+        </span>
       </div>
       <div className="mt-2 bg-green-50 dark:bg-green-900/20 p-2 rounded text-sm text-gray-700 dark:text-gray-300 max-w-[250px] break-words">
         {data.question || '¿Qué quieres preguntar?'}

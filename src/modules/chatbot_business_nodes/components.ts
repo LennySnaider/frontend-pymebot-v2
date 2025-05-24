@@ -6,22 +6,22 @@
 
 // Importar directamente desde el archivo de componentes
 import RescheduleAppointmentNode from '@/components/view/ChatbotBuilder/nodes/RescheduleAppointmentNode';
-import { executeRescheduleAppointment } from '@/components/view/ChatbotBuilder/nodes/RescheduleAppointmentNode';
+import { executeRescheduleAppointment } from '@/utils/nodeExecutors/rescheduleAppointmentExecutor';
 
 import CheckAvailabilityNodeDark from '@/components/view/ChatbotBuilder/nodes/CheckAvailabilityNodeDark';
-import { executeCheckAvailability } from '@/components/view/ChatbotBuilder/nodes/CheckAvailabilityNodeDark';
+import { executeCheckAvailability } from '@/utils/nodeExecutors/checkAvailabilityExecutor';
 
 import BookAppointmentNode from '@/components/view/ChatbotBuilder/nodes/BookAppointmentNode';
 import LeadQualificationNode from '@/components/view/ChatbotBuilder/nodes/LeadQualificationNode';
 
 import CancelAppointmentNode from '@/components/view/ChatbotBuilder/nodes/CancelAppointmentNode';
-import { executeCancelAppointment } from '@/components/view/ChatbotBuilder/nodes/CancelAppointmentNode';
+import { executeCancelAppointment } from '@/utils/nodeExecutors/cancelAppointmentExecutor';
 
 import ServicesNode from '@/components/view/ChatbotBuilder/nodes/ServicesNode';
-import { executeServicesNode } from '@/components/view/ChatbotBuilder/nodes/ServicesNode';
+import { executeServicesNode } from '@/utils/nodeExecutors/servicesNodeExecutor';
 
 import ProductNode from '@/components/view/ChatbotBuilder/nodes/ProductNode';
-import { executeProductNode } from '@/components/view/ChatbotBuilder/nodes/ProductNode';
+import { executeProductNode } from '@/utils/nodeExecutors/productNodeExecutor';
 
 // Exportar los componentes
 export {

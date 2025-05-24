@@ -7,8 +7,8 @@
  * @updated 2025-05-19
  */
 
-import { createClient, createServiceClient } from '@/services/supabase/server';
 import { createClient as createPublicClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/utils/supabaseClient';
 
 /**
  * Criterios unificados para filtrar leads
@@ -69,10 +69,54 @@ export async function getLeadsWithUnifiedCriteria(criteria: LeadFilterCriteria) 
       return cachedData.data;
     }
     
-    // En desarrollo usar service client, en producción usar el cliente regular
-    const supabase = process.env.NODE_ENV === 'development' 
-      ? createServiceClient()
-      : await createClient();
+    // Si estamos en el cliente, usar el endpoint API
+    if (typeof window !== 'undefined') {
+      // Construir URL con parámetros
+      const params = new URLSearchParams({
+        tenant_id: criteria.tenant_id,
+        includeClosedStatus: String(criteria.includeClosedStatus || false),
+        includeRemovedFromFunnel: String(criteria.includeRemovedFromFunnel || false),
+        includeDeleted: String(criteria.includeDeleted || false)
+      });
+      
+      if (criteria.stages && criteria.stages.length > 0) {
+        params.append('stages', criteria.stages.join(','));
+      }
+      
+      // Llamar al endpoint API con credenciales
+      const response = await fetch(`/api/leads?${params}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        // Si es 401, intentar sin autenticación si tenemos tenant por defecto
+        if (response.status === 401 && criteria.tenant_id) {
+          console.warn('Endpoint requiere autenticación, retornando array vacío');
+          return [];
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Error al obtener leads: ${response.status}`);
+      }
+      
+      const filteredLeads = await response.json();
+      
+      // Guardar en cache
+      countsCache.set(cacheKey, { 
+        data: filteredLeads,
+        timestamp: now
+      });
+      
+      return filteredLeads;
+    }
+    
+    // Si estamos en el servidor, usar cliente directo
+    const supabase = createPublicClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
     if (!supabase) {
       console.error('Error: No se pudo obtener el cliente Supabase.');
@@ -93,7 +137,23 @@ export async function getLeadsWithUnifiedCriteria(criteria: LeadFilterCriteria) 
         created_at,
         updated_at,
         tenant_id,
-        agent_id
+        agent_id,
+        property_type,
+        bedrooms_needed,
+        bathrooms_needed,
+        budget_min,
+        budget_max,
+        preferred_zones,
+        notes,
+        description,
+        source,
+        interest_level,
+        contact_count,
+        next_contact_date,
+        last_contact_date,
+        cover,
+        selected_property_id,
+        property_ids
       `)
       .eq('tenant_id', criteria.tenant_id)
       .order('created_at', { ascending: false });

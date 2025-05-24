@@ -24,7 +24,10 @@ import {
 import globalLeadCache from '@/stores/globalLeadCache'
 import useGlobalLeadSync from '@/hooks/useGlobalLeadSync'
 import { registerSyncListener } from '@/utils/globalSyncEvent'
-import { forceRefreshChatList, forceSyncLead } from '@/utils/forceRefreshData'
+// NUEVO: Importar hook de sincronización instantánea
+import { useInstantLeadSync } from '@/hooks/useInstantLeadSync'
+// import { forceRefreshChatList, forceSyncLead } from '@/utils/forceRefreshData' // Comentado - archivo no existe
+// import useLeadNameSync from './useLeadNameSync' // Comentado - archivo deshabilitado
 
 // Importar el componente de prueba solo en desarrollo
 // Comentado para eliminar la herramienta de depuración
@@ -45,6 +48,29 @@ const ChatList = () => {
     const setChatRead = useChatStore((state) => state.setChatRead)
     const updateChatName = useChatStore((state) => state.updateChatName)
     const refreshChatList = useChatStore((state) => state.refreshChatList)
+    const triggerUpdate = useChatStore((state) => state.triggerUpdate)
+    
+    // NUEVO: Activar sincronización instantánea
+    useInstantLeadSync();
+    
+    // Usar el hook de sincronización de nombres
+    // useLeadNameSync() // Comentado - archivo deshabilitado
+    
+    // Hook personalizado para forzar re-renders cuando hay cambios
+    const [updateCounter, setUpdateCounter] = useState(0);
+    
+    // Escuchar cambios en el caché global
+    useEffect(() => {
+        const unsubscribe = globalLeadCache.subscribe((leadId, data) => {
+            console.log(`ChatList: Cambio detectado en caché global para ${leadId}:`, data);
+            // Forzar re-render
+            setUpdateCounter(prev => prev + 1);
+        });
+        
+        return () => {
+            unsubscribe();
+        };
+    }, []);
     
     // Usar el hook de sincronización global para leads
     const globalLeadSync = useGlobalLeadSync({
@@ -60,8 +86,9 @@ const ChatList = () => {
                 console.log(`ChatList: Actualizando nombre inmediatamente para ${chatId}: "${name}"`);
                 updateChatName(chatId, name);
                 
+                // COMENTADO TEMPORALMENTE PARA EVITAR LOOPS
                 // Intentar forzar una actualización del store y del UI
-                setTimeout(() => {
+                /*setTimeout(() => {
                     console.log(`ChatList: Segunda actualización para ${chatId}`);
                     const store = useChatStore.getState();
                     if (store && typeof store.updateChatName === 'function') {
@@ -69,7 +96,7 @@ const ChatList = () => {
                         // Forzar re-render
                         store.setTriggerUpdate(Date.now());
                     }
-                }, 100);
+                }, 100);*/
             }
             
             // 2. Actualizar etapa si está disponible
@@ -80,14 +107,15 @@ const ChatList = () => {
                 });
             }
             
+            // COMENTADO TEMPORALMENTE PARA EVITAR LOOPS
             // Forzar refresh de toda la lista para asegurar actualización completa
-            if (selectedChatType === 'leads' || selectedChatType === 'prospects') {
+            /*if (selectedChatType === 'leads' || selectedChatType === 'prospects') {
                 console.log('ChatList: Refrescando lista tras actualización de lead en caché global');
                 // Usar setTimeout para asegurar que el refresh se ejecuta después de otras actualizaciones
                 setTimeout(() => {
                     handleRefreshChatList(true); // Forzar refresh aunque hay uno en curso
                 }, 200);
-            }
+            }*/
         }
     });
 
@@ -212,11 +240,25 @@ const ChatList = () => {
         // Escuchar eventos de sincronización de nombres
         window.addEventListener('syncLeadNames', handleNameSync);
         
+        // Escuchar evento seguro de sincronización
+        const handleSafeNameSync = (e: any) => {
+            if (e.detail && e.detail.leadId && e.detail.name) {
+                console.log('ChatList: Evento seguro de sincronización detectado:', e.detail);
+                const chatId = `lead_${e.detail.leadId}`;
+                updateChatName(chatId, e.detail.name);
+                // Forzar actualización inmediata
+                setUpdateCounter(prev => prev + 1);
+            }
+        };
+        
+        window.addEventListener('lead-name-sync', handleSafeNameSync);
+        
         return () => {
             console.log('ChatList: Deteniendo escucha de eventos de leads')
             stopLeadRealTimeListener();
             window.removeEventListener('salesfunnel-lead-updated', handleSalesFunnelUpdate);
             window.removeEventListener('syncLeadNames', handleNameSync);
+            window.removeEventListener('lead-name-sync', handleSafeNameSync);
             window.removeEventListener('force-chat-refresh', handleForceRefresh);
             window.removeEventListener('lead-update', handleSalesFunnelUpdate);
             
@@ -230,7 +272,7 @@ const ChatList = () => {
                 clearInterval(autoRefreshInterval);
             }
         }
-    }, [selectedChatType, updateChatName])
+    }, [selectedChatType, updateChatName, setUpdateCounter])
 
     // Efecto para reaccionar a eventos de leads
     useEffect(() => {
@@ -256,12 +298,13 @@ const ChatList = () => {
                 console.log(`ChatList: Forzando refresh completo para actualizar chat ${chatId}`);
                 handleRefreshChatList();
 
-                // Además, aplicar actualizaciones directas cuando sea posible para mayor rapidez
+                // Aplicar actualizaciones directas cuando sea posible para mayor rapidez
                 
                 // Si el evento contiene el nombre completo, actualizar directamente
                 if (lastLeadEvent.data?.full_name) {
                     console.log(`ChatList: Actualizando nombre del lead ${leadId} a "${lastLeadEvent.data.full_name}"`);
                     updateChatName(chatId, lastLeadEvent.data.full_name);
+                    // NO disparar más eventos desde aquí para evitar loops
                 }
                 
                 // Si hay datos de etapa en el evento, actualizar la etapa localmente
@@ -295,9 +338,9 @@ const ChatList = () => {
         try {
             console.log('ChatList: Iniciando refresh de lista de chats...');
             
-            // SOLUCIÓN ROBUSTA: Usar la nueva utilidad forceRefreshChatList
-            // que garantiza una actualización completa usando múltiples métodos
-            await forceRefreshChatList();
+            // SOLUCIÓN ROBUSTA: Refrescar la lista de chats
+            // Llamar al método refresh del store
+            await refreshChatList();
             
             // Despues del refresh agresivo, aplicar una capa adicional de sincronización
             setTimeout(() => {
@@ -314,7 +357,13 @@ const ChatList = () => {
                         // Si hay un nombre en el caché global, forzar sincronización
                         if (cachedName && cachedName !== chat.name) {
                             console.log(`ChatList: Resincronizando lead ${leadId}: "${cachedName}" (era "${chat.name}")`);
-                            forceSyncLead(leadId, cachedName, cachedStage);
+                            // Actualizar directamente el nombre en el store
+                            updateChatName(chat.id, cachedName);
+                            
+                            // Actualizar metadata si hay etapa
+                            if (cachedStage && typeof useChatStore.getState().updateChatMetadata === 'function') {
+                                useChatStore.getState().updateChatMetadata(chat.id, { stage: cachedStage });
+                            }
                         }
                     }
                 });
@@ -413,7 +462,7 @@ const ChatList = () => {
         }
 
         if (e.target.value.length === 0) {
-            setSelectedChatType('personal')
+            setSelectedChatType('leads')
         }
 
         setQueryText(e.target.value)

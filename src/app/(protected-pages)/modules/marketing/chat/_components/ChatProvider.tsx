@@ -8,6 +8,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useChatStore } from '../_store/chatStore'
+import { useChatLeadSync } from '@/hooks/useChatLeadSync'
 import dynamic from 'next/dynamic'
 import type { CommonProps } from '@/@types/common'
 import type { Chats, Conversation } from '../types'
@@ -15,8 +16,29 @@ import type { Chats, Conversation } from '../types'
 // Importamos componentes de seguridad que evitan errores de renderizado
 import ErrorBoundary from './ErrorBoundary'
 import StoreInitializer from './StoreInitializer'
-// Nueva solución simple que solo fuerza actualizaciones frecuentes
-import QuickFix from './QuickFix'
+
+// Importar panel de debug solo en desarrollo
+const ChatSyncDebugPanel = dynamic(() => import('./ChatSyncDebugPanel'), {
+    ssr: false,
+    loading: () => null
+})
+
+// Importar debugger temporal (solo desarrollo)
+const ChatSyncDebugger = dynamic(() => import('./debug/ChatSyncDebugger'), {
+    ssr: false,
+    loading: () => null
+})
+// QuickFix ya no es necesario - usamos sincronización inteligente
+// import QuickFix from './QuickFix'
+
+// Cargar herramientas de diagnóstico en desarrollo
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    import('@/utils/chatSyncDiagnostics').then(() => {
+        console.log('[ChatProvider] Herramientas de diagnóstico cargadas')
+    }).catch((error) => {
+        console.warn('[ChatProvider] No se pudieron cargar las herramientas de diagnóstico:', error)
+    })
+}
 
 interface ChatProviderProviderProps extends CommonProps {
     chats: Chats
@@ -28,6 +50,10 @@ const ChatProvider = ({ children, chats }: ChatProviderProviderProps) => {
     const setChatsFetched = useChatStore((state) => state.setChatsFetched)
     const pushConversationRecord = useChatStore((state) => state.pushConversationRecord)
     const conversationRecord = useChatStore((state) => state.conversationRecord)
+    
+    // Hook de sincronización con Sales Funnel
+    // Activamos la sincronización automática sin intervalo periódico
+    const { forceRefresh, pendingUpdates } = useChatLeadSync(true, 0)
 
     // Detectar si estamos en el cliente
     useEffect(() => {
@@ -86,6 +112,13 @@ const ChatProvider = ({ children, chats }: ChatProviderProviderProps) => {
         }
     }, [isClient, conversationRecord, pushConversationRecord])
 
+    // Log cuando hay actualizaciones pendientes
+    useEffect(() => {
+        if (pendingUpdates > 0) {
+            console.log(`ChatProvider: ${pendingUpdates} actualizaciones de leads pendientes`)
+        }
+    }, [pendingUpdates])
+
     // Si estamos en el servidor, renderizamos un placeholder
     if (!isClient) {
         return (
@@ -99,9 +132,25 @@ const ChatProvider = ({ children, chats }: ChatProviderProviderProps) => {
     return (
         <ErrorBoundary>
             <StoreInitializer>
-                {/* Solución simple: actualizar cada 5 segundos */}
-                <QuickFix />
+                {/* QuickFix comentado - Ahora usamos sincronización inteligente con useChatLeadSync
+                <QuickFix /> */}
                 {children}
+                
+                {/* Indicador opcional de sincronización (solo visible en desarrollo) */}
+                {process.env.NODE_ENV === 'development' && pendingUpdates > 0 && (
+                    <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-xs z-50 animate-pulse">
+                        Sincronizando {pendingUpdates} leads...
+                    </div>
+                )}
+                
+                {/* Panel de debug para sincronización (solo en desarrollo) */}
+                {process.env.NODE_ENV === 'development' && (
+                    <>
+                        <ChatSyncDebugPanel />
+                        {/* Debugger temporal para identificar el problema del Window */}
+                        <ChatSyncDebugger />
+                    </>
+                )}
             </StoreInitializer>
         </ErrorBoundary>
     )

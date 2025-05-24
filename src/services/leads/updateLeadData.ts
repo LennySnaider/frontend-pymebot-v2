@@ -1,103 +1,136 @@
 /**
- * Servicio para actualizar datos de un lead
- * Actualiza tanto en memoria (para UI inmediata) como en base de datos
+ * Servicio para actualizar datos de leads
+ * @version 1.0.0
  */
 
-import { broadcastLeadUpdated } from '@/stores/leadRealTimeStore';
+import { supabase } from '@/services/supabase/SupabaseClient'
+
+export interface LeadUpdateData {
+    full_name?: string
+    email?: string
+    phone?: string
+    notes?: string
+    budget_min?: number
+    budget_max?: number
+    property_type?: string
+    source?: string
+    interest_level?: string
+    metadata?: Record<string, any>
+}
 
 /**
  * Actualiza los datos de un lead en la base de datos
  * @param leadId ID del lead a actualizar
- * @param data Datos del lead a actualizar
+ * @param data Datos a actualizar
  * @returns Promesa con el resultado de la actualización
  */
-export async function updateLeadData(leadId: string, data: Record<string, any>) {
+export async function updateLeadData(leadId: string, data: LeadUpdateData) {
     try {
-        // Validar que tenemos un ID válido
-        if (!leadId) {
-            throw new Error('ID de lead no válido');
+        console.log(`Actualizando lead ${leadId} con datos:`, data)
+        
+        // Filtrar solo los campos que tienen valor
+        const updateData: Record<string, any> = {}
+        
+        if (data.full_name) updateData.full_name = data.full_name
+        if (data.email) updateData.email = data.email
+        if (data.phone) updateData.phone = data.phone
+        if (data.notes) updateData.notes = data.notes
+        if (data.budget_min !== undefined) updateData.budget_min = data.budget_min
+        if (data.budget_max !== undefined) updateData.budget_max = data.budget_max
+        if (data.property_type) updateData.property_type = data.property_type
+        if (data.source) updateData.source = data.source
+        if (data.interest_level) updateData.interest_level = data.interest_level
+        
+        // Combinar metadata existente con nueva
+        if (data.metadata) {
+            const { data: existingLead, error: fetchError } = await supabase
+                .from('leads')
+                .select('metadata')
+                .eq('id', leadId)
+                .single()
+            
+            if (fetchError) {
+                console.error('Error obteniendo lead existente:', fetchError)
+            } else {
+                updateData.metadata = {
+                    ...(existingLead?.metadata || {}),
+                    ...data.metadata
+                }
+            }
         }
-
-        console.log(`updateLeadData: Actualizando lead ${leadId} con datos:`, data);
-
-        // Llamar al API para actualizar el lead
-        const response = await fetch(`/api/leads/update/${leadId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Error al actualizar el lead');
+        
+        // Actualizar en la base de datos
+        const { data: updatedLead, error } = await supabase
+            .from('leads')
+            .update(updateData)
+            .eq('id', leadId)
+            .select()
+            .single()
+        
+        if (error) {
+            throw error
         }
-
-        const result = await response.json();
-
-        // Emitir evento para actualización en tiempo real
-        broadcastLeadUpdated(leadId, data);
-
-        console.log('updateLeadData: Lead actualizado correctamente:', result);
-        return result;
+        
+        console.log('Lead actualizado exitosamente:', updatedLead)
+        
+        // Actualizar caché global si está disponible
+        if (typeof window !== 'undefined' && (window as any).__globalLeadCache) {
+            const cache = (window as any).__globalLeadCache
+            if (data.full_name) {
+                cache.updateLeadData(leadId, { name: data.full_name })
+            }
+        }
+        
+        // Emitir evento de actualización
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('lead-updated', {
+                detail: { leadId, data: updateData },
+                bubbles: true
+            }))
+        }
+        
+        return { success: true, data: updatedLead }
     } catch (error) {
-        console.error('Error en updateLeadData:', error);
-        throw error;
+        console.error('Error actualizando lead:', error)
+        return { success: false, error }
     }
 }
 
 /**
- * Valida los datos extraídos de una conversación antes de actualizar el lead
- * @param data Datos a validar
- * @returns Datos validados
+ * Extrae datos del lead desde el contenido del mensaje
+ * @param messageContent Contenido del mensaje a analizar
+ * @returns Datos extraídos del lead
  */
-export function validateLeadConversationData(data: Record<string, any>): Record<string, any> {
-    const validatedData: Record<string, any> = {};
-
-    // Validar y limpiar el email
-    if (data.email) {
-        // Expresión regular simple para validar email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (emailRegex.test(data.email)) {
-            validatedData.email = data.email.trim().toLowerCase();
+export function extractLeadDataFromMessage(messageContent: string): LeadUpdateData {
+    const leadData: LeadUpdateData = {}
+    
+    // Extraer email
+    const emailMatch = messageContent.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/)
+    if (emailMatch) {
+        leadData.email = emailMatch[0]
+    }
+    
+    // Extraer teléfono (varios formatos)
+    const phoneMatch = messageContent.match(/(\+?[0-9]{1,3}[-\s]?)?(\(?[0-9]{3}\)?[-\s]?[0-9]{3}[-\s]?[0-9]{4})/)
+    if (phoneMatch) {
+        leadData.phone = phoneMatch[0].replace(/[-\s\(\)]/g, '')
+    }
+    
+    // Extraer nombre (más complejo, buscar patrones comunes)
+    const namePatterns = [
+        /mi nombre es ([A-Za-zÀ-ÿ\s]+)/i,
+        /me llamo ([A-Za-zÀ-ÿ\s]+)/i,
+        /soy ([A-Za-zÀ-ÿ\s]+)/i,
+        /nombre:\s*([A-Za-zÀ-ÿ\s]+)/i
+    ]
+    
+    for (const pattern of namePatterns) {
+        const nameMatch = messageContent.match(pattern)
+        if (nameMatch && nameMatch[1]) {
+            leadData.full_name = nameMatch[1].trim()
+            break
         }
     }
-
-    // Validar y limpiar el teléfono
-    if (data.phone) {
-        // Eliminar todos los caracteres no numéricos
-        const cleanPhone = data.phone.replace(/\D/g, '');
-        // Verificar que tiene una longitud razonable para un número de teléfono
-        if (cleanPhone.length >= 10) {
-            validatedData.phone = cleanPhone;
-        }
-    }
-
-    // Nombre completo
-    if (data.full_name) {
-        validatedData.full_name = data.full_name.trim();
-    }
-
-    // Notas
-    if (data.notes) {
-        validatedData.notes = data.notes.trim();
-    }
-
-    // Presupuesto
-    if (data.budget_min !== undefined) {
-        // Convertir a número si es necesario
-        validatedData.budget_min = typeof data.budget_min === 'string' 
-            ? parseFloat(data.budget_min) 
-            : data.budget_min;
-    }
-
-    if (data.budget_max !== undefined) {
-        // Convertir a número si es necesario
-        validatedData.budget_max = typeof data.budget_max === 'string' 
-            ? parseFloat(data.budget_max) 
-            : data.budget_max;
-    }
-
-    return validatedData;
+    
+    return leadData
 }

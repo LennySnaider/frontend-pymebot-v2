@@ -12,12 +12,17 @@ import React from 'react'
 import PostLoginLayout from '@/components/layouts/PostLoginLayout'
 import { ReactNode } from 'react'
 import VerticalsProvider from '@/components/providers/core/VerticalsProvider'
+import LeadSyncInitializer from '@/components/shared/LeadSyncInitializer'
+import TenantInitializer from '@/components/providers/TenantInitializer'
 
 const Layout = ({ children }: { children: ReactNode }) => {
     return (
-        <VerticalsProvider>
-            <PostLoginLayout>{children}</PostLoginLayout>
-        </VerticalsProvider>
+        <TenantInitializer>
+            <VerticalsProvider>
+                <LeadSyncInitializer />
+                <PostLoginLayout>{children}</PostLoginLayout>
+            </VerticalsProvider>
+        </TenantInitializer>
     )
 }
 

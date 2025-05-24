@@ -247,12 +247,12 @@ export async function processChatMessage(
 
                   useFlowExecutor = true;
                 }
-            } catch (searchError) {
-              console.error('⭐ ERROR EN BÚSQUEDA ALTERNATIVA ⭐', searchError);
+              } catch (searchError) {
+                console.error('⭐ ERROR EN BÚSQUEDA ALTERNATIVA ⭐', searchError);
+              }
             }
           }
         }
-      }
     } catch (flowError) {
       console.error('⭐ ERROR GENERAL ⭐ Error al procesar flujo:', flowError);
     }

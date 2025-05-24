@@ -14,6 +14,7 @@ import { toast } from '@/components/ui/toast'
 import { Notification } from '@/components/ui/Notification'
 import { getRealLeadId } from '@/utils/leadIdResolver'
 import { subscribeToLeadUpdates } from '@/utils/broadcastLeadUpdate'
+import { getStoredLeadData } from '@/utils/leadPropertyStorage'
 
 type View = 'NEW_COLUMN' | 'LEAD' | 'ADD_MEMBER' | 'NEW_LEAD' | 'SCHEDULE_APPOINTMENT' | ''
 
@@ -130,33 +131,132 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
         updateLead: (lead) => {
             const { columns, selectedLeadId } = get()
             
-            // Si no hay selectedLeadId, salir
-            if (!selectedLeadId) return
-            
-            // Encontrar en qué columna está el lead
-            let columnKey: string | null = null
-            let oldLeadId = selectedLeadId
-            
-            // Si el lead tiene un ID temporal pero viene con un nuevo ID de la BD
-            if (lead.metadata?.original_lead_id && lead.id !== lead.metadata.original_lead_id) {
-                oldLeadId = lead.metadata.original_lead_id
-                console.log(`Actualizando lead: ID temporal ${oldLeadId} -> ID real ${lead.id}`)
-            }
-            
-            Object.entries(columns).forEach(([key, leads]) => {
-                const found = leads.find((item) => item.id === oldLeadId || item.id === selectedLeadId)
-                if (found) columnKey = key
-            })
-            
-            if (!columnKey) {
-                console.error(`Lead ${oldLeadId} no encontrado en ninguna columna`)
+            // Si no hay lead, salir
+            if (!lead || !lead.id) {
+                console.error('updateLead: No se proporcionó un lead válido')
                 return
             }
             
-            // Actualizar el lead, reemplazando el ID temporal si es necesario
+            // Array de posibles IDs para buscar
+            const possibleIds = [
+                lead.id,
+                selectedLeadId,
+                lead.metadata?.original_lead_id,
+                lead.metadata?.db_id,
+                lead.metadata?.real_id
+            ].filter(Boolean) // Eliminar valores undefined/null
+            
+            console.log('updateLead: Buscando lead con posibles IDs:', possibleIds)
+            
+            // Encontrar en qué columna está el lead
+            let columnKey: string | null = null
+            let foundLeadId: string | null = null
+            
+            // Buscar el lead en todas las columnas con todos los posibles IDs
+            for (const [key, leads] of Object.entries(columns)) {
+                for (const possibleId of possibleIds) {
+                    const found = leads.find((item) => item.id === possibleId)
+                    if (found) {
+                        columnKey = key
+                        foundLeadId = found.id
+                        console.log(`Lead encontrado en columna ${key} con ID ${foundLeadId}`)
+                        break
+                    }
+                }
+                if (columnKey) break
+            }
+            
+            // Si no encontramos el lead en ninguna columna
+            if (!columnKey || !foundLeadId) {
+                console.warn(`Lead no encontrado en ninguna columna. Intentando determinar columna por stage...`)
+                
+                // Intentar determinar la columna basándose en el stage del lead
+                const leadStage = lead.stage || lead.metadata?.stage
+                
+                if (leadStage && columns[leadStage]) {
+                    console.log(`Agregando lead a columna ${leadStage} basado en su stage`)
+                    
+                    // Agregar el lead a la columna correspondiente
+                    const updatedColumns = {
+                        ...columns,
+                        [leadStage]: [...(columns[leadStage] || []), lead]
+                    }
+                    
+                    // Si el ID cambió, actualizar también selectedLeadId
+                    if (lead.id !== selectedLeadId) {
+                        set({ 
+                            columns: updatedColumns,
+                            selectedLeadId: lead.id
+                        })
+                    } else {
+                        set({ columns: updatedColumns })
+                    }
+                    
+                    console.log(`Lead agregado exitosamente a columna ${leadStage}`)
+                    return
+                }
+                
+                // Si tampoco podemos determinar la columna por stage
+                console.error('No se pudo determinar la columna para el lead. Datos del lead:', {
+                    id: lead.id,
+                    stage: lead.stage,
+                    metadata: lead.metadata
+                })
+                
+                // Como último recurso, intentar recuperar datos guardados localmente
+                try {
+                    const storedData = getStoredLeadData(lead.id, 'structured')
+                    if (storedData && storedData.stage) {
+                        console.log('Datos recuperados del almacenamiento local, stage:', storedData.stage)
+                        
+                        // Usar el stage almacenado
+                        const stageToUse = storedData.stage
+                        if (columns[stageToUse]) {
+                            const updatedColumns = {
+                                ...columns,
+                                [stageToUse]: [...(columns[stageToUse] || []), { ...lead, stage: stageToUse }]
+                            }
+                            
+                            set({ 
+                                columns: updatedColumns,
+                                selectedLeadId: lead.id
+                            })
+                            
+                            console.log(`Lead agregado a columna ${stageToUse} usando datos almacenados`)
+                            return
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error recuperando datos almacenados:', error)
+                }
+                
+                // Si todo falla, simplemente actualizar el selectedLeadId si cambió
+                if (lead.id !== selectedLeadId) {
+                    console.log('Actualizando solo selectedLeadId')
+                    set({ selectedLeadId: lead.id })
+                }
+                
+                return
+            }
+            
+            // Actualizar el lead en su columna
+            console.log(`Actualizando lead ${foundLeadId} en columna ${columnKey}`)
+            
             const updatedLeads = columns[columnKey].map((item) => {
-                if (item.id === oldLeadId || item.id === selectedLeadId) {
-                    return { ...lead, id: lead.id } // Asegurar que usamos el nuevo ID
+                // Comparar con todos los posibles IDs
+                if (possibleIds.includes(item.id)) {
+                    console.log('Lead actualizado:', { 
+                        oldId: item.id, 
+                        newId: lead.id,
+                        hasMetadata: !!lead.metadata
+                    })
+                    
+                    // Mantener el stage correcto
+                    return { 
+                        ...lead, 
+                        id: lead.id,
+                        stage: columnKey // Asegurar que el stage esté sincronizado con la columna
+                    }
                 }
                 return item
             })
@@ -168,7 +268,8 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
             }
             
             // Si el ID cambió, actualizar también selectedLeadId
-            if (lead.id !== selectedLeadId && lead.id !== oldLeadId) {
+            if (lead.id !== selectedLeadId && lead.id !== foundLeadId) {
+                console.log(`Actualizando selectedLeadId de ${selectedLeadId} a ${lead.id}`)
                 set({ 
                     columns: updatedColumns,
                     selectedLeadId: lead.id
@@ -176,6 +277,8 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
             } else {
                 set({ columns: updatedColumns })
             }
+            
+            console.log('Lead actualizado exitosamente en el store')
         },
         
         // Acciones para la búsqueda de leads

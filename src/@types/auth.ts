@@ -43,11 +43,17 @@ export type AuthResult = Promise<{
 }>
 
 export type User = {
+    id?: string | null
     userId?: string | null
     avatar?: string | null
     userName?: string | null
+    name?: string | null
     email?: string | null
     authority?: string[]
+    role?: string | null
+    tenant_id?: string | null
+    tenantId?: string | null
+    image?: string | null
 }
 
 export type Token = {

@@ -11,6 +11,9 @@ interface LeadData {
   id: string;           // ID del lead sin prefijo 'lead_'
   name: string;         // Nombre completo del lead
   stage?: string;       // Etapa actual
+  email?: string;       // Email del lead
+  phone?: string;       // Teléfono del lead
+  metadata?: any;       // Metadata adicional
   updatedAt: number;    // Timestamp de última actualización
 }
 
@@ -75,11 +78,31 @@ class GlobalLeadCache {
     }
   }
   
+  // Obtener todos los datos del caché
+  getAllLeadData(): Record<string, LeadData> {
+    const allData: Record<string, LeadData> = {};
+    for (const [id, data] of this.cache.entries()) {
+      allData[id] = { ...data };
+    }
+    return allData;
+  }
+  
+  // Limpiar el caché completo
+  clear(): void {
+    this.cache.clear();
+    console.log('GlobalLeadCache: Caché limpiado');
+  }
+  
+  // Obtener el número de leads en el caché
+  size(): number {
+    return this.cache.size;
+  }
+  
   // Imprimir todo el contenido del caché (para depuración)
   debug(): void {
     console.log('GlobalLeadCache - Contenido actual:');
     for (const [id, data] of this.cache.entries()) {
-      console.log(`- Lead ${id}: "${data.name}" (etapa: ${data.stage || 'N/A'}, actualizado: ${new Date(data.updatedAt).toLocaleTimeString()})`);
+      console.log(`- Lead ${id}: "${data.name}" (etapa: ${data.stage || 'N/A'}, email: ${data.email || 'N/A'}, teléfono: ${data.phone || 'N/A'}, actualizado: ${new Date(data.updatedAt).toLocaleTimeString()})`);
     }
   }
 }

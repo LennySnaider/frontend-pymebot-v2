@@ -59,9 +59,9 @@ const LeadView = ({ leadData, onEdit, updateLead }: LeadViewProps) => {
 
     const formatBudget = (budget?: number) => {
         if (!budget && budget !== 0) return 'N/A'
-        return new Intl.NumberFormat('es-ES', {
+        return new Intl.NumberFormat('es-MX', {
             style: 'currency',
-            currency: 'USD',
+            currency: 'MXN',
             maximumFractionDigits: 0,
         }).format(budget)
     }

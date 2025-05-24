@@ -4,12 +4,12 @@
  * @updated 2025-09-05
  */
 
-// Importar las funciones de ejecución directamente desde los archivos de componentes
-import { executeRescheduleAppointment } from '@/components/view/ChatbotBuilder/nodes/RescheduleAppointmentNode';
-import { executeCheckAvailability } from '@/components/view/ChatbotBuilder/nodes/CheckAvailabilityNode';
-import { executeCancelAppointment } from '@/components/view/ChatbotBuilder/nodes/CancelAppointmentNode';
-import { executeServicesNode } from '@/components/view/ChatbotBuilder/nodes/ServicesNode';
-import { executeProductNode } from '@/components/view/ChatbotBuilder/nodes/ProductNode';
+// Importar las funciones de ejecución desde los nuevos ejecutores migrados
+import { executeRescheduleAppointment } from '@/utils/nodeExecutors/rescheduleAppointmentExecutor';
+import { executeCheckAvailability } from '@/utils/nodeExecutors/checkAvailabilityExecutor';
+import { executeCancelAppointment } from '@/utils/nodeExecutors/cancelAppointmentExecutor';
+import { executeServicesNode } from '@/utils/nodeExecutors/servicesNodeExecutor';
+import { executeProductNode } from '@/utils/nodeExecutors/productNodeExecutor';
 
 // Exportar las funciones
 export {

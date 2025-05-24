@@ -2,6 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useChatStore } from '../_store/chatStore'
+import GlobalSyncInitializer from './GlobalSyncInitializer'
+import LeadNameSyncListener from './LeadNameSyncListener'
+import ChatPersistenceInitializer from './ChatPersistenceInitializer'
 
 interface StoreInitializerProps {
   children: React.ReactNode
@@ -233,7 +236,17 @@ const StoreInitializer = ({ children }: StoreInitializerProps) => {
   }
   
   // Renderizar hijos cuando todo esté listo
-  return <>{children}</>
+  return (
+    <>
+      {/* Componentes de sincronización global */}
+      <GlobalSyncInitializer />
+      <LeadNameSyncListener />
+      <ChatPersistenceInitializer />
+      
+      {/* Componentes hijos del chat */}
+      {children}
+    </>
+  )
 }
 
 export default StoreInitializer

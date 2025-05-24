@@ -19,6 +19,7 @@ export type ChatBoxProps = {
     containerClass?: string
     ref?: Ref<ScrollBarRef>
     onButtonClick?: (buttonText: string) => void
+    onListItemClick?: (value: string, text: string) => void
 } & Omit<MessageListProps, 'list'> &
     ChatInputProps
 
@@ -40,6 +41,7 @@ const ChatBox = (props: ChatBoxProps) => {
         containerClass,
         ref,
         onButtonClick,
+        onListItemClick,
     } = props
 
     return (
@@ -65,6 +67,7 @@ const ChatBox = (props: ChatBoxProps) => {
                     messageListClass={messageListClass}
                     bubbleClass={bubbleClass}
                     onButtonClick={onButtonClick}
+                    onListItemClick={onListItemClick}
                 />
             )}
             {children}

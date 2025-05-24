@@ -76,11 +76,45 @@ const ChatBody = () => {
     const activeTemplateId = useChatStore((state) => state.activeTemplateId) // Añadimos el activeTemplateId
     const templates = useChatStore((state) => state.templates) // Obtener las templates para debug
     const updateLeadStage = useChatStore((state) => state.updateLeadStage) // Función para actualizar etapa del lead
+    const triggerUpdate = useChatStore((state) => state.triggerUpdate) // Escuchar cambios en triggerUpdate
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, setIsFetchingConversation] = useState(false)
     // Local conversation state removed
     // const [conversation, setConversation] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(false) // Estado para controlar la carga
+
+    // Efecto para escuchar cambios de nombre del lead
+    useEffect(() => {
+        const handleLeadNameUpdate = (e: any) => {
+            if (e.detail && e.detail.leadId) {
+                const chatId = `lead_${e.detail.leadId}`;
+                
+                // Si el lead actualizado es el chat seleccionado actualmente
+                if (selectedChat.id === chatId && e.detail.name) {
+                    console.log(`ChatBody: Actualizando nombre del header instantáneamente: "${e.detail.name}"`);
+                    
+                    // Actualizar el selectedChat para reflejar el nuevo nombre inmediatamente
+                    setSelectedChat({
+                        ...selectedChat,
+                        name: e.detail.name,
+                        user: selectedChat.user ? {
+                            ...selectedChat.user,
+                            name: e.detail.name
+                        } : undefined
+                    });
+                }
+            }
+        };
+        
+        // Escuchar eventos de actualización de nombre
+        window.addEventListener('lead-name-sync', handleLeadNameUpdate);
+        window.addEventListener('force-chat-refresh', handleLeadNameUpdate);
+        
+        return () => {
+            window.removeEventListener('lead-name-sync', handleLeadNameUpdate);
+            window.removeEventListener('force-chat-refresh', handleLeadNameUpdate);
+        };
+    }, [selectedChat, setSelectedChat]);
 
     // Efecto para escuchar cambios en el modo desde otros componentes
     useEffect(() => {
@@ -93,13 +127,39 @@ const ChatBody = () => {
             )
         }
 
+        // Escuchar cambio de plantilla
+        const handleTemplateChange = (e: any) => {
+            console.log('ChatBody: Plantilla cambiada', e.detail)
+            const { templateId, templateName } = e.detail
+            
+            // Mostrar notificación al usuario
+            toast.push(
+                <div className="flex items-center gap-2">
+                    <span>Plantilla activa: <strong>{templateName}</strong></span>
+                </div>,
+                {
+                    duration: 3000,
+                    placement: 'top',
+                }
+            )
+            
+            // Forzar actualización del activeTemplateId si es necesario
+            if (templateId && templateId !== activeTemplateId) {
+                console.log('ChatBody: Actualizando activeTemplateId en el store')
+                const { setActiveTemplate } = useChatStore.getState()
+                setActiveTemplate(templateId)
+            }
+        }
+
         // Escuchar eventos de cambio de modo
         window.addEventListener('chatModeChanged', handleModeChange)
+        window.addEventListener('template-changed', handleTemplateChange)
 
         return () => {
             window.removeEventListener('chatModeChanged', handleModeChange)
+            window.removeEventListener('template-changed', handleTemplateChange)
         }
-    }, [])
+    }, [activeTemplateId, triggerUpdate]) // Agregar triggerUpdate como dependencia
 
     const { smaller } = useResponsive()
 
@@ -410,6 +470,46 @@ const ChatBody = () => {
                     }
                 }
 
+                // Extraer listItems de la respuesta si existen
+                let messageListItems = undefined
+                let messageListTitle = undefined
+
+                if (response) {
+                    // Formato directo: response.listItems
+                    if (response.listItems && Array.isArray(response.listItems)) {
+                        messageListItems = response.listItems
+                        messageListTitle = response.listTitle
+                        console.log(
+                            'Lista encontrada en response.listItems:',
+                            messageListItems,
+                        )
+                    }
+                    // Formato con metadata: response.metadata.listItems
+                    else if (
+                        response.metadata?.listItems &&
+                        Array.isArray(response.metadata.listItems)
+                    ) {
+                        messageListItems = response.metadata.listItems
+                        messageListTitle = response.metadata.listTitle
+                        console.log(
+                            'Lista encontrada en response.metadata.listItems:',
+                            messageListItems,
+                        )
+                    }
+                    // Formato con data.metadata: response.data.metadata.listItems
+                    else if (
+                        response.data?.metadata?.listItems &&
+                        Array.isArray(response.data.metadata.listItems)
+                    ) {
+                        messageListItems = response.data.metadata.listItems
+                        messageListTitle = response.data.metadata.listTitle
+                        console.log(
+                            'Lista encontrada en response.data.metadata.listItems:',
+                            messageListItems,
+                        )
+                    }
+                }
+
                 // Verificar si hay cambio de etapa del sales funnel
                 // Los logs muestran que salesStageId viene en response.metadata, no en response.data.metadata
                 if (
@@ -588,6 +688,8 @@ const ChatBody = () => {
                     type: 'regular',
                     isMyMessage: false,
                     buttons: messageButtons, // Agregar botones al mensaje
+                    listItems: messageListItems, // Agregar elementos de lista al mensaje
+                    listTitle: messageListTitle, // Agregar título de lista al mensaje
                 }
 
                 console.log('Mensaje del bot que será mostrado:', botMessage)
@@ -914,6 +1016,14 @@ const ChatBody = () => {
                             )
                             // Simular el envío del texto del botón como si fuera escrito por el usuario
                             handleInputChange({ value: buttonText })
+                        }}
+                        onListItemClick={(value, text) => {
+                            console.log(
+                                'Item de lista clickeado desde ChatBody:',
+                                { value, text },
+                            )
+                            // Enviar el valor del item seleccionado como respuesta del usuario
+                            handleInputChange({ value: text })
                         }}
                         typing={
                             isLoading

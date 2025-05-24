@@ -29,6 +29,13 @@ export type MessageProps = {
         id?: string
     }>
     onButtonClick?: (buttonText: string) => void
+    listItems?: Array<{
+        text: string
+        description?: string
+        value: string
+    }>
+    listTitle?: string
+    onListItemClick?: (value: string, text: string) => void
 }
 
 const Message = (props: MessageProps) => {
@@ -45,6 +52,9 @@ const Message = (props: MessageProps) => {
         bubbleClass,
         buttons,
         onButtonClick,
+        listItems,
+        listTitle,
+        onListItemClick,
     } = props
 
     // Determine the avatar source based on whether it's the user's message
@@ -111,6 +121,43 @@ const Message = (props: MessageProps) => {
                                                         {button.body}
                                                     </button>
                                                 ))}
+                                            </div>
+                                        )}
+                                        {listItems && listItems.length > 0 && (
+                                            <div className="mt-3">
+                                                {listTitle && (
+                                                    <div className="mb-2 text-sm font-medium text-gray-800 dark:text-gray-200">
+                                                        {listTitle}
+                                                    </div>
+                                                )}
+                                                <div className="space-y-2">
+                                                    {listItems.map((item, index) => (
+                                                        <div
+                                                            key={item.value || index}
+                                                            className="flex items-center p-3 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-500 cursor-pointer transition-colors"
+                                                            onClick={() => {
+                                                                console.log('Item de lista seleccionado:', item.value, item.text);
+                                                                if (onListItemClick) {
+                                                                    onListItemClick(item.value, item.text);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div className="flex-shrink-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-medium mr-3">
+                                                                {index + 1}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {item.text}
+                                                                </div>
+                                                                {item.description && (
+                                                                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                                        {item.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )}
                                     </>
