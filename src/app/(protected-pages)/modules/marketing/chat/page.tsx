@@ -20,7 +20,7 @@ import ChatForceUpdater from './_components/ChatForceUpdater'
 import getChatListFromLeads from '@/server/actions/getChatListFromLeads'
 import { auth } from '@/auth'
 // import ChatPersistenceInitializer from './_components/ChatPersistenceInitializer' // Ya incluido en StoreInitializer
-import ChatSyncDebugPanel from './_components/ChatSyncDebugPanel'
+// import ChatSyncDebugPanel from './_components/ChatSyncDebugPanel' // Comentado - archivo no existe
 
 export default async function Page() {
     // Obtener la sesión actual para tener acceso al tenant_id
@@ -33,7 +33,7 @@ export default async function Page() {
     return (
         <ChatProvider chats={data}>
             {/* Sistema de persistencia mejorado - Ya incluido en StoreInitializer */}
-            <ChatSyncDebugPanel />
+            {/* <ChatSyncDebugPanel /> // Comentado - componente no existe */}
             
             <Card className="h-full border-0" bodyClass="h-full flex flex-col">
                 {/* Listener de sincronización de nombres de leads */}

@@ -17,28 +17,27 @@ import type { Chats, Conversation } from '../types'
 import ErrorBoundary from './ErrorBoundary'
 import StoreInitializer from './StoreInitializer'
 
-// Importar panel de debug solo en desarrollo
-const ChatSyncDebugPanel = dynamic(() => import('./ChatSyncDebugPanel'), {
-    ssr: false,
-    loading: () => null
-})
+// Comentado - Componentes de debug no existen
+// const ChatSyncDebugPanel = dynamic(() => import('./ChatSyncDebugPanel'), {
+//     ssr: false,
+//     loading: () => null
+// })
 
-// Importar debugger temporal (solo desarrollo)
-const ChatSyncDebugger = dynamic(() => import('./debug/ChatSyncDebugger'), {
-    ssr: false,
-    loading: () => null
-})
+// const ChatSyncDebugger = dynamic(() => import('./debug/ChatSyncDebugger'), {
+//     ssr: false,
+//     loading: () => null
+// })
 // QuickFix ya no es necesario - usamos sincronización inteligente
 // import QuickFix from './QuickFix'
 
-// Cargar herramientas de diagnóstico en desarrollo
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-    import('@/utils/chatSyncDiagnostics').then(() => {
-        console.log('[ChatProvider] Herramientas de diagnóstico cargadas')
-    }).catch((error) => {
-        console.warn('[ChatProvider] No se pudieron cargar las herramientas de diagnóstico:', error)
-    })
-}
+// Comentado - chatSyncDiagnostics no existe
+// if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+//     import('@/utils/chatSyncDiagnostics').then(() => {
+//         console.log('[ChatProvider] Herramientas de diagnóstico cargadas')
+//     }).catch((error) => {
+//         console.warn('[ChatProvider] No se pudieron cargar las herramientas de diagnóstico:', error)
+//     })
+// }
 
 interface ChatProviderProviderProps extends CommonProps {
     chats: Chats
@@ -143,14 +142,13 @@ const ChatProvider = ({ children, chats }: ChatProviderProviderProps) => {
                     </div>
                 )}
                 
-                {/* Panel de debug para sincronización (solo en desarrollo) */}
+                {/* Panel de debug comentado - archivos no existen
                 {process.env.NODE_ENV === 'development' && (
                     <>
                         <ChatSyncDebugPanel />
-                        {/* Debugger temporal para identificar el problema del Window */}
                         <ChatSyncDebugger />
                     </>
-                )}
+                )} */}
             </StoreInitializer>
         </ErrorBoundary>
     )
