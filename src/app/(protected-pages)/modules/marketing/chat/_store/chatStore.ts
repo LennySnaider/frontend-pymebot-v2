@@ -451,8 +451,11 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 }
                 
                 // Guardar cambios locales pendientes antes del refresh
-                const localPendingChanges = new Map<string, { name: string; timestamp: number }>();
+                const localPendingChanges = new Map<string, { name: string; timestamp: number; messageCount?: number }>();
                 const currentChats = get().chats;
+                
+                // También preservar el contador de mensajes local
+                const conversationData = get().conversationRecord;
                 
                 // Importar globalLeadCache dinámicamente
                 let globalLeadCache: any = null;
@@ -465,17 +468,34 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 
                 // Capturar cambios locales recientes del caché global
                 currentChats.forEach(chat => {
-                    if (chat.id.startsWith('lead_') && globalLeadCache) {
+                    if (chat.id.startsWith('lead_')) {
                         const leadId = chat.id.substring(5);
-                        const cachedData = globalLeadCache.getLeadData(leadId);
                         
-                        if (cachedData && cachedData.name && cachedData.updatedAt > Date.now() - 5000) {
-                            // Solo preservar cambios de los últimos 5 segundos
+                        // Preservar contador de mensajes local
+                        const localConversation = conversationData.find(c => c.id === chat.id);
+                        const localMessageCount = localConversation?.conversation?.length || 0;
+                        
+                        if (globalLeadCache) {
+                            const cachedData = globalLeadCache.getLeadData(leadId);
+                            
+                            if (cachedData && cachedData.name && cachedData.updatedAt > Date.now() - 5000) {
+                                // Solo preservar cambios de los últimos 5 segundos
+                                localPendingChanges.set(chat.id, {
+                                    name: cachedData.name,
+                                    timestamp: cachedData.updatedAt,
+                                    messageCount: localMessageCount > 0 ? localMessageCount : chat.metadata?.messageCount
+                                });
+                                console.log(`ChatStore: Preservando cambio local para ${chat.id}: "${cachedData.name}" con ${localMessageCount} mensajes`);
+                            }
+                        }
+                        
+                        // Si no hay datos en caché pero hay conversación local, preservar el contador
+                        if (localMessageCount > 0 && !localPendingChanges.has(chat.id)) {
                             localPendingChanges.set(chat.id, {
-                                name: cachedData.name,
-                                timestamp: cachedData.updatedAt
+                                name: chat.name,
+                                timestamp: Date.now(),
+                                messageCount: localMessageCount
                             });
-                            console.log(`ChatStore: Preservando cambio local para ${chat.id}: "${cachedData.name}"`);
                         }
                     }
                 });
@@ -491,13 +511,22 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                         const pendingChange = localPendingChanges.get(chat.id);
                         
                         if (pendingChange) {
-                            console.log(`ChatStore: Aplicando cambio local preservado para ${chat.id}: "${pendingChange.name}"`);
+                            console.log(`ChatStore: Aplicando cambio local preservado para ${chat.id}: "${pendingChange.name}" con ${pendingChange.messageCount} mensajes`);
+                            
+                            // Determinar el texto de lastConversation basado en el contador
+                            let lastConversationText = chat.lastConversation;
+                            if (pendingChange.messageCount && pendingChange.messageCount > 0) {
+                                lastConversationText = `${pendingChange.messageCount} mensaje${pendingChange.messageCount > 1 ? 's' : ''}`;
+                            }
+                            
                             return {
                                 ...chat,
                                 name: pendingChange.name,
+                                lastConversation: lastConversationText,
                                 metadata: {
                                     ...chat.metadata,
-                                    lastLocalUpdate: pendingChange.timestamp
+                                    lastLocalUpdate: pendingChange.timestamp,
+                                    messageCount: pendingChange.messageCount || chat.metadata?.messageCount || 0
                                 }
                             };
                         }
@@ -507,17 +536,46 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                             const leadId = chat.id.substring(5);
                             const cachedData = globalLeadCache.getLeadData(leadId);
                             
+                            // También verificar si hay conversación local
+                            const localConversation = conversationData.find(c => c.id === chat.id);
+                            const localMessageCount = localConversation?.conversation?.length || 0;
+                            
                             if (cachedData && cachedData.name) {
                                 console.log(`ChatStore: Usando nombre del caché global para ${chat.id}: "${cachedData.name}"`);
+                                
+                                // Determinar el texto de lastConversation
+                                let lastConversationText = chat.lastConversation;
+                                const messageCount = localMessageCount || chat.metadata?.messageCount || 0;
+                                if (messageCount > 0) {
+                                    lastConversationText = `${messageCount} mensaje${messageCount > 1 ? 's' : ''}`;
+                                }
+                                
                                 return {
                                     ...chat,
                                     name: cachedData.name,
+                                    lastConversation: lastConversationText,
                                     metadata: {
                                         ...chat.metadata,
-                                        stage: cachedData.stage || chat.metadata?.stage
+                                        stage: cachedData.stage || chat.metadata?.stage,
+                                        messageCount: messageCount
                                     }
                                 };
                             }
+                        }
+                        
+                        // Si no hay datos en caché pero hay conversación local
+                        const localConversation = conversationData.find(c => c.id === chat.id);
+                        const localMessageCount = localConversation?.conversation?.length || 0;
+                        
+                        if (localMessageCount > 0 && localMessageCount !== chat.metadata?.messageCount) {
+                            return {
+                                ...chat,
+                                lastConversation: `${localMessageCount} mensaje${localMessageCount > 1 ? 's' : ''}`,
+                                metadata: {
+                                    ...chat.metadata,
+                                    messageCount: localMessageCount
+                                }
+                            };
                         }
                         
                         return chat;

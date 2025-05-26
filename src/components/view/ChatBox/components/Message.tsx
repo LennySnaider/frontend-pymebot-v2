@@ -1,7 +1,8 @@
 import Avatar from '@/components/ui/Avatar'
 import Attachment from './Attachment'
 import classNames from '@/utils/classNames'
-import { TbUser, TbRobot } from 'react-icons/tb'
+import { TbUser } from 'react-icons/tb'
+import Image from 'next/image'
 import type { ReactNode } from 'react'
 
 export type MessageProps = {
@@ -59,8 +60,16 @@ const Message = (props: MessageProps) => {
     } = props
 
     // Determine the avatar icon based on whether it's the user's message
-    // Use TbUser for user messages and TbRobot for bot messages
-    const avatarIcon = isMyMessage ? <TbUser /> : <TbRobot />
+    // Use TbUser for user messages and custom bot icon for bot messages
+    const avatarIcon = isMyMessage ? <TbUser /> : (
+        <Image 
+            src="/img/logo/iconBot.png" 
+            alt="Bot" 
+            width={35} 
+            height={35}
+            className="rounded-full"
+        />
+    )
 
     return (
         <>

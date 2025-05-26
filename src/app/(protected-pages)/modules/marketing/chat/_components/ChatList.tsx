@@ -73,6 +73,7 @@ const ChatList = () => {
     const updateChatName = useChatStore((state) => state.updateChatName)
     const refreshChatList = useChatStore((state) => state.refreshChatList)
     const triggerUpdate = useChatStore((state) => state.triggerUpdate)
+    const conversationRecord = useChatStore((state) => state.conversationRecord)
     
     // NUEVO: Activar sincronización en tiempo real con Supabase (versión robusta)
     // TEMPORALMENTE DESACTIVADO debido a errores de conexión
@@ -660,10 +661,24 @@ const ChatList = () => {
                                                     </div>
                                                 </div>
                                                 <div className="truncate text-sm text-gray-600 dark:text-gray-400">
-                                                    {item.metadata?.messageCount 
-                                                        ? `${item.metadata.messageCount} mensaje${item.metadata.messageCount > 1 ? 's' : ''}`
-                                                        : item.lastConversation
-                                                    }
+                                                    {(() => {
+                                                        // Buscar si hay conversación local para este chat
+                                                        const conversation = conversationRecord.find(c => c.id === item.id);
+                                                        const localMessageCount = conversation?.conversation?.length || 0;
+                                                        
+                                                        // Priorizar contador local si existe
+                                                        if (localMessageCount > 0) {
+                                                            return `${localMessageCount} mensaje${localMessageCount > 1 ? 's' : ''}`;
+                                                        }
+                                                        
+                                                        // Si no hay conversación local, usar metadata
+                                                        if (item.metadata?.messageCount && item.metadata.messageCount > 0) {
+                                                            return `${item.metadata.messageCount} mensaje${item.metadata.messageCount > 1 ? 's' : ''}`;
+                                                        }
+                                                        
+                                                        // Fallback al texto original
+                                                        return item.lastConversation;
+                                                    })()}
                                                 </div>
                                             </div>
                                         </div>
