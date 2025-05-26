@@ -273,6 +273,18 @@ const ChatBody = () => {
             // Persistir el mensaje si es de un lead
             if (selectedChat.id.startsWith('lead_')) {
                 persistMessage(message, nodeId)
+                
+                // Actualizar contador de mensajes en la base de datos
+                const leadId = selectedChat.id.replace('lead_', '')
+                const conversation = conversationRecord.find(r => r.id === selectedChat.id)
+                const messageCount = (conversation?.conversation?.length || 0) + 1
+                
+                // Importar dinámicamente para evitar problemas SSR
+                import('@/services/leads/updateLeadData').then(({ updateLeadMessageCount }) => {
+                    updateLeadMessageCount(leadId, messageCount, message.content).catch(err => {
+                        console.error('Error actualizando contador de mensajes:', err)
+                    })
+                })
             }
         } else {
             console.warn(

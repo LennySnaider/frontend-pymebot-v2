@@ -134,3 +134,71 @@ export function extractLeadDataFromMessage(messageContent: string): LeadUpdateDa
     
     return leadData
 }
+
+/**
+ * Actualiza el contador de mensajes de un lead
+ * @param leadId ID del lead
+ * @param messageCount Nuevo contador de mensajes
+ * @param lastMessage Último mensaje (opcional)
+ */
+export async function updateLeadMessageCount(leadId: string, messageCount: number, lastMessage?: string) {
+    try {
+        console.log(`Actualizando contador de mensajes para lead ${leadId}: ${messageCount} mensajes`)
+        
+        // Obtener metadata existente
+        const { data: existingLead, error: fetchError } = await supabase
+            .from('leads')
+            .select('metadata')
+            .eq('id', leadId)
+            .single()
+        
+        if (fetchError) {
+            console.error('Error obteniendo lead existente:', fetchError)
+            return { success: false, error: fetchError }
+        }
+        
+        // Preparar metadata actualizada
+        const updatedMetadata = {
+            ...(existingLead?.metadata || {}),
+            message_count: messageCount,
+            last_activity: new Date().toISOString()
+        }
+        
+        // Si hay último mensaje, agregarlo
+        if (lastMessage) {
+            updatedMetadata.last_message = lastMessage.length > 100 
+                ? lastMessage.substring(0, 97) + '...' 
+                : lastMessage
+        }
+        
+        // Actualizar en la base de datos
+        const { data: updatedLead, error } = await supabase
+            .from('leads')
+            .update({ 
+                metadata: updatedMetadata,
+                last_contact_date: new Date().toISOString()
+            })
+            .eq('id', leadId)
+            .select()
+            .single()
+        
+        if (error) {
+            throw error
+        }
+        
+        console.log('Contador de mensajes actualizado exitosamente')
+        
+        // Emitir evento de actualización
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('lead-message-count-updated', {
+                detail: { leadId, messageCount, lastMessage },
+                bubbles: true
+            }))
+        }
+        
+        return { success: true, data: updatedLead }
+    } catch (error) {
+        console.error('Error actualizando contador de mensajes:', error)
+        return { success: false, error }
+    }
+}

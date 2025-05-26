@@ -659,8 +659,11 @@ const ChatList = () => {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="truncate">
-                                                    {item.lastConversation}
+                                                <div className="truncate text-sm text-gray-600 dark:text-gray-400">
+                                                    {item.metadata?.messageCount 
+                                                        ? `${item.metadata.messageCount} mensaje${item.metadata.messageCount > 1 ? 's' : ''}`
+                                                        : item.lastConversation
+                                                    }
                                                 </div>
                                             </div>
                                         </div>

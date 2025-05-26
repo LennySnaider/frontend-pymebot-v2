@@ -1,5 +1,33 @@
 # Tareas Pendientes - PymeBot Frontend
 
+**Última actualización: 26/05/2025**
+- **Total de tareas:** 14
+- **Completadas:** 7 (50%)
+- **En progreso:** 1 (7%)
+- **Pendientes:** 6 (43%)
+
+## 🎉 Avances de esta sesión
+
+### ✅ Implementación de badges del SalesFunnel en el chat
+- Se añadieron badges con colores exactos del SalesFunnel en el header del chat
+- Se implementó indicador de color en la lista de leads (punto en la esquina superior derecha)
+- Se crearon funciones helper: `getStageColorClasses`, `getStageName`, `getStageIndicatorColor`
+
+### ✅ Mejoras en la UI del chat
+- Se reemplazaron avatares de imágenes por iconos (TbUser para leads, TbRobot para bot)
+- Se mejoró la visualización de plantillas con iconos según el tipo
+- Se implementó la funcionalidad de eliminar conversación (solo superadmin)
+
+### ✅ Correcciones de bugs
+- Solucionado error de duplicación de mensajes
+- Corregido error en función `clearConversation`
+- Solucionado error de inicialización de `visibleTemplates`
+- Deshabilitada temporalmente sincronización realtime problemática
+
+### ✅ Mejoras en el filtrado de plantillas
+- Se modificó para mostrar todas las plantillas excepto las eliminadas/archivadas
+- Se quitó el filtro que ocultaba plantillas de prueba
+
 ## Prioridad Alta
 
 ### 1. ✅ Corregir error 'useRef is not defined' en LeadContent.tsx
@@ -11,22 +39,14 @@
   - Las refs están declaradas correctamente en las líneas 641 y 759
   - No hay evidencia del error mencionado en el código actual
 
-### 2. Resolver problema de carga de plantillas (error 404 en /api/chat/templates)
+### 2. ✅ Resolver problema de carga de plantillas (error 404 en /api/chat/templates)
 
-- **Descripción:** La aplicación está intentando cargar plantillas desde `/api/chat/templates` pero recibe un error 404.
-- **Solución propuesta:**
-  - Verificar que la ruta API `/api/chat/templates` exista en el backend.
-  - Implementar un endpoint temporal en el frontend que devuelva un array vacío en lugar de 404.
-  - Actualizar la ruta correcta en `chatStore.ts` si es diferente.
-  - Considerar opciones:
-
-    ```typescript
-    // Opción 1: Cambiar la ruta de la API si es incorrecta
-    const response = await fetch('/api/chatbot/templates', { // o la ruta correcta
-
-    // Opción 2: Implementar un endpoint temporal en el frontend (página api)
-    // Crear archivo: /pages/api/chat/templates.ts con respuesta básica
-    ```
+- **Estado:** COMPLETADO EN ESTA SESIÓN
+- **Descripción:** La aplicación intentaba cargar plantillas desde una ruta incorrecta.
+- **Solución implementada:**
+  - Se corrigió la ruta a `/api/chatbot/templates` que es la correcta
+  - Se mejoró el filtrado para mostrar todas las plantillas disponibles
+  - Se implementó mejor manejo de errores y sincronización
 
 ### 3. ✅ Mejorar sincronización en tiempo real de leads entre SalesFunnel y chat
 
@@ -178,24 +198,25 @@
 
 ## Resumen de Estado
 
-### Completadas: 6/13 tareas (46%)
+### Completadas: 7/14 tareas (50%)
 - ✅ Tarea 1: Error useRef corregido
+- ✅ Tarea 2: API de plantillas corregida (COMPLETADO EN ESTA SESIÓN)
 - ✅ Tarea 3: Sincronización de leads implementada
 - ✅ Tarea 4: Persistencia de formulario implementada
 - ✅ Tarea 6: Nodos homologados
 - ✅ Tarea 8: Guardado de conversaciones implementado
 - ✅ Tarea 9: Ordenación de leads implementada
 
-### Parcialmente completadas: 2/13 tareas (15%)
+### Parcialmente completadas: 2/14 tareas (14%)
 - ⚠️ Tarea 10: Advertencias de plantillas
 - ⚠️ Tarea 11: Protección contra bucles infinitos
 
-### Pendientes: 5/13 tareas (39%)
-- ❌ Tarea 2: API de plantillas (404)
+### Pendientes: 5/14 tareas (36%)
+- ❌ Tarea 5: Documentación del SalesFunnel (nota de no modificar)
 - ❌ Tarea 7: Caché de detalles de lead
 - ❌ Tarea 12: Caché global de propiedades
 - ❌ Tarea 13: Componente fallback sin plantillas
-- ❌ Tarea 5: Documentación del SalesFunnel (nota de no modificar)
+- ❌ Nueva: Re-habilitar sincronización realtime cuando se solucione el problema
 
 ## Notas Adicionales
 

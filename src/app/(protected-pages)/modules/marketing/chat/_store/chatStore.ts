@@ -152,6 +152,39 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
     pushConversationRecord: (payload) =>
         set(() => {
             const previousConversationRecord = get().conversationRecord
+            
+            // Actualizar el contador de mensajes en el chat correspondiente
+            if (payload && payload.id && payload.conversation) {
+                const messageCount = Array.isArray(payload.conversation) ? payload.conversation.length : 0;
+                const lastMessage = messageCount > 0 ? payload.conversation[messageCount - 1] : null;
+                
+                // Actualizar el chat con el contador de mensajes
+                const updatedChats = get().chats.map((chat) => {
+                    if (chat.id === payload.id) {
+                        const lastConversationText = lastMessage?.content 
+                            ? (lastMessage.content.length > 50 
+                                ? lastMessage.content.substring(0, 47) + '...' 
+                                : lastMessage.content)
+                            : (messageCount > 0 ? `${messageCount} mensaje${messageCount > 1 ? 's' : ''}` : 'Sin mensajes');
+                        
+                        return {
+                            ...chat,
+                            lastConversation: lastConversationText,
+                            metadata: {
+                                ...(chat.metadata || {}),
+                                messageCount: messageCount,
+                                lastActivity: lastMessage?.timestamp ? 
+                                    (typeof lastMessage.timestamp === 'number' ? lastMessage.timestamp * 1000 : new Date(lastMessage.timestamp).getTime())
+                                    : Date.now()
+                            }
+                        };
+                    }
+                    return chat;
+                });
+                
+                set({ chats: updatedChats });
+            }
+            
             return {
                 conversationRecord: [
                     ...previousConversationRecord,
@@ -167,6 +200,7 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
             const existingRecord = previousConversationRecord.find(record => record.id === id);
 
             let conversationRecord;
+            let messageCount = 0;
 
             if (existingRecord) {
                 // Si la conversación existe, añadir el mensaje
@@ -175,6 +209,7 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                         // Registrar debug para revisar el mensaje
                         console.log('Añadiendo mensaje a conversación existente:', id, message);
                         record.conversation.push(message);
+                        messageCount = record.conversation.length;
                     }
                     return record;
                 });
@@ -186,10 +221,35 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                     conversation: [message]
                 };
                 conversationRecord = [...previousConversationRecord, newRecord];
+                messageCount = 1;
             }
+
+            // Actualizar el chat correspondiente con el último mensaje y el contador
+            const updatedChats = get().chats.map((chat) => {
+                if (chat.id === id) {
+                    // Truncar el contenido del mensaje si es muy largo
+                    const messageContent = message.content || '';
+                    const truncatedContent = messageContent.length > 50 
+                        ? messageContent.substring(0, 47) + '...' 
+                        : messageContent;
+                    
+                    return {
+                        ...chat,
+                        lastConversation: truncatedContent || 'Mensaje sin contenido',
+                        metadata: {
+                            ...(chat.metadata || {}),
+                            messageCount: messageCount,
+                            lastActivity: Date.now()
+                        }
+                    };
+                }
+                return chat;
+            });
 
             return {
                 conversationRecord,
+                chats: updatedChats,
+                triggerUpdate: Date.now()
             };
         }),
     deleteConversationRecord: (payload) =>

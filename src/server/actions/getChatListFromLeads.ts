@@ -19,9 +19,14 @@ const convertLeadToChat = (lead: any, hasUnreadMessages = false) => {
 
   // Determinar la última conversación (mensaje más reciente o uno predeterminado)
   let lastConversation = 'Sin mensajes'
+  let messageCount = 0
 
-  // Ya que last_message no existe en el esquema, usamos metadata.last_message o description
-  if (lead.metadata && lead.metadata.last_message) {
+  // Si hay contador de mensajes en metadata, usarlo
+  if (lead.metadata && typeof lead.metadata.message_count === 'number') {
+    messageCount = lead.metadata.message_count
+    lastConversation = `${messageCount} mensaje${messageCount > 1 ? 's' : ''}`
+  } else if (lead.metadata && lead.metadata.last_message) {
+    // Si no hay contador pero hay último mensaje, mostrarlo
     lastConversation = lead.metadata.last_message.length > 50
       ? lead.metadata.last_message.substring(0, 47) + '...'
       : lead.metadata.last_message
@@ -86,7 +91,8 @@ const convertLeadToChat = (lead: any, hasUnreadMessages = false) => {
       bathroomsNeeded: lead.bathrooms_needed || 1,
       lastContactDate: lead.last_contact_date ? new Date(lead.last_contact_date).getTime() : null,
       nextContactDate: lead.next_contact_date ? new Date(lead.next_contact_date).getTime() : null,
-      agentNotes: lead.notes || ''
+      agentNotes: lead.notes || '',
+      messageCount: messageCount || 0
     }
   }
 }
