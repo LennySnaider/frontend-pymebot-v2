@@ -42,7 +42,7 @@ export async function updateAgentAvailability(agentId: string, availability: Age
         const supabase = SupabaseClient.getInstance()
         
         // Obtener el tenant actual
-        const { tenant_id } = await getTenantFromSession()
+        const tenant_id = await getTenantFromSession()
         
         if (!tenant_id) {
             throw new Error('No se pudo obtener el tenant_id')

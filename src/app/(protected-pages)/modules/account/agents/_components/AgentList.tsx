@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Table from '@/components/ui/Table'
 import Tag from '@/components/ui/Tag'
@@ -12,9 +12,11 @@ import { useAgentContext } from './AgentProvider'
 import type { Agent } from '../types'
 import type { ColumnDef } from '@tanstack/react-table'
 import { HiPencil, HiTrash, HiDotsVertical } from 'react-icons/hi'
+import { TbClock } from 'react-icons/tb'
 import Dropdown from '@/components/ui/Dropdown'
 import Button from '@/components/ui/Button'
 import { useRouter } from 'next/navigation'
+import AgentAvailabilityDialog from './AgentAvailabilityDialog'
 
 interface AgentListProps {
     pageIndex: number
@@ -24,6 +26,17 @@ interface AgentListProps {
 export default function AgentList({ pageIndex, pageSize }: AgentListProps) {
     const router = useRouter()
     const { agents, totalAgents, openEditDialog } = useAgentContext()
+    const [availabilityDialog, setAvailabilityDialog] = useState<{
+        isOpen: boolean
+        agentId: string
+        agentName: string
+        availability?: any
+    }>({
+        isOpen: false,
+        agentId: '',
+        agentName: '',
+        availability: {}
+    })
     
     const columns = useMemo<ColumnDef<Agent>[]>(
         () => [
@@ -116,6 +129,22 @@ export default function AgentList({ pageIndex, pageSize }: AgentListProps) {
                                 Ver detalles
                             </Dropdown.Item>
                             <Dropdown.Item 
+                                eventKey="availability"
+                                onClick={() => {
+                                    setAvailabilityDialog({
+                                        isOpen: true,
+                                        agentId: agent.id,
+                                        agentName: agent.full_name,
+                                        availability: agent.availability || {}
+                                    })
+                                }}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <TbClock />
+                                    Configurar disponibilidad
+                                </span>
+                            </Dropdown.Item>
+                            <Dropdown.Item 
                                 eventKey="delete"
                                 className="text-red-600"
                             >
@@ -141,22 +170,32 @@ export default function AgentList({ pageIndex, pageSize }: AgentListProps) {
     }
     
     return (
-        <Table
-            columns={columns}
-            data={agents}
-            pagingData={{
-                total: totalAgents,
-                pageIndex: pageIndex - 1, // La tabla usa índice basado en 0
-                pageSize: pageSize,
-            }}
-            onPaginationChange={(pagination) => {
-                if (pagination.pageIndex !== undefined) {
-                    handlePaginationChange(pagination.pageIndex + 1)
-                }
-                if (pagination.pageSize !== undefined) {
-                    handlePageSizeChange(pagination.pageSize)
-                }
-            }}
-        />
+        <>
+            <Table
+                columns={columns}
+                data={agents}
+                pagingData={{
+                    total: totalAgents,
+                    pageIndex: pageIndex - 1, // La tabla usa índice basado en 0
+                    pageSize: pageSize,
+                }}
+                onPaginationChange={(pagination) => {
+                    if (pagination.pageIndex !== undefined) {
+                        handlePaginationChange(pagination.pageIndex + 1)
+                    }
+                    if (pagination.pageSize !== undefined) {
+                        handlePageSizeChange(pagination.pageSize)
+                    }
+                }}
+            />
+            
+            <AgentAvailabilityDialog
+                isOpen={availabilityDialog.isOpen}
+                onClose={() => setAvailabilityDialog(prev => ({ ...prev, isOpen: false }))}
+                agentId={availabilityDialog.agentId}
+                agentName={availabilityDialog.agentName}
+                currentAvailability={availabilityDialog.availability}
+            />
+        </>
     )
 }

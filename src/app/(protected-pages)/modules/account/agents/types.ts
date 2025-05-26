@@ -4,33 +4,24 @@
 
 export interface Agent {
     id: string
-    email: string
-    full_name: string
-    phone?: string
-    role: 'agent' | 'tenant_admin' | 'super_admin'
-    status: 'active' | 'inactive' | 'suspended'
-    avatar_url?: string
-    created_at: string
-    updated_at: string
-    last_activity?: string
+    user_id: string
     tenant_id: string
-    // Campos adicionales específicos de agentes
     specialization?: string
     commission_rate?: number
     total_sales?: number
     active_leads?: number
-    // Metadata que contiene información adicional del agente
-    metadata?: {
-        bio?: string
-        specializations?: string[]
-        languages?: string[]
-        profile_image?: string
-        license_number?: string
-        years_experience?: number
-        commission_rate?: number
-        availability?: Record<string, any>
-        rating?: number
-    }
+    availability?: Record<string, any>
+    created_at: string
+    updated_at: string
+    // Campos del usuario asociado
+    email: string
+    full_name: string
+    phone?: string
+    role: 'agent' | 'manager' | 'admin' | 'super_admin'
+    status: 'active' | 'inactive' | 'suspended'
+    avatar_url?: string
+    last_activity?: string
+    metadata?: Record<string, any>
 }
 
 export interface CreateAgentData {

@@ -35,7 +35,17 @@ export async function getAppointmentsByDateRange(
                 `
                 *,
                 lead:leads(id, full_name, email, phone),
-                agent:agents(id, name, email, phone, profile_image)
+                agent:agents(
+                    id, 
+                    specialization,
+                    users!inner(
+                        id,
+                        full_name,
+                        email,
+                        phone,
+                        avatar_url
+                    )
+                )
             `,
             )
             .eq('tenant_id', tenant_id)
@@ -73,7 +83,10 @@ export async function getAppointmentsByDateRange(
             ...appointment,
             // Si hay relaciones que deben ser aplanadas, hacerlo aquí
             leadName: appointment.lead?.full_name || 'Sin nombre',
-            agentName: appointment.agent?.name || 'Sin asignar',
+            agentName: appointment.agent?.users?.full_name || 'Sin asignar',
+            agentEmail: appointment.agent?.users?.email || '',
+            agentPhone: appointment.agent?.users?.phone || '',
+            agentAvatar: appointment.agent?.users?.avatar_url || '',
             // Otras transformaciones necesarias
         }))
 
