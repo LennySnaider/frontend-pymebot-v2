@@ -11,6 +11,15 @@ import { ChatTemplate } from '../_components/TemplateSelector'
 import { leadUpdateStore } from '@/stores/leadUpdateStore'
 import { simpleLeadUpdateStore } from '@/stores/simpleLeadUpdateStore'
 import { broadcastLeadUpdate } from '@/utils/broadcastLeadUpdate'
+import { 
+    conversationPersistence, 
+    getConversationState, 
+    saveConversationData,
+    addConversationMessage,
+    updateConversationNode,
+    type ConversationState,
+    type TemplateProgress
+} from '@/utils/conversationPersistence'
 // Evitar importar cualquier API o módulo que dependa de apis con este comentario
 // Las importaciones deben hacerse dinámicamente en runtime (cliente)
 
@@ -39,6 +48,9 @@ export type ChatState = {
     templatesError: string | null
     // Trigger para forzar re-renders
     triggerUpdate: number
+    // Estado de persistencia de conversaciones
+    currentConversationState?: ConversationState
+    leadTemplateProgress?: TemplateProgress[]
 }
 
 type ChatAction = {
@@ -54,6 +66,7 @@ type ChatAction = {
     pushConversationRecord: (payload: Conversation) => void
     pushConversationMessage: (id: string, conversation: Message) => void
     deleteConversationRecord: (payload: string) => void
+    clearCurrentConversation: () => void
     // Nuevas acciones para las plantillas
     setTemplates: (payload: ChatTemplate[]) => void
     setActiveTemplate: (templateId: string) => void
@@ -70,6 +83,11 @@ type ChatAction = {
     updateChatMetadata: (chatId: string, metadata: Record<string, any>) => void
     // Forzar re-render
     setTriggerUpdate: (value: number) => void
+    // Acciones de persistencia de conversaciones
+    loadConversationState: (leadId: string, templateId: string) => void
+    saveConversationProgress: (nodeId: string, data?: Record<string, any>) => void
+    addPersistedMessage: (message: Omit<Message, 'id' | 'timestamp'>, nodeId?: string) => void
+    updateLeadTemplateProgress: (leadId: string) => void
 }
 
 const initialState: ChatState = {
@@ -185,6 +203,50 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 chats: previousChats.filter((chat) => chat.id !== payload),
             }
         }),
+    
+    clearCurrentConversation: () => {
+        const state = get()
+        const currentChatId = state.selectedChat.id
+        
+        if (!currentChatId) {
+            console.warn('No hay chat seleccionado para limpiar')
+            return
+        }
+        
+        console.log(`Limpiando conversación del chat: ${currentChatId}`)
+        
+        // Limpiar la conversación del registro
+        set((state) => ({
+            conversationRecord: state.conversationRecord.map((record) => {
+                if (record.id === currentChatId) {
+                    return {
+                        ...record,
+                        conversation: [] // Limpiar todos los mensajes
+                    }
+                }
+                return record
+            })
+        }))
+        
+        // Si es un lead, limpiar también la persistencia
+        if (currentChatId.startsWith('lead_')) {
+            const leadId = currentChatId.replace('lead_', '')
+            const templateId = state.activeTemplateId
+            
+            if (leadId && templateId) {
+                // Importar y usar la función de limpieza
+                import('@/utils/conversationPersistence').then(({ clearConversation }) => {
+                    clearConversation(leadId, templateId)
+                    console.log(`Persistencia limpiada para lead ${leadId}, template ${templateId}`)
+                }).catch(err => {
+                    console.error('Error al limpiar persistencia:', err)
+                })
+            }
+        }
+        
+        // Disparar evento para actualizar la UI
+        set({ triggerUpdate: Date.now() })
+    },
     
     // Gestión de errores de plantillas
     setTemplatesError: (error) => set(() => ({ templatesError: error })),
@@ -806,5 +868,105 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
             // Propagamos el error para que pueda ser manejado apropiadamente
             throw error;
         }
+    },
+    
+    // Acciones de persistencia de conversaciones
+    loadConversationState: (leadId, templateId) => {
+        try {
+            const conversationState = getConversationState(leadId, templateId)
+            set({ currentConversationState: conversationState })
+            
+            // Si hay mensajes guardados, cargarlos en el conversationRecord
+            if (conversationState.messages.length > 0) {
+                const conversationId = `lead_${leadId}`
+                const messages: Message[] = conversationState.messages.map(msg => ({
+                    id: msg.id,
+                    sender: {
+                        id: msg.type === 'user' ? leadId : 'bot',
+                        name: msg.type === 'user' ? 'Lead' : 'Bot',
+                        avatarImageUrl: ''
+                    },
+                    content: msg.content,
+                    timestamp: msg.timestamp,
+                    type: 'regular' as const,
+                    isMyMessage: msg.type === 'bot',
+                    buttons: msg.buttons
+                }))
+                
+                const conversation: Conversation = {
+                    id: conversationId,
+                    conversation: messages
+                }
+                
+                get().pushConversationRecord(conversation)
+            }
+            
+            console.log(`[ChatStore] Estado de conversación cargado: Lead ${leadId}, Template ${templateId}`)
+        } catch (error) {
+            console.error('[ChatStore] Error cargando estado de conversación:', error)
+        }
+    },
+    
+    saveConversationProgress: (nodeId, data) => {
+        const state = get()
+        const leadId = state.selectedChat.id?.replace('lead_', '')
+        const templateId = state.activeTemplateId
+        
+        if (!leadId || !templateId) {
+            console.warn('[ChatStore] No se puede guardar progreso sin lead o template seleccionado')
+            return
+        }
+        
+        // Actualizar nodo actual
+        updateConversationNode(leadId, templateId, nodeId)
+        
+        // Guardar datos recolectados si existen
+        if (data) {
+            Object.entries(data).forEach(([key, value]) => {
+                saveConversationData(leadId, templateId, key, value)
+            })
+        }
+        
+        // Recargar estado actualizado
+        const updatedState = getConversationState(leadId, templateId)
+        set({ currentConversationState: updatedState })
+        
+        console.log(`[ChatStore] Progreso guardado: Nodo ${nodeId}, Lead ${leadId}`)
+    },
+    
+    addPersistedMessage: (message, nodeId) => {
+        const state = get()
+        const leadId = state.selectedChat.id?.replace('lead_', '')
+        const templateId = state.activeTemplateId
+        
+        if (!leadId || !templateId) {
+            console.warn('[ChatStore] No se puede agregar mensaje sin lead o template seleccionado')
+            return
+        }
+        
+        // Agregar mensaje a la persistencia
+        const persistedMessage = addConversationMessage(leadId, templateId, {
+            ...message,
+            nodeId,
+            type: message.isMyMessage ? 'bot' : 'user',
+            selectedButton: message.buttons?.find(b => b.id)?.body
+        })
+        
+        // NO agregar al conversationRecord aquí porque ya se agregó en handlePushMessage
+        // Esto evita la duplicación de mensajes
+        // const conversationId = state.selectedChat.id || `lead_${leadId}`
+        // get().pushConversationMessage(conversationId, storeMessage)
+        
+        console.log(`[ChatStore] Mensaje persistido: ${persistedMessage.id}`)
+    },
+    
+    updateLeadTemplateProgress: (leadId) => {
+        const templates = get().templates
+        if (!templates || templates.length === 0) return
+        
+        const progress = conversationPersistence.getLeadProgress(leadId, templates)
+        set({ leadTemplateProgress: progress })
+        
+        console.log(`[ChatStore] Progreso actualizado para lead ${leadId}:`, progress)
     }
 }))

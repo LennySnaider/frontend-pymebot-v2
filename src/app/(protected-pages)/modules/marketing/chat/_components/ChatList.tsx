@@ -10,7 +10,30 @@ import NewChat from './NewChat'
 import { useChatStore } from '../_store/chatStore'
 import classNames from '@/utils/classNames'
 import useDebounce from '@/utils/hooks/useDebounce'
-import { TbVolumeOff, TbSearch, TbX, TbRefresh } from 'react-icons/tb'
+import { TbVolumeOff, TbSearch, TbX, TbRefresh, TbUser } from 'react-icons/tb'
+
+// Función helper para obtener el color del indicador según la etapa
+const getStageIndicatorColor = (stage: string) => {
+    switch (stage) {
+        case 'new':
+        case 'nuevo':
+        case 'nuevos':
+            return 'bg-purple-500'
+        case 'prospecting':
+        case 'prospectando':
+        case 'prospeccion':
+            return 'bg-blue-500'
+        case 'qualification':
+        case 'calificacion':
+        case 'calificación':
+            return 'bg-yellow-500'
+        case 'opportunity':
+        case 'oportunidad':
+            return 'bg-orange-500'
+        default:
+            return 'bg-gray-400'
+    }
+}
 import dayjs from 'dayjs'
 import type { ChatType } from '../types'
 import type { ChangeEvent } from 'react'
@@ -24,8 +47,9 @@ import {
 import globalLeadCache from '@/stores/globalLeadCache'
 import useGlobalLeadSync from '@/hooks/useGlobalLeadSync'
 import { registerSyncListener } from '@/utils/globalSyncEvent'
-// NUEVO: Importar hook de sincronización instantánea
-import { useInstantLeadSync } from '@/hooks/useInstantLeadSync'
+// NUEVO: Importar hook de sincronización en tiempo real con Supabase (versión robusta)
+// TEMPORALMENTE DESACTIVADO debido a errores de conexión
+// import { useRealtimeLeadSyncRobust } from '@/hooks/useRealtimeLeadSyncRobust'
 // import { forceRefreshChatList, forceSyncLead } from '@/utils/forceRefreshData' // Comentado - archivo no existe
 // import useLeadNameSync from './useLeadNameSync' // Comentado - archivo deshabilitado
 
@@ -50,8 +74,13 @@ const ChatList = () => {
     const refreshChatList = useChatStore((state) => state.refreshChatList)
     const triggerUpdate = useChatStore((state) => state.triggerUpdate)
     
-    // NUEVO: Activar sincronización instantánea
-    useInstantLeadSync();
+    // NUEVO: Activar sincronización en tiempo real con Supabase (versión robusta)
+    // TEMPORALMENTE DESACTIVADO debido a errores de conexión
+    // const { forceSync, connectionStatus, isRealtime, isFallback } = useRealtimeLeadSyncRobust();
+    const connectionStatus = 'disabled';
+    const forceSync = () => {};
+    const isRealtime = false;
+    const isFallback = false;
     
     // Usar el hook de sincronización de nombres
     // useLeadNameSync() // Comentado - archivo deshabilitado
@@ -497,6 +526,33 @@ const ChatList = () => {
                         <p>Buscar</p>
                     )}
                     <div className="flex items-center gap-2">
+                        {/* Indicador de estado de sincronización */}
+                        <div className="flex items-center">
+                            {connectionStatus === 'connected' && (
+                                <div 
+                                    className="w-2 h-2 bg-green-500 rounded-full animate-pulse" 
+                                    title="Realtime conectado"
+                                />
+                            )}
+                            {connectionStatus === 'fallback' && (
+                                <div 
+                                    className="w-2 h-2 bg-yellow-500 rounded-full" 
+                                    title="Modo polling (fallback)"
+                                />
+                            )}
+                            {connectionStatus === 'error' && (
+                                <div 
+                                    className="w-2 h-2 bg-red-500 rounded-full" 
+                                    title="Error de conexión"
+                                />
+                            )}
+                            {connectionStatus === 'connecting' && (
+                                <div 
+                                    className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" 
+                                    title="Conectando..."
+                                />
+                            )}
+                        </div>
                         <button
                             className="close-button text-lg"
                             type="button"
@@ -563,8 +619,15 @@ const ChatList = () => {
                                         }
                                     >
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            <div>
-                                                <Avatar src={item.avatar} />
+                                            <div className="relative">
+                                                <Avatar icon={<TbUser />} />
+                                                {/* Indicador de etapa para leads */}
+                                                {item.id.startsWith('lead_') && item.metadata?.stage && (
+                                                    <div 
+                                                        className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800 ${getStageIndicatorColor(item.metadata.stage)}`}
+                                                        title={item.metadata.stage}
+                                                    />
+                                                )}
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex justify-between">

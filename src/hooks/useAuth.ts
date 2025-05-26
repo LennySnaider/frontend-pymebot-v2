@@ -7,8 +7,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useCentralizedSession } from '@/contexts/CentralizedSessionContext';
 import usePermissionsCheck from '@/hooks/core/usePermissionsCheck';
 import type { UserRole } from '@/lib/core/permissions';
 import type { User, SignInCredential, AuthResult } from '@/@types/auth';
@@ -17,7 +18,7 @@ import type { User, SignInCredential, AuthResult } from '@/@types/auth';
  * Hook centralizado para autenticación y permisos
  */
 export function useAuth() {
-  const { data: session, status } = useSession();
+  const { session, status } = useCentralizedSession();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   

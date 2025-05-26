@@ -8,8 +8,8 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useCentralizedSession } from '@/contexts/CentralizedSessionContext';
 import { useTenantStore } from '@/stores/core/tenantStore';
 import verticalInitService from '@/services/core/verticalInitService';
 
@@ -26,43 +26,44 @@ interface VerticalsProviderProps {
  * Provider que inicializa las verticales disponibles para el tenant actual
  */
 export default function VerticalsProvider({ children }: VerticalsProviderProps) {
-  const { data: session, status } = useSession();
+  const { session, status, isAuthenticated } = useCentralizedSession();
   const { currentTenant } = useTenantStore();
   const [isInitializing, setIsInitializing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   
+  // Memoizar la función de inicialización para evitar recrearla en cada render
+  const initializeVerticals = useCallback(async () => {
+    if (!currentTenant?.id || isInitializing || isInitialized) return;
+    
+    try {
+      setIsInitializing(true);
+      setError(null);
+      
+      console.log('Inicializando verticales para tenant:', currentTenant.id);
+      
+      // Inicializar todas las verticales disponibles para este tenant
+      const results = await verticalInitService.initializeAllTenantVerticals(currentTenant.id);
+      
+      // Verificar si hubo errores
+      const hasErrors = Object.values(results).some(result => !result);
+      if (hasErrors) {
+        console.warn('Algunas verticales no se pudieron inicializar:', results);
+      }
+      
+      setIsInitialized(true);
+    } catch (error) {
+      console.error('Error inicializando verticales:', error);
+      setError(error instanceof Error ? error : new Error(String(error)));
+    } finally {
+      setIsInitializing(false);
+    }
+  }, [currentTenant?.id, isInitializing, isInitialized]);
+  
   // Inicializar verticales cuando se carga el tenant
   useEffect(() => {
-    async function initializeVerticals() {
-      if (!currentTenant?.id || isInitializing || isInitialized) return;
-      
-      try {
-        setIsInitializing(true);
-        setError(null);
-        
-        console.log('Inicializando verticales para tenant:', currentTenant.id);
-        
-        // Inicializar todas las verticales disponibles para este tenant
-        const results = await verticalInitService.initializeAllTenantVerticals(currentTenant.id);
-        
-        // Verificar si hubo errores
-        const hasErrors = Object.values(results).some(result => !result);
-        if (hasErrors) {
-          console.warn('Algunas verticales no se pudieron inicializar:', results);
-        }
-        
-        setIsInitialized(true);
-      } catch (error) {
-        console.error('Error inicializando verticales:', error);
-        setError(error instanceof Error ? error : new Error(String(error)));
-      } finally {
-        setIsInitializing(false);
-      }
-    }
-    
     // Solo inicializar si hay sesión activa y tenant cargado
-    if (status === 'authenticated' && session?.user && currentTenant?.id) {
+    if (isAuthenticated && session?.user && currentTenant?.id) {
       initializeVerticals();
     }
     
@@ -74,7 +75,7 @@ export default function VerticalsProvider({ children }: VerticalsProviderProps) 
         // Solo marcamos como no inicializado para que se reinicie en el próximo render
       }
     };
-  }, [status, session, currentTenant?.id, isInitializing, isInitialized]);
+  }, [isAuthenticated, session, currentTenant?.id, initializeVerticals]);
   
   // Reiniciar verticales cuando cambia el tenant
   useEffect(() => {
@@ -85,22 +86,27 @@ export default function VerticalsProvider({ children }: VerticalsProviderProps) 
     }
   }, [currentTenant?.id]);
   
+  // Memoizar los componentes de estado para evitar re-renders innecesarios
+  const loadingIndicator = useMemo(() => (
+    isInitializing ? (
+      <div className="fixed top-0 right-0 m-4 z-50 bg-primary-100 p-2 rounded-md text-sm text-primary-800 opacity-75">
+        Inicializando módulos...
+      </div>
+    ) : null
+  ), [isInitializing]);
+  
+  const errorIndicator = useMemo(() => (
+    error ? (
+      <div className="fixed top-0 right-0 m-4 z-50 bg-red-100 p-2 rounded-md text-sm text-red-800 opacity-75">
+        Error cargando módulos: {error.message}
+      </div>
+    ) : null
+  ), [error]);
+  
   return (
     <>
-      {/* Podríamos mostrar algún indicador de carga mientras se inicializan las verticales */}
-      {isInitializing && (
-        <div className="fixed top-0 right-0 m-4 z-50 bg-primary-100 p-2 rounded-md text-sm text-primary-800 opacity-75">
-          Inicializando módulos...
-        </div>
-      )}
-      
-      {/* Si hay error, mostrar un mensaje discreto */}
-      {error && (
-        <div className="fixed top-0 right-0 m-4 z-50 bg-red-100 p-2 rounded-md text-sm text-red-800 opacity-75">
-          Error cargando módulos: {error.message}
-        </div>
-      )}
-      
+      {loadingIndicator}
+      {errorIndicator}
       {/* Renderizar hijos siempre, la inicialización ocurre en paralelo */}
       {children}
     </>

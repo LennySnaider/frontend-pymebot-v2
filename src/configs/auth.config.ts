@@ -26,6 +26,44 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 })
 
+// Cache simple en memoria para los datos de usuario
+// Esto evitará consultas repetidas a la base de datos
+const userCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos de vida del cache
+
+// Función para obtener datos del usuario con cache
+async function getUserDataWithCache(userId: string) {
+    const cached = userCache.get(userId);
+    const now = Date.now();
+    
+    // Si existe en cache y no ha expirado, devolver los datos cacheados
+    if (cached && (now - cached.timestamp) < CACHE_TTL) {
+        return cached.data;
+    }
+    
+    // Si no está en cache o expiró, consultar la base de datos
+    const { data: userData, error } = await supabase
+        .from('users')
+        .select('role, tenant_id')
+        .eq('id', userId)
+        .single();
+    
+    if (!error && userData) {
+        // Guardar en cache
+        userCache.set(userId, { data: userData, timestamp: now });
+        
+        // Limpiar entradas antiguas del cache si hay más de 100
+        if (userCache.size > 100) {
+            const entries = Array.from(userCache.entries());
+            entries
+                .filter(([_, value]) => (now - value.timestamp) > CACHE_TTL)
+                .forEach(([key, _]) => userCache.delete(key));
+        }
+    }
+    
+    return userData;
+}
+
 export default {
     providers: [
         Github({
@@ -58,16 +96,8 @@ export default {
     callbacks: {
         async session(payload) {
             try {
-                // Obtenemos información adicional del usuario desde Supabase
-                const { data: userData, error } = await supabase
-                    .from('users')
-                    .select('role, tenant_id')
-                    .eq('id', payload.token.sub)
-                    .single();
-                
-                if (error) {
-                    console.error('Error al obtener datos del usuario:', error);
-                }
+                // Obtenemos información adicional del usuario desde el cache
+                const userData = await getUserDataWithCache(payload.token.sub);
                 
                 // Verificamos y asignamos el rol correcto
                 // Si no existe userData o el rol es null, asignamos 'tenant_admin' como valor por defecto
@@ -94,12 +124,10 @@ export default {
                         userAuthority = ['user'];
                 }
                 
-                console.log('Datos de sesión actualizados:', {
-                    id: payload.token.sub,
-                    role: userRole,
-                    tenant_id: userData?.tenant_id,
-                    authority: userAuthority
-                });
+                // Solo registrar cambios en modo desarrollo y cuando haya cambios reales
+                if (process.env.NODE_ENV === 'development' && userData && userData.role !== userRole) {
+                    console.log('Rol de usuario actualizado:', { id: payload.token.sub, role: userRole });
+                }
                 
                 /** Aplicamos atributos adicionales a la sesión del usuario */
                 return {

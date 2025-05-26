@@ -50,8 +50,35 @@ export async function GET(request: NextRequest) {
     
     console.log(`Se obtuvieron ${templatesData.templates.length} plantillas del backend`);
     
-    // Devolver respuesta con las plantillas
-    return NextResponse.json(templatesData.templates, {
+    // Filtrar solo plantillas marcadas como eliminadas o sin datos básicos
+    const filteredTemplates = templatesData.templates.filter((template: any) => {
+      // Validar que la plantilla tenga datos básicos
+      if (!template || !template.name || !template.id) {
+        console.log('Excluyendo plantilla sin datos básicos:', template);
+        return false;
+      }
+      
+      // Excluir plantillas marcadas como borradas o archivadas
+      const isDeleted = template.deleted === true || 
+                       template.archived === true ||
+                       template.status === 'deleted' ||
+                       template.status === 'archived';
+      
+      // Incluir todas las plantillas que no estén eliminadas
+      // Incluso las de prueba o deshabilitadas, para que el usuario pueda activarlas si quiere
+      const shouldInclude = !isDeleted;
+      
+      if (!shouldInclude) {
+        console.log(`Excluyendo plantilla eliminada: "${template.name}"`);
+      }
+      
+      return shouldInclude;
+    });
+    
+    console.log(`Devolviendo ${filteredTemplates.length} plantillas filtradas (de ${templatesData.templates.length} totales)`);
+    
+    // Devolver respuesta con las plantillas filtradas
+    return NextResponse.json(filteredTemplates, {
       status: 200,
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

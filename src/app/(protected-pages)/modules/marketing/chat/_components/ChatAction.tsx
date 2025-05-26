@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import Dropdown from '@/components/ui/Dropdown'
 import { useChatStore } from '../_store/chatStore'
+import { useAuth } from '@/hooks/useAuth'
 import {
     TbDotsVertical,
     TbBell,
@@ -24,11 +25,13 @@ type ChatActionProps = {
 
 const ChatAction = ({ muted, testAsLead, onToggleTestMode }: ChatActionProps) => {
     const dropdownRef = useRef<DropdownRef>(null)
+    const { isSuperAdmin } = useAuth()
     const selectedChat = useChatStore((state) => state.selectedChat)
     const setSelectedChat = useChatStore((state) => state.setSelectedChat)
     const deleteConversationRecord = useChatStore(
         (state) => state.deleteConversationRecord,
     )
+    const clearCurrentConversation = useChatStore((state) => state.clearCurrentConversation)
     const setChatMute = useChatStore((state) => state.setChatMute)
 
     const handleMute = () => {
@@ -38,8 +41,10 @@ const ChatAction = ({ muted, testAsLead, onToggleTestMode }: ChatActionProps) =>
     }
 
     const handleDelete = () => {
-        deleteConversationRecord(selectedChat.id as string)
-        setSelectedChat({})
+        if (confirm('¿Estás seguro de que quieres borrar toda la conversación? Esta acción no se puede deshacer.')) {
+            clearCurrentConversation()
+            // El dropdown se cierra automáticamente al hacer clic en un item
+        }
     }
 
     return (
@@ -87,12 +92,14 @@ const ChatAction = ({ muted, testAsLead, onToggleTestMode }: ChatActionProps) =>
                         <span>Share contact</span>
                     </Dropdown.Item>
                 )}
-                <Dropdown.Item eventKey="delete" onClick={handleDelete}>
-                    <span className="text-lg text-error">
-                        <TbTrash />
-                    </span>
-                    <span className="text-error">Delete</span>
-                </Dropdown.Item>
+                {isSuperAdmin() && (
+                    <Dropdown.Item eventKey="delete" onClick={handleDelete}>
+                        <span className="text-lg text-error">
+                            <TbTrash />
+                        </span>
+                        <span className="text-error">Borrar conversación</span>
+                    </Dropdown.Item>
+                )}
             </Dropdown>
         </div>
     )

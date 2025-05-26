@@ -1,0 +1,77 @@
+// Instrucciones para actualizar ChatBody.tsx con la persistencia de conversaciones
+
+// 1. Agregar la importación del hook al inicio del archivo:
+import { useChatPersistence } from './_hooks/useChatPersistence'
+
+// 2. Dentro del componente ChatBody, después de los hooks existentes, agregar:
+const { 
+    persistMessage, 
+    processAndPersistBotResponse 
+} = useChatPersistence()
+
+// 3. Actualizar la función handlePushMessage para persistir los mensajes:
+const handlePushMessage = (message: Message, nodeId?: string) => {
+    console.log('Agregando mensaje a la conversación:', message)
+
+    // Verificar que tenemos un ID de chat válido antes de enviar el mensaje
+    if (selectedChat?.id) {
+        pushConversationMessage(selectedChat.id, message)
+        
+        // Persistir el mensaje si es de un lead
+        if (selectedChat.id.startsWith('lead_')) {
+            persistMessage(message, nodeId)
+        }
+    } else {
+        console.warn(
+            'No se pudo agregar el mensaje al store: selectedChat.id es inválido',
+        )
+    }
+}
+
+// 4. En la función handleInputChange, después de crear userMessage, agregar:
+// Persistir mensaje del usuario si es un lead
+if (selectedChat.id?.startsWith('lead_')) {
+    persistMessage(userMessage)
+}
+
+// 5. En la función handleInputChange, después de recibir la respuesta del servidor 
+// y antes de crear botMessage, agregar:
+// Extraer nodeId si viene en la respuesta para tracking del flujo
+const nodeId = response?.metadata?.nodeId || 
+              response?.data?.metadata?.nodeId || 
+              response?.nodeId
+
+// 6. Reemplazar la línea handlePushMessage(botMessage) por:
+// Agregamos la respuesta del bot a la conversación con nodeId
+handlePushMessage(botMessage, nodeId)
+
+// Procesar y persistir la respuesta del bot
+if (selectedChat.id?.startsWith('lead_')) {
+    processAndPersistBotResponse(response, botMessage)
+}
+
+// 7. En el bloque donde se procesan mensajes adicionales (is_multi_message), 
+// actualizar el setTimeout para incluir nodeId:
+setTimeout(
+    () => {
+        console.log(
+            `Agregando mensaje adicional #${idx + 1}:`,
+            msg.content,
+        )
+        handlePushMessage(msg, nodeId) // Agregar nodeId aquí
+        
+        // Persistir mensaje adicional si es un lead
+        if (selectedChat.id?.startsWith('lead_')) {
+            persistMessage(msg, nodeId)
+        }
+
+        // Scroll al fondo después del último mensaje
+        if (
+            idx ===
+            additionalMessages.length - 1
+        ) {
+            setTimeout(scrollToBottom, 100)
+        }
+    },
+    (idx + 1) * 500,
+) // 500ms de retraso entre mensajes

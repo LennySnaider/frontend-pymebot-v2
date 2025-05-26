@@ -1,6 +1,7 @@
 import Avatar from '@/components/ui/Avatar'
 import Attachment from './Attachment'
 import classNames from '@/utils/classNames'
+import { TbUser, TbRobot } from 'react-icons/tb'
 import type { ReactNode } from 'react'
 
 export type MessageProps = {
@@ -57,11 +58,9 @@ const Message = (props: MessageProps) => {
         onListItemClick,
     } = props
 
-    // Determine the avatar source based on whether it's the user's message
-    // Use a specific bot avatar if it's not the user's message
-    const avatarSrc = isMyMessage
-        ? sender.avatarImageUrl
-        : '/img/avatars/thumb-2.jpg'
+    // Determine the avatar icon based on whether it's the user's message
+    // Use TbUser for user messages and TbRobot for bot messages
+    const avatarIcon = isMyMessage ? <TbUser /> : <TbRobot />
 
     return (
         <>
@@ -82,7 +81,7 @@ const Message = (props: MessageProps) => {
                                 <div className={classNames('w-[35px]')}>
                                     {avatarGap && (
                                         <Avatar
-                                            src={avatarSrc} // Use the determined avatar source
+                                            icon={avatarIcon} // Use icon instead of image
                                             size={35}
                                         />
                                     )}

@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+import { useCentralizedSession } from '@/contexts/CentralizedSessionContext';
 import usePermissions, { PermissionScope, PermissionType, UserRole } from '@/lib/core/permissions';
 import { useTenantStore } from '@/stores/core/tenantStore';
 import permissionsService from '@/services/core/permissionsService';
@@ -44,8 +44,7 @@ interface UsePermissionsCheckResult {
  * permisos basados en roles como restricciones basadas en plan
  */
 export function usePermissionsCheck(): UsePermissionsCheckResult {
-  const { data: session, status } = useSession();
-  const isLoading = status === 'loading';
+  const { session, isLoading } = useCentralizedSession();
   const { currentTenant } = useTenantStore();
   const permissions = usePermissions();
   

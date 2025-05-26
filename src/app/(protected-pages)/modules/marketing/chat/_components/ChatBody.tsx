@@ -22,6 +22,52 @@ import toast from '@/components/ui/toast'
 // Importamos de forma dinámica para evitar problemas de SSR
 import dynamic from 'next/dynamic'
 
+// Función helper para obtener clases de color según la etapa
+const getStageColorClasses = (stage: string) => {
+    switch (stage) {
+        case 'new':
+        case 'nuevo':
+        case 'nuevos':
+            return 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+        case 'prospecting':
+        case 'prospectando':
+        case 'prospeccion':
+            return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+        case 'qualification':
+        case 'calificacion':
+        case 'calificación':
+            return 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+        case 'opportunity':
+        case 'oportunidad':
+            return 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+        default:
+            return 'bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300'
+    }
+}
+
+// Función para obtener el nombre de la etapa en español
+const getStageName = (stage: string) => {
+    switch (stage) {
+        case 'new':
+        case 'nuevo':
+        case 'nuevos':
+            return 'Nuevo'
+        case 'prospecting':
+        case 'prospectando':
+        case 'prospeccion':
+            return 'Prospección'
+        case 'qualification':
+        case 'calificacion':
+        case 'calificación':
+            return 'Calificación'
+        case 'opportunity':
+        case 'oportunidad':
+            return 'Oportunidad'
+        default:
+            return stage
+    }
+}
+
 // Cargamos los servicios solo en el cliente - Variables inicializadas con null
 let apiGetConversation: any = null
 let apiSendChatMessage: any = null
@@ -33,7 +79,7 @@ import classNames from '@/utils/classNames'
 import useResponsive from '@/utils/hooks/useResponsive'
 import dayjs from 'dayjs'
 import uniqueId from 'lodash/uniqueId'
-import { TbChevronLeft } from 'react-icons/tb'
+import { TbChevronLeft, TbUser, TbRobot } from 'react-icons/tb'
 import type {
     GetConversationResponse,
     Message,
@@ -42,6 +88,7 @@ import type {
 } from '../types'
 import type { ScrollBarRef } from '@/components/view/ChatBox'
 import { v4 as uuidv4 } from 'uuid' // Import uuid
+import { useChatPersistence } from '../_hooks/useChatPersistence'
 
 const ChatBody = () => {
     const scrollRef = useRef<ScrollBarRef>(null)
@@ -82,6 +129,12 @@ const ChatBody = () => {
     // Local conversation state removed
     // const [conversation, setConversation] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(false) // Estado para controlar la carga
+    
+    // Hook para persistencia de conversaciones
+    const { 
+        persistMessage, 
+        processAndPersistBotResponse 
+    } = useChatPersistence()
 
     // Efecto para escuchar cambios de nombre del lead
     useEffect(() => {
@@ -210,12 +263,17 @@ const ChatBody = () => {
         preloadAPIs()
     }, [])
 
-    const handlePushMessage = (message: Message) => {
+    const handlePushMessage = (message: Message, nodeId?: string) => {
         console.log('Agregando mensaje a la conversación:', message)
 
         // Verificar que tenemos un ID de chat válido antes de enviar el mensaje
         if (selectedChat?.id) {
             pushConversationMessage(selectedChat.id, message)
+            
+            // Persistir el mensaje si es de un lead
+            if (selectedChat.id.startsWith('lead_')) {
+                persistMessage(message, nodeId)
+            }
         } else {
             console.warn(
                 'No se pudo agregar el mensaje al store: selectedChat.id es inválido',
@@ -400,7 +458,7 @@ const ChatBody = () => {
                                                 `Agregando mensaje adicional #${idx + 1}:`,
                                                 msg.content,
                                             )
-                                            handlePushMessage(msg)
+                                            handlePushMessage(msg, nodeId) // Agregar nodeId aquí
 
                                             // Scroll al fondo después del último mensaje
                                             if (
@@ -675,6 +733,11 @@ const ChatBody = () => {
                     console.log('Datos de lead detectados pero no aplicados:', leadData);
                 }
 
+                // Extraer nodeId si viene en la respuesta para tracking del flujo
+                const nodeId = response?.metadata?.nodeId || 
+                              response?.data?.metadata?.nodeId || 
+                              response?.nodeId
+                
                 // Siempre mostramos una respuesta al usuario
                 const botMessage: Message = {
                     id: uniqueId('chat-conversation-'),
@@ -694,8 +757,36 @@ const ChatBody = () => {
 
                 console.log('Mensaje del bot que será mostrado:', botMessage)
 
-                // Agregamos la respuesta del bot a la conversación
-                handlePushMessage(botMessage)
+                // Agregamos la respuesta del bot a la conversación con nodeId
+                handlePushMessage(botMessage, nodeId)
+                
+                // Procesar la respuesta del bot (sin persistir el mensaje porque ya se hace en handlePushMessage)
+                if (selectedChat.id?.startsWith('lead_')) {
+                    // Extraer y guardar datos recolectados sin duplicar el mensaje
+                    const dataToExtract = [
+                        response?.extracted_data,
+                        response?.metadata?.collected_data,
+                        response?.data?.metadata?.collected_data,
+                        response?.collected_data,
+                        response?.flow_data
+                    ]
+                    
+                    for (const dataObj of dataToExtract) {
+                        if (dataObj && typeof dataObj === 'object') {
+                            Object.entries(dataObj).forEach(([key, value]) => {
+                                if (value !== undefined && value !== null) {
+                                    // Guardar datos recolectados
+                                    import('@/utils/conversationPersistence').then(({ saveConversationData }) => {
+                                        const leadId = selectedChat.id?.replace('lead_', '')
+                                        if (leadId && activeTemplateId) {
+                                            saveConversationData(leadId, activeTemplateId, key, value)
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    }
+                }
 
                 // Log post manejo de respuesta - Actualizado para usar el store
                 const currentConversation =
@@ -776,17 +867,18 @@ const ChatBody = () => {
                         onClick={handleProfileClick}
                     >
                         <div>
-                            <Avatar src={selectedChat.user?.avatarImageUrl} />
+                            <Avatar icon={<TbUser />} />
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex justify-between">
-                                <div className="font-bold heading-text truncate">
-                                    {selectedChat.user?.name}
-                                    {/* Mostrar etapa del lead si está disponible */}
+                                <div className="font-bold heading-text truncate flex items-center gap-2">
+                                    <span>{selectedChat.user?.name}</span>
+                                    {/* Mostrar etapa del lead con colores que coinciden con SalesFunnel */}
                                     {selectedChat.id &&
-                                        selectedChat.id.startsWith('lead_') && (
-                                            <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
-                                                {selectedChat.stage || 'new'}
+                                        selectedChat.id.startsWith('lead_') && 
+                                        selectedChat.stage && (
+                                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStageColorClasses(selectedChat.stage)}`}>
+                                                {getStageName(selectedChat.stage)}
                                             </span>
                                         )}
                                 </div>

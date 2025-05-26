@@ -17,6 +17,7 @@ import ClientChatHeader from './_components/ClientChatHeader'
 import LeadNameSyncListener from './_components/LeadNameSyncListener'
 // import LeadSyncDebugger from './_components/LeadSyncDebugger' // Eliminado por solicitud
 import ChatForceUpdater from './_components/ChatForceUpdater'
+import ConversationPersistenceProvider from './_components/ConversationPersistenceProvider'
 import getChatListFromLeads from '@/server/actions/getChatListFromLeads'
 import { auth } from '@/auth'
 // import ChatPersistenceInitializer from './_components/ChatPersistenceInitializer' // Ya incluido en StoreInitializer
@@ -35,22 +36,24 @@ export default async function Page() {
             {/* Sistema de persistencia mejorado - Ya incluido en StoreInitializer */}
             {/* <ChatSyncDebugPanel /> // Comentado - componente no existe */}
             
-            <Card className="h-full border-0" bodyClass="h-full flex flex-col">
-                {/* Listener de sincronización de nombres de leads */}
-                <LeadNameSyncListener />
-                
-                {/* Forzador de actualización del chat */}
-                <ChatForceUpdater />
-                
-                {/* Usando el componente cliente para el header */}
-                <ClientChatHeader />
-                
-                <div className="flex flex-auto h-full gap-8">
-                    <ChatSidebar />
-                    <ChatBody />
-                </div>
-            </Card>
-            <ContactInfoDrawer />
+            <ConversationPersistenceProvider>
+                <Card className="h-full border-0" bodyClass="h-full flex flex-col">
+                    {/* Listener de sincronización de nombres de leads */}
+                    <LeadNameSyncListener />
+                    
+                    {/* Forzador de actualización del chat */}
+                    <ChatForceUpdater />
+                    
+                    {/* Usando el componente cliente para el header */}
+                    <ClientChatHeader />
+                    
+                    <div className="flex flex-auto h-full gap-8">
+                        <ChatSidebar />
+                        <ChatBody />
+                    </div>
+                </Card>
+                <ContactInfoDrawer />
+            </ConversationPersistenceProvider>
             {/* <LeadSyncDebugger /> // Eliminado por solicitud */}
         </ChatProvider>
     )
