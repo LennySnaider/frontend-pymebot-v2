@@ -129,17 +129,17 @@ const navigationConfig: NavigationTree[] = [
                 subMenu: [],
             },
             {
-                key: 'modules.appointments.businessHours',
-                path: `/modules/account/settings?category=business-hours`,
-                title: 'Horarios de Negocio',
-                translateKey: 'nav.modulesAppointments.businessHours',
-                icon: 'clockCircle',
+                key: 'modules.appointments.agents',
+                path: `${MODULES_PREFIX_PATH}/account/agents`,
+                title: 'Agentes',
+                translateKey: 'nav.modulesAppointments.agents',
+                icon: 'users',
                 type: NAV_ITEM_TYPE_ITEM,
                 authority: [TENANT_ADMIN],
                 meta: {
                     description: {
-                        translateKey: 'nav.modulesAppointments.businessHoursDesc',
-                        label: 'Configuración de horarios y citas',
+                        translateKey: 'nav.modulesAppointments.agentsDesc',
+                        label: 'Gestión de agentes y disponibilidad',
                     },
                 },
                 subMenu: [],
@@ -216,6 +216,22 @@ const navigationConfig: NavigationTree[] = [
             },
         },
         subMenu: [
+            {
+                key: 'modules.products.categories',
+                path: `${MODULES_PREFIX_PATH}/product-categories`,
+                title: 'Categorías',
+                translateKey: 'nav.modulesProducts.categories',
+                icon: 'folderOpen',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [TENANT_ADMIN, AGENT],
+                meta: {
+                    description: {
+                        translateKey: 'nav.modulesProducts.categoriesDesc',
+                        label: 'Gestión de categorías de productos',
+                    },
+                },
+                subMenu: [],
+            },
             {
                 key: 'modules.products.propertyList',
                 path: `${MODULES_PREFIX_PATH}/properties/property-list`,

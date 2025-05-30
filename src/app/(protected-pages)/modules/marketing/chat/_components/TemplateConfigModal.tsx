@@ -25,29 +25,44 @@ import apiSetTemplateEnabled from '@/services/ChatService/apiSetTemplateEnabled'
 import apiActivateTemplate from '@/services/ChatService/apiActivateTemplate'
 import { HiTrash } from 'react-icons/hi'
 
-// Funciones auxiliares para notificaciones
+// Funciones auxiliares para notificaciones - temporalmente usando console.log
 const showSuccess = (message: string, title = 'Éxito') => {
-    toast.push(
-        <Notification title={title} type="success">
-            {message}
-        </Notification>
-    )
+    console.log(`[${title}] ${message}`)
+    try {
+        toast.push(
+            <Notification title={title} type="success">
+                {message}
+            </Notification>
+        )
+    } catch (error) {
+        console.error('Error al mostrar toast de éxito:', error)
+    }
 }
 
 const showError = (message: string, title = 'Error') => {
-    toast.push(
-        <Notification title={title} type="danger" duration={5000}>
-            {message}
-        </Notification>
-    )
+    console.error(`[${title}] ${message}`)
+    try {
+        toast.push(
+            <Notification title={title} type="danger" duration={5000}>
+                {message}
+            </Notification>
+        )
+    } catch (error) {
+        console.error('Error al mostrar toast de error:', error)
+    }
 }
 
 const showWarning = (message: string, title = 'Advertencia') => {
-    toast.push(
-        <Notification title={title} type="warning" duration={4000}>
-            {message}
-        </Notification>
-    )
+    console.warn(`[${title}] ${message}`)
+    try {
+        toast.push(
+            <Notification title={title} type="warning" duration={4000}>
+                {message}
+            </Notification>
+        )
+    } catch (error) {
+        console.error('Error al mostrar toast de advertencia:', error)
+    }
 }
 
 interface TemplateConfigModalProps {
@@ -361,19 +376,59 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                         isActive: template.id === selectedTemplateId
                     }))
                     setTemplates(updatedTemplates)
+                    
+                    // Emitir evento para actualizar el chat (también para plantillas default)
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('template-changed', {
+                            detail: {
+                                templateId: selectedTemplateId,
+                                templateName: selectedTemplate.name
+                            },
+                            bubbles: true
+                        }))
+                    }
+                    
+                    // Limpiar la conversación actual para que se use la nueva plantilla
+                    const clearCurrentConversation = useChatStore.getState().clearCurrentConversation
+                    if (clearCurrentConversation) {
+                        clearCurrentConversation()
+                        console.log('Conversación limpiada para usar nueva plantilla default')
+                    }
 
                     showSuccess(`Plantilla "${selectedTemplate.name}" activada como chatbot principal`)
                 } else {
-                    // Para plantillas reales
+                    // Para plantillas reales - con timeout y mejor manejo de errores
                     const cookieStore = document.cookie.split('; ').find(row => row.startsWith('tenant_id='))
                     const tenantId = cookieStore ? cookieStore.split('=')[1] : process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'default'
                     
-                    const { success, activationId, error } = await apiActivateTemplate(
-                        selectedTemplateId,
-                        tenantId
+                    console.log('🔄 Iniciando activación de plantilla:', selectedTemplateId, 'para tenant:', tenantId)
+                    console.log('🌐 Backend URL:', process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3090')
+                    
+                    // Verificar que tenemos los datos necesarios
+                    if (!selectedTemplateId) {
+                        throw new Error('No se ha seleccionado una plantilla válida')
+                    }
+                    
+                    if (!tenantId) {
+                        throw new Error('No se pudo obtener el tenant ID')
+                    }
+                    
+                    console.log('✅ Validaciones pasadas, iniciando llamada API...')
+                    
+                    // Agregar timeout a la llamada API
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Timeout: La operación tardó demasiado tiempo')), 30000)
                     )
+                    
+                    const activationPromise = apiActivateTemplate(selectedTemplateId, tenantId)
+                    
+                    console.log('⏳ Esperando respuesta de la API...')
+                    const result = await Promise.race([activationPromise, timeoutPromise]) as { success: boolean; activationId?: string; error?: string }
+                    
+                    console.log('📥 Respuesta recibida:', result)
 
-                    if (success) {
+                    if (result.success) {
+                        console.log('✅ Activación exitosa')
                         setActiveTemplate(selectedTemplateId)
 
                         // Actualizar el estado local
@@ -397,34 +452,55 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                                 detail: {
                                     templateId: selectedTemplateId,
                                     templateName: selectedTemplate.name,
-                                    activationId
+                                    activationId: result.activationId
                                 },
                                 bubbles: true
                             }))
                         }
+                        
+                        // Limpiar la conversación actual para que se use la nueva plantilla
+                        const clearCurrentConversation = useChatStore.getState().clearCurrentConversation
+                        if (clearCurrentConversation) {
+                            clearCurrentConversation()
+                            console.log('Conversación limpiada para usar nueva plantilla')
+                        }
 
                         showSuccess(`Plantilla "${selectedTemplate.name}" activada como chatbot principal`)
                     } else {
-                        showError(`Error al activar la plantilla: ${error}`)
-                        setLoading(false)
-                        return
+                        console.error('Error en la activación:', result.error)
+                        showError(`Error al activar la plantilla: ${result.error || 'Error desconocido'}`)
+                        return // Sale sin cerrar el modal
                     }
                 }
             } else if (selectedTemplate && !selectedTemplate.isEnabled) {
                 showWarning(`La plantilla "${selectedTemplate.name}" está deshabilitada. Debe activarla primero.`)
-                setLoading(false)
-                return
+                return // Sale sin cerrar el modal
             } else {
                 showWarning('Por favor, seleccione una plantilla válida para activar.')
-                setLoading(false)
-                return
+                return // Sale sin cerrar el modal
             }
 
+            // Solo llegar aquí si todo salió bien
             onClose()
         } catch (error) {
             console.error('Error al guardar configuración:', error)
-            showError(`Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`)
+            
+            // Mejorar el manejo de errores específicos
+            let errorMessage = 'Error inesperado'
+            
+            if (error instanceof Error) {
+                if (error.message.includes('Timeout')) {
+                    errorMessage = 'La operación tardó demasiado tiempo. Verifique su conexión e intente nuevamente.'
+                } else if (error.message.includes('Network') || error.message.includes('fetch')) {
+                    errorMessage = 'Error de conexión. Verifique su conexión a internet.'
+                } else {
+                    errorMessage = error.message
+                }
+            }
+            
+            showError(errorMessage)
         } finally {
+            // Asegurar que siempre se resetee el loading
             setLoading(false)
         }
     }
@@ -635,12 +711,16 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                     onClick={handleSave}
                     disabled={loading || !selectedTemplateId}
                     size="sm"
-                    className="px-4"
+                    className="px-4 min-w-[120px]"
                 >
                     {loading ? (
-                        <Spinner size={16} className="mr-2" />
-                    ) : null}
-                    Guardar
+                        <>
+                            <Spinner size={16} className="mr-2" />
+                            Guardando...
+                        </>
+                    ) : (
+                        'Guardar'
+                    )}
                 </Button>
             </div>
         </Dialog>

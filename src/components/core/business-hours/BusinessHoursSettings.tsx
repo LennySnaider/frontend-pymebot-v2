@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Checkbox, TimeInput, Notification, toast } from '@/components/ui';
+import { Card, Button, Switcher, Input, Notification, toast } from '@/components/ui';
 import { DaySchedule } from './types';
 import { fetchBusinessHours, saveBusinessHours } from './services';
 import useTranslation from '@/utils/hooks/useTranslation';
@@ -130,6 +130,8 @@ const BusinessHoursSettings = ({ className }: BusinessHoursSettingsProps) => {
     }
   };
   
+  console.log('Schedules:', schedules); // Debug
+  
   return (
     <div className={className}>
       <div className="mb-6">
@@ -155,12 +157,12 @@ const BusinessHoursSettings = ({ className }: BusinessHoursSettingsProps) => {
                     <span className="font-medium">{daySchedule.day_name}</span>
                   </div>
                   
-                  <div className="flex items-center">
-                    <Checkbox
+                  <div className="flex items-center gap-3">
+                    <Switcher
                       checked={!daySchedule.is_closed}
                       onChange={() => handleToggleClosed(index)}
                     />
-                    <span className="ml-2">
+                    <span className="text-sm font-medium">
                       {daySchedule.is_closed
                         ? t('appointments.settings.business_hours.closed')
                         : t('appointments.settings.business_hours.open')}
@@ -173,32 +175,22 @@ const BusinessHoursSettings = ({ className }: BusinessHoursSettingsProps) => {
                         <label className="mb-1 block text-sm">
                           {t('appointments.settings.business_hours.open_time')}
                         </label>
-                        <TimeInput
-                          value={daySchedule.open_time}
-                          onChange={(value) => {
-                            // Cuando recibimos un valor desde TimeInput, es un objeto Date
-                            // pero necesitamos convertirlo a string en formato HH:MM
-                            const timeString = value 
-                              ? `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}`
-                              : '00:00';
-                            handleTimeChange(index, 'open_time', timeString);
-                          }}
+                        <Input
+                          type="time"
+                          value={daySchedule.open_time || '09:00'}
+                          onChange={(e) => handleTimeChange(index, 'open_time', e.target.value)}
+                          size="sm"
                         />
                       </div>
                       <div className="flex-1">
                         <label className="mb-1 block text-sm">
                           {t('appointments.settings.business_hours.close_time')}
                         </label>
-                        <TimeInput
-                          value={daySchedule.close_time}
-                          onChange={(value) => {
-                            // Cuando recibimos un valor desde TimeInput, es un objeto Date
-                            // pero necesitamos convertirlo a string en formato HH:MM
-                            const timeString = value 
-                              ? `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}`
-                              : '00:00';
-                            handleTimeChange(index, 'close_time', timeString);
-                          }}
+                        <Input
+                          type="time"
+                          value={daySchedule.close_time || '18:00'}
+                          onChange={(e) => handleTimeChange(index, 'close_time', e.target.value)}
+                          size="sm"
                         />
                       </div>
                     </>

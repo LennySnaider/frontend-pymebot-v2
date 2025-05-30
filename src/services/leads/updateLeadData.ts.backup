@@ -1,0 +1,302 @@
+/**
+ * Servicio para actualizar datos de leads de manera eficiente
+ * Incluye validación, formateo y sincronización con el backend
+ */
+
+import { createClient } from '@/utils/supabase/client'
+
+interface LeadUpdateData {
+    full_name?: string
+    email?: string
+    phone?: string
+    budget_min?: number
+    budget_max?: number
+    notes?: string
+    stage?: string
+    last_contact?: Date | string
+    lead_source?: string
+    metadata?: Record<string, any>
+    [key: string]: any
+}
+
+interface LeadUpdateResult {
+    success: boolean
+    leadId: string
+    updatedFields: string[]
+    errors?: string[]
+}
+
+/**
+ * Actualiza los datos de un lead en la base de datos
+ */
+export async function updateLeadData(
+    leadId: string, 
+    data: LeadUpdateData
+): Promise<LeadUpdateResult> {
+    if (!leadId || !data || Object.keys(data).length === 0) {
+        throw new Error('Se requiere leadId y datos válidos para actualizar')
+    }
+
+    const supabase = createClient()
+    const updatedFields: string[] = []
+    const errors: string[] = []
+
+    try {
+        // Filtrar y validar datos
+        const validData: Record<string, any> = {}
+
+        // Validar y formatear nombre
+        if (data.full_name && typeof data.full_name === 'string') {
+            const name = data.full_name.trim()
+            if (name.length > 0 && name.length <= 255) {
+                validData.full_name = name
+                updatedFields.push('full_name')
+            } else {
+                errors.push('Nombre debe tener entre 1 y 255 caracteres')
+            }
+        }
+
+        // Validar y formatear email
+        if (data.email && typeof data.email === 'string') {
+            const email = data.email.trim().toLowerCase()
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (emailRegex.test(email)) {
+                validData.email = email
+                updatedFields.push('email')
+            } else {
+                errors.push('Email no tiene formato válido')
+            }
+        }
+
+        // Validar y formatear teléfono
+        if (data.phone && typeof data.phone === 'string') {
+            let phone = data.phone.replace(/\D/g, '') // Solo números
+            if (phone.length >= 10 && phone.length <= 15) {
+                validData.phone = phone
+                updatedFields.push('phone')
+            } else {
+                errors.push('Teléfono debe tener entre 10 y 15 dígitos')
+            }
+        }
+
+        // Validar presupuesto
+        if (data.budget_min !== undefined) {
+            const budget = Number(data.budget_min)
+            if (!isNaN(budget) && budget >= 0) {
+                validData.budget_min = budget
+                updatedFields.push('budget_min')
+            } else {
+                errors.push('Presupuesto mínimo debe ser un número positivo')
+            }
+        }
+
+        if (data.budget_max !== undefined) {
+            const budget = Number(data.budget_max)
+            if (!isNaN(budget) && budget >= 0) {
+                validData.budget_max = budget
+                updatedFields.push('budget_max')
+            } else {
+                errors.push('Presupuesto máximo debe ser un número positivo')
+            }
+        }
+
+        // Validar notas
+        if (data.notes && typeof data.notes === 'string') {
+            const notes = data.notes.trim()
+            if (notes.length <= 2000) {
+                validData.notes = notes
+                updatedFields.push('notes')
+            } else {
+                errors.push('Notas no pueden exceder 2000 caracteres')
+            }
+        }
+
+        // Validar stage
+        if (data.stage && typeof data.stage === 'string') {
+            const validStages = ['new', 'prospecting', 'qualification', 'opportunity', 'closed', 'confirmed']
+            if (validStages.includes(data.stage)) {
+                validData.stage = data.stage
+                updatedFields.push('stage')
+            } else {
+                errors.push(`Stage debe ser uno de: ${validStages.join(', ')}`)
+            }
+        }
+
+        // Manejar metadata
+        if (data.metadata && typeof data.metadata === 'object') {
+            validData.metadata = data.metadata
+            updatedFields.push('metadata')
+        }
+
+        // Si no hay campos válidos para actualizar, retornar error
+        if (Object.keys(validData).length === 0) {
+            return {
+                success: false,
+                leadId,
+                updatedFields: [],
+                errors: errors.length > 0 ? errors : ['No hay datos válidos para actualizar']
+            }
+        }
+
+        // Agregar timestamp de actualización
+        validData.updated_at = new Date().toISOString()
+        validData.last_contact = new Date().toISOString()
+
+        console.log(`[updateLeadData] Actualizando lead ${leadId} con datos:`, validData)
+
+        // Realizar la actualización en Supabase
+        const { data: updateResult, error } = await supabase
+            .from('leads')
+            .update(validData)
+            .eq('id', leadId)
+            .select('id, full_name, email, phone, stage')
+            .single()
+
+        if (error) {
+            console.error('[updateLeadData] Error de Supabase:', error)
+            throw new Error(`Error de base de datos: ${error.message}`)
+        }
+
+        if (!updateResult) {
+            throw new Error('Lead no encontrado o no se pudo actualizar')
+        }
+
+        console.log(`[updateLeadData] Lead ${leadId} actualizado exitosamente:`, updateResult)
+
+        // Actualizar caché global si está disponible
+        try {
+            const { default: globalLeadCache } = await import('@/stores/globalLeadCache')
+            globalLeadCache.updateLeadData(leadId, validData)
+        } catch (cacheError) {
+            console.warn('[updateLeadData] No se pudo actualizar caché:', cacheError)
+        }
+
+        return {
+            success: true,
+            leadId,
+            updatedFields,
+            errors: errors.length > 0 ? errors : undefined
+        }
+
+    } catch (error) {
+        console.error('[updateLeadData] Error general:', error)
+        return {
+            success: false,
+            leadId,
+            updatedFields: [],
+            errors: [error instanceof Error ? error.message : 'Error desconocido']
+        }
+    }
+}
+
+/**
+ * Actualiza solo el contador de mensajes de un lead
+ */
+export async function updateLeadMessageCount(
+    leadId: string, 
+    messageCount: number, 
+    lastMessage?: string
+): Promise<boolean> {
+    if (!leadId || messageCount < 0) {
+        console.warn('[updateLeadMessageCount] Parámetros inválidos')
+        return false
+    }
+
+    try {
+        const supabase = createClient()
+        
+        const updateData: Record<string, any> = {
+            message_count: messageCount,
+            last_contact: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        }
+
+        // Agregar último mensaje si se proporciona
+        if (lastMessage && typeof lastMessage === 'string') {
+            const truncatedMessage = lastMessage.length > 200 
+                ? lastMessage.substring(0, 197) + '...'
+                : lastMessage
+            updateData.last_message = truncatedMessage
+        }
+
+        const { error } = await supabase
+            .from('leads')
+            .update(updateData)
+            .eq('id', leadId)
+
+        if (error) {
+            console.error('[updateLeadMessageCount] Error:', error)
+            return false
+        }
+
+        console.log(`[updateLeadMessageCount] Contador actualizado para lead ${leadId}: ${messageCount} mensajes`)
+        return true
+
+    } catch (error) {
+        console.error('[updateLeadMessageCount] Error general:', error)
+        return false
+    }
+}
+
+/**
+ * Marca un lead como contactado recientemente
+ */
+export async function markLeadAsContacted(leadId: string): Promise<boolean> {
+    try {
+        const supabase = createClient()
+        
+        const { error } = await supabase
+            .from('leads')
+            .update({
+                last_contact: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', leadId)
+
+        if (error) {
+            console.error('[markLeadAsContacted] Error:', error)
+            return false
+        }
+
+        return true
+
+    } catch (error) {
+        console.error('[markLeadAsContacted] Error general:', error)
+        return false
+    }
+}
+
+/**
+ * Actualiza la fuente del lead si no existe
+ */
+export async function updateLeadSource(
+    leadId: string, 
+    source: string
+): Promise<boolean> {
+    if (!leadId || !source) return false
+
+    try {
+        const supabase = createClient()
+        
+        // Solo actualizar si no existe lead_source o está vacío
+        const { error } = await supabase
+            .from('leads')
+            .update({ 
+                lead_source: source,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', leadId)
+            .or('lead_source.is.null,lead_source.eq.""')
+
+        if (error) {
+            console.error('[updateLeadSource] Error:', error)
+            return false
+        }
+
+        return true
+
+    } catch (error) {
+        console.error('[updateLeadSource] Error general:', error)
+        return false
+    }
+}

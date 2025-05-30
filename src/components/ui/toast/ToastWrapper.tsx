@@ -13,10 +13,12 @@ import classNames from 'classnames'
 import chainedFunction from '../utils/chainedFunction'
 import { motion } from 'framer-motion'
 import { getPlacementTransition } from './transition'
-import { PLACEMENT } from '../utils/constants'
 import { createRoot } from 'react-dom/client'
 import { NotificationPlacement } from '../@types/placement'
 import type { DetailedReactHTMLElement, ReactNode, Ref } from 'react'
+
+// Default placement value - hardcoded to avoid import issues
+const DEFAULT_PLACEMENT = 'top-end' as NotificationPlacement
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type NodeProps = DetailedReactHTMLElement<any, HTMLDivElement>
@@ -105,7 +107,7 @@ const ToastWrapper = (props: ToastWrapperProps) => {
 
     const {
         transitionType = 'scale',
-        placement = PLACEMENT.TOP_END as NotificationPlacement,
+        placement = DEFAULT_PLACEMENT as NotificationPlacement,
         offsetX = 30,
         offsetY = 30,
         messageKey,
@@ -126,11 +128,13 @@ const ToastWrapper = (props: ToastWrapperProps) => {
         offsetY,
         placement: placement as NotificationPlacement,
         transitionType,
-    })
-
-    const toastProps = {
-        triggerByToast: true,
-        ...rest,
+    }) || {
+        default: {},
+        variants: {
+            initial: { opacity: 0 },
+            animate: { opacity: 1 },
+            exit: { opacity: 0 }
+        }
     }
 
     const messageElements = messages.map((item) => {
@@ -138,15 +142,19 @@ const ToastWrapper = (props: ToastWrapperProps) => {
             <motion.div
                 key={item.key}
                 className={'toast-wrapper'}
-                initial={placementTransition.variants.initial}
-                variants={placementTransition.variants}
+                initial={placementTransition?.variants?.initial || { opacity: 0 }}
+                variants={placementTransition?.variants || {
+                    initial: { opacity: 0 },
+                    animate: { opacity: 1 },
+                    exit: { opacity: 0 }
+                }}
                 animate={item.visible ? 'animate' : 'exit'}
                 transition={{ duration: 0.15, type: 'tween' }}
             >
                 {cloneElement(
                     item.node as DetailedReactHTMLElement<any, HTMLElement>,
                     {
-                        ...toastProps,
+                        // Solo pasar props que sean relevantes para el componente hijo
                         ref,
                         onClose: chainedFunction(
                             item.node?.props?.onClose,
@@ -161,8 +169,7 @@ const ToastWrapper = (props: ToastWrapperProps) => {
 
     return (
         <div
-            style={placementTransition.default}
-            {...rest}
+            style={placementTransition?.default || {}}
             ref={(thisRef) => {
                 rootRef.current = thisRef
                 callback?.(thisRef)

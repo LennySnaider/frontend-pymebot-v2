@@ -288,7 +288,9 @@
             "calendar": "Calendario",
             "calendarDesc": "Vista de calendario",
             "businessHours": "Horarios de Negocio",
-            "businessHoursDesc": "Configuración de horarios y citas"
+            "businessHoursDesc": "Configuración de horarios y citas",
+            "agents": "Agentes",
+            "agentsDesc": "Gestión de agentes y disponibilidad"
         },
         "modulesLeads": {
             "leads": "Prospectos",
@@ -336,6 +338,8 @@
             "productList": "Lista",
             "productEdit": "Editar",
             "productCreate": "Crear",
+            "categories": "Categorías",
+            "categoriesDesc": "Gestión de categorías de productos",
             "productsDesc": "Gestión de inventario de productos",
             "productListDesc": "Todos los productos listados",
             "productEditDesc": "Editar detalles del producto",

@@ -218,7 +218,8 @@ const navigationIcon: NavigationIcons = {
     translate: <PiTranslateDuotone />,        // Localización
     currency: <PiCurrencyDollarDuotone />,    // Facturación
     settingsInputComponent: <PiGearDuotone />, // Configuración de sistema
-    fileJson: <PiFileDuotone />               // Icono para esquemas JSON
+    fileJson: <PiFileDuotone />,              // Icono para esquemas JSON
+    folderOpen: <PiFolderOpenDuotone />       // Icono para categorías
 }
 
 export default navigationIcon

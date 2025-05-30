@@ -29,44 +29,29 @@ export async function getAgents(queryParams: {
         
         console.log('Obteniendo agentes para tenant:', tenant_id)
         
-        // Query base para agentes usando JOIN con usuarios
+        // Query directa a usuarios con rol 'agent'
         let query = supabase
-            .from('agents')
-            .select(`
-                *,
-                users!inner(
-                    id,
-                    email,
-                    full_name,
-                    phone,
-                    role,
-                    status,
-                    avatar_url,
-                    last_activity,
-                    metadata
-                )
-            `, { count: 'exact' })
+            .from('users')
+            .select('*', { count: 'exact' })
+            .eq('role', 'agent')
             .eq('tenant_id', tenant_id)
         
         // Aplicar filtros
         if (status) {
-            query = query.eq('users.status', status)
+            query = query.eq('status', status)
         }
         
         if (search) {
-            query = query.or(`users.full_name.ilike.%${search}%,users.email.ilike.%${search}%`)
+            query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
         }
         
-        if (specialization) {
-            query = query.eq('specialization', specialization)
-        }
+        // Por ahora no podemos filtrar por specialization ya que está en otra tabla
+        // if (specialization) {
+        //     query = query.eq('specialization', specialization)
+        // }
         
         // Ordenamiento
-        if (sortBy.includes('users.')) {
-            query = query.order(sortBy as string, { ascending: order !== 'desc' })
-        } else {
-            query = query.order(sortBy as string, { ascending: order !== 'desc' })
-        }
+        query = query.order(sortBy as string, { ascending: order !== 'desc' })
         
         // Ejecutar query
         const { data, error, count } = await query
@@ -79,9 +64,9 @@ export async function getAgents(queryParams: {
         // Obtener el conteo de leads para cada agente
         const leadsCount: Record<string, number> = {}
         if (data && data.length > 0) {
-            const agentUserIds = data.map(agent => agent.user_id)
+            const agentUserIds = data.map(user => user.id)
             
-            // Obtener conteo de leads directamente por user_id
+            // Obtener conteo de leads directamente por user_id (agent_id en leads)
             const { data: leadCounts } = await supabase
                 .from('leads')
                 .select('agent_id, id')
@@ -98,20 +83,19 @@ export async function getAgents(queryParams: {
             }
         }
         
-        // Procesar datos
-        const agents: Agent[] = (data || []).map(agent => {
-            const user = (agent as any).users
+        // Procesar datos - mapear usuarios a la estructura de Agent
+        const agents: Agent[] = (data || []).map(user => {
             return {
-                id: agent.id,
-                user_id: agent.user_id,
-                tenant_id: agent.tenant_id,
-                specialization: agent.specialization,
-                commission_rate: agent.commission_rate,
-                total_sales: agent.total_sales,
-                active_leads: leadsCount[agent.user_id] || 0,
-                availability: agent.availability,
-                created_at: agent.created_at,
-                updated_at: agent.updated_at,
+                id: user.id, // Usamos el ID del usuario como ID del agente
+                user_id: user.id,
+                tenant_id: user.tenant_id,
+                specialization: 'General', // Valor por defecto
+                commission_rate: 10, // Valor por defecto
+                total_sales: 0, // Valor por defecto
+                active_leads: leadsCount[user.id] || 0,
+                availability: user.metadata?.availability || {}, // Podríamos guardar la disponibilidad en metadata
+                created_at: user.created_at,
+                updated_at: user.updated_at,
                 // Campos del usuario
                 email: user.email,
                 full_name: user.full_name || user.email.split('@')[0],

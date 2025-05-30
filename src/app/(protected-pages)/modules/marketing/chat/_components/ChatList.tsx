@@ -11,6 +11,36 @@ import { useChatStore } from '../_store/chatStore'
 import classNames from '@/utils/classNames'
 import useDebounce from '@/utils/hooks/useDebounce'
 import { TbVolumeOff, TbSearch, TbX, TbRefresh, TbUser } from 'react-icons/tb'
+import { FaWhatsapp, FaInstagram } from 'react-icons/fa'
+import Image from 'next/image'
+
+// Función para renderizar el avatar según la fuente del lead
+const renderSourceAvatar = (source: string) => {
+    switch (source) {
+        case 'whatsapp':
+            return (
+                <Avatar 
+                    className="bg-green-100 dark:bg-green-900/30 p-1"
+                    src="/img/icons/whatsIcon.png"
+                />
+            );
+        case 'instagram':
+            return (
+                <Avatar 
+                    className="bg-pink-100 dark:bg-pink-900/30"
+                    icon={<FaInstagram className="text-pink-600 dark:text-pink-400" />} 
+                />
+            );
+        default:
+            // Fallback para WhatsApp (por defecto)
+            return (
+                <Avatar 
+                    className="bg-green-100 dark:bg-green-900/30 p-1"
+                    src="/img/icons/whatsIcon.png"
+                />
+            );
+    }
+};
 
 // Función helper para obtener el color del indicador según la etapa
 const getStageIndicatorColor = (stage: string) => {
@@ -621,7 +651,11 @@ const ChatList = () => {
                                     >
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
                                             <div className="relative">
-                                                <Avatar icon={<TbUser />} />
+                                                {/* Renderizar avatar según la fuente del lead */}
+                                                {item.id.startsWith('lead_') ? 
+                                                    renderSourceAvatar(item.metadata?.source || 'whatsapp') :
+                                                    <Avatar icon={<TbUser />} />
+                                                }
                                                 {/* Indicador de etapa para leads */}
                                                 {item.id.startsWith('lead_') && item.metadata?.stage && (
                                                     <div 

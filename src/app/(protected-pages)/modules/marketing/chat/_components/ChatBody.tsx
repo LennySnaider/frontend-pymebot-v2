@@ -18,7 +18,7 @@ import ChatBox from '@/components/view/ChatBox'
 import ChatAction from './ChatAction'
 import StartConverstation from '@/assets/svg/StartConverstation'
 import { useChatStore } from '../_store/chatStore'
-import toast from '@/components/ui/toast'
+import { toast } from '@/components/ui'
 // Importamos de forma dinámica para evitar problemas de SSR
 import dynamic from 'next/dynamic'
 
@@ -129,45 +129,50 @@ const ChatBody = () => {
     // Local conversation state removed
     // const [conversation, setConversation] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(false) // Estado para controlar la carga
-    
+
     // Hook para persistencia de conversaciones
-    const { 
-        persistMessage, 
-        processAndPersistBotResponse 
-    } = useChatPersistence()
+    const { persistMessage, processAndPersistBotResponse } =
+        useChatPersistence()
 
     // Efecto para escuchar cambios de nombre del lead
     useEffect(() => {
         const handleLeadNameUpdate = (e: any) => {
             if (e.detail && e.detail.leadId) {
-                const chatId = `lead_${e.detail.leadId}`;
-                
+                const chatId = `lead_${e.detail.leadId}`
+
                 // Si el lead actualizado es el chat seleccionado actualmente
                 if (selectedChat.id === chatId && e.detail.name) {
-                    console.log(`ChatBody: Actualizando nombre del header instantáneamente: "${e.detail.name}"`);
-                    
+                    console.log(
+                        `ChatBody: Actualizando nombre del header instantáneamente: "${e.detail.name}"`,
+                    )
+
                     // Actualizar el selectedChat para reflejar el nuevo nombre inmediatamente
                     setSelectedChat({
                         ...selectedChat,
                         name: e.detail.name,
-                        user: selectedChat.user ? {
-                            ...selectedChat.user,
-                            name: e.detail.name
-                        } : undefined
-                    });
+                        user: selectedChat.user
+                            ? {
+                                  ...selectedChat.user,
+                                  name: e.detail.name,
+                              }
+                            : undefined,
+                    })
                 }
             }
-        };
-        
+        }
+
         // Escuchar eventos de actualización de nombre
-        window.addEventListener('lead-name-sync', handleLeadNameUpdate);
-        window.addEventListener('force-chat-refresh', handleLeadNameUpdate);
-        
+        window.addEventListener('lead-name-sync', handleLeadNameUpdate)
+        window.addEventListener('force-chat-refresh', handleLeadNameUpdate)
+
         return () => {
-            window.removeEventListener('lead-name-sync', handleLeadNameUpdate);
-            window.removeEventListener('force-chat-refresh', handleLeadNameUpdate);
-        };
-    }, [selectedChat, setSelectedChat]);
+            window.removeEventListener('lead-name-sync', handleLeadNameUpdate)
+            window.removeEventListener(
+                'force-chat-refresh',
+                handleLeadNameUpdate,
+            )
+        }
+    }, [selectedChat, setSelectedChat])
 
     // Efecto para escuchar cambios en el modo desde otros componentes
     useEffect(() => {
@@ -184,21 +189,25 @@ const ChatBody = () => {
         const handleTemplateChange = (e: any) => {
             console.log('ChatBody: Plantilla cambiada', e.detail)
             const { templateId, templateName } = e.detail
-            
+
             // Mostrar notificación al usuario
             toast.push(
                 <div className="flex items-center gap-2">
-                    <span>Plantilla activa: <strong>{templateName}</strong></span>
+                    <span>
+                        Plantilla activa: <strong>{templateName}</strong>
+                    </span>
                 </div>,
                 {
                     duration: 3000,
                     placement: 'top',
-                }
+                },
             )
-            
+
             // Forzar actualización del activeTemplateId si es necesario
             if (templateId && templateId !== activeTemplateId) {
-                console.log('ChatBody: Actualizando activeTemplateId en el store')
+                console.log(
+                    'ChatBody: Actualizando activeTemplateId en el store',
+                )
                 const { setActiveTemplate } = useChatStore.getState()
                 setActiveTemplate(templateId)
             }
@@ -269,22 +278,90 @@ const ChatBody = () => {
         // Verificar que tenemos un ID de chat válido antes de enviar el mensaje
         if (selectedChat?.id) {
             pushConversationMessage(selectedChat.id, message)
-            
+
             // Persistir el mensaje si es de un lead
             if (selectedChat.id.startsWith('lead_')) {
                 persistMessage(message, nodeId)
-                
+
                 // Actualizar contador de mensajes en la base de datos
                 const leadId = selectedChat.id.replace('lead_', '')
-                const conversation = conversationRecord.find(r => r.id === selectedChat.id)
-                const messageCount = (conversation?.conversation?.length || 0) + 1
-                
-                // Importar dinámicamente para evitar problemas SSR
-                import('@/services/leads/updateLeadData').then(({ updateLeadMessageCount }) => {
-                    updateLeadMessageCount(leadId, messageCount, message.content).catch(err => {
-                        console.error('Error actualizando contador de mensajes:', err)
+                const conversation = conversationRecord.find(
+                    (r) => r.id === selectedChat.id,
+                )
+                const messageCount =
+                    (conversation?.conversation?.length || 0) + 1
+
+                // Validar datos antes de intentar actualizar
+                if (!leadId || leadId === selectedChat.id) {
+                    console.warn('ChatBody: leadId inválido o no se pudo extraer del selectedChat.id', {
+                        originalId: selectedChat.id,
+                        extractedLeadId: leadId,
+                        selectedChat
                     })
-                })
+                } else if (typeof messageCount !== 'number' || messageCount < 0) {
+                    console.warn('ChatBody: messageCount inválido', {
+                        messageCount,
+                        conversationLength: conversation?.conversation?.length,
+                        leadId
+                    })
+                } else {
+                    // Importar dinámicamente para evitar problemas SSR
+                    import('@/services/leads/updateLeadData').then(
+                        (module) => {
+                            console.log('ChatBody: Módulo updateLeadData importado exitosamente', {
+                                module,
+                                hasUpdateLeadMessageCount: typeof module.updateLeadMessageCount === 'function',
+                                moduleKeys: Object.keys(module)
+                            })
+                            
+                            const { updateLeadMessageCount } = module
+                            
+                            if (typeof updateLeadMessageCount !== 'function') {
+                                throw new Error(`updateLeadMessageCount no es una función. Tipo: ${typeof updateLeadMessageCount}`)
+                            }
+                            
+                            console.log('ChatBody: Intentando actualizar contador de mensajes', {
+                                leadId,
+                                messageCount,
+                                messageContent: message.content?.substring(0, 50)
+                            })
+                            
+                            updateLeadMessageCount(
+                                leadId,
+                                messageCount,
+                                message.content,
+                            ).catch((err) => {
+                                console.error(
+                                    'ChatBody: Error actualizando contador de mensajes:', {
+                                        leadId,
+                                        messageCount,
+                                        messageContent: message.content?.substring(0, 50),
+                                        error: err instanceof Error ? {
+                                            name: err.name,
+                                            message: err.message,
+                                            stack: err.stack
+                                        } : err,
+                                        errorType: typeof err,
+                                        fullError: err,
+                                        timestamp: new Date().toISOString()
+                                    }
+                                )
+                                // No lanzar el error hacia arriba para evitar que interrumpa el flujo del chat
+                            })
+                        },
+                    ).catch((importErr) => {
+                        console.error('ChatBody: Error importando updateLeadData:', {
+                            error: importErr instanceof Error ? {
+                                name: importErr.name,
+                                message: importErr.message,
+                                stack: importErr.stack
+                            } : importErr,
+                            leadId,
+                            messageCount,
+                            timestamp: new Date().toISOString()
+                        })
+                    })
+                }
             }
         } else {
             console.warn(
@@ -546,7 +623,10 @@ const ChatBody = () => {
 
                 if (response) {
                     // Formato directo: response.listItems
-                    if (response.listItems && Array.isArray(response.listItems)) {
+                    if (
+                        response.listItems &&
+                        Array.isArray(response.listItems)
+                    ) {
                         messageListItems = response.listItems
                         messageListTitle = response.listTitle
                         console.log(
@@ -634,12 +714,12 @@ const ChatBody = () => {
                         )
                     }
                 }
-                
+
                 // NUEVA FUNCIONALIDAD: Detectar y actualizar datos del lead
                 // Extraer información del cliente que podría venir en la respuesta
-                const leadData: Record<string, any> = {};
-                let shouldUpdateLead = false;
-                
+                const leadData: Record<string, any> = {}
+                let shouldUpdateLead = false
+
                 // Analizar campos en la respuesta que podrían contener datos del lead
                 const dataToCheck = [
                     response?.extracted_data,
@@ -647,109 +727,165 @@ const ChatBody = () => {
                     response?.data?.metadata?.lead_data,
                     response?.lead_data,
                     response?.metadata?.client_data,
-                    response?.user_data
-                ];
-                
+                    response?.user_data,
+                ]
+
                 // Buscar en diferentes objetos por datos del lead
                 for (const dataObj of dataToCheck) {
                     if (dataObj && typeof dataObj === 'object') {
                         // Revisar datos importantes: nombre, email, teléfono
-                        if (dataObj.name || dataObj.full_name || dataObj.nombre) {
-                            leadData.full_name = dataObj.name || dataObj.full_name || dataObj.nombre;
-                            shouldUpdateLead = true;
+                        if (
+                            dataObj.name ||
+                            dataObj.full_name ||
+                            dataObj.nombre
+                        ) {
+                            leadData.full_name =
+                                dataObj.name ||
+                                dataObj.full_name ||
+                                dataObj.nombre
+                            shouldUpdateLead = true
                         }
-                        
+
                         if (dataObj.email || dataObj.correo || dataObj.mail) {
-                            leadData.email = dataObj.email || dataObj.correo || dataObj.mail;
-                            shouldUpdateLead = true;
+                            leadData.email =
+                                dataObj.email || dataObj.correo || dataObj.mail
+                            shouldUpdateLead = true
                         }
-                        
-                        if (dataObj.phone || dataObj.telefono || dataObj.phone_number) {
-                            leadData.phone = dataObj.phone || dataObj.telefono || dataObj.phone_number;
-                            shouldUpdateLead = true;
+
+                        if (
+                            dataObj.phone ||
+                            dataObj.telefono ||
+                            dataObj.phone_number
+                        ) {
+                            leadData.phone =
+                                dataObj.phone ||
+                                dataObj.telefono ||
+                                dataObj.phone_number
+                            shouldUpdateLead = true
                         }
-                        
+
                         // Datos adicionales relevantes
                         if (dataObj.notes || dataObj.notas) {
-                            leadData.notes = dataObj.notes || dataObj.notas;
-                            shouldUpdateLead = true;
+                            leadData.notes = dataObj.notes || dataObj.notas
+                            shouldUpdateLead = true
                         }
-                        
+
                         if (dataObj.budget || dataObj.presupuesto) {
                             if (typeof dataObj.budget === 'object') {
-                                leadData.budget_min = dataObj.budget.min;
-                                leadData.budget_max = dataObj.budget.max;
+                                leadData.budget_min = dataObj.budget.min
+                                leadData.budget_max = dataObj.budget.max
                             } else {
-                                leadData.budget_max = dataObj.budget || dataObj.presupuesto;
+                                leadData.budget_max =
+                                    dataObj.budget || dataObj.presupuesto
                             }
-                            shouldUpdateLead = true;
+                            shouldUpdateLead = true
                         }
                     }
                 }
-                
+
                 // Buscar datos en texto/contenido del mensaje directamente mediante expresiones regulares
                 // Solo si no se encontraron en los objetos anteriores
                 if (!leadData.email && messageContent) {
-                    const emailMatch = messageContent.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/);
+                    const emailMatch = messageContent.match(
+                        /[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/,
+                    )
                     if (emailMatch) {
-                        leadData.email = emailMatch[0];
-                        shouldUpdateLead = true;
-                        console.log('Email extraído del mensaje:', leadData.email);
+                        leadData.email = emailMatch[0]
+                        shouldUpdateLead = true
+                        console.log(
+                            'Email extraído del mensaje:',
+                            leadData.email,
+                        )
                     }
                 }
-                
+
                 if (!leadData.phone && messageContent) {
                     // Buscar números telefónicos (varios formatos)
-                    const phoneMatches = messageContent.match(/(\+?[0-9]{1,3}[-\s]?)?(\(?[0-9]{3}\)?[-\s]?[0-9]{3}[-\s]?[0-9]{4})/);
+                    const phoneMatches = messageContent.match(
+                        /(\+?[0-9]{1,3}[-\s]?)?(\(?[0-9]{3}\)?[-\s]?[0-9]{3}[-\s]?[0-9]{4})/,
+                    )
                     if (phoneMatches) {
-                        leadData.phone = phoneMatches[0].replace(/[-\s\(\)]/g, '');
-                        shouldUpdateLead = true;
-                        console.log('Teléfono extraído del mensaje:', leadData.phone);
+                        leadData.phone = phoneMatches[0].replace(
+                            /[-\s\(\)]/g,
+                            '',
+                        )
+                        shouldUpdateLead = true
+                        console.log(
+                            'Teléfono extraído del mensaje:',
+                            leadData.phone,
+                        )
                     }
                 }
-                
+
                 // Si tenemos datos a actualizar y un ID de lead válido, realizar la actualización
                 if (shouldUpdateLead && selectedChat?.id) {
                     try {
                         // Remover el prefijo 'lead_' si existe
                         const leadId = selectedChat.id.startsWith('lead_')
                             ? selectedChat.id.substring(5)
-                            : selectedChat.id;
-                            
-                        console.log('Actualizando lead con nuevos datos:', leadId, leadData);
-                        
+                            : selectedChat.id
+
+                        console.log(
+                            'Actualizando lead con nuevos datos:',
+                            leadId,
+                            leadData,
+                        )
+
                         // Actualizar en memoria primero para UI responsiva
                         // (importaremos y usaremos la función en runtime para evitar problemas de SSR)
-                        import('@/services/leads/updateLeadData').then(module => {
-                            const { updateLeadData } = module;
-                            updateLeadData(leadId, leadData)
-                                .then(result => {
-                                    console.log('Lead actualizado correctamente:', result);
-                                    
-                                    // Disparar evento para que otros componentes se actualicen
-                                    if (typeof window !== 'undefined') {
-                                        window.dispatchEvent(new CustomEvent('lead-data-updated', {
-                                            detail: { leadId, data: leadData }
-                                        }));
-                                    }
-                                })
-                                .catch(err => {
-                                    console.error('Error al actualizar lead:', err);
-                                    // No mostrar toast de error para no interrumpir la conversación
-                                });
-                        });
+                        import('@/services/leads/updateLeadData').then(
+                            (module) => {
+                                const { updateLeadData } = module
+                                updateLeadData(leadId, leadData)
+                                    .then((result) => {
+                                        console.log(
+                                            'Lead actualizado correctamente:',
+                                            result,
+                                        )
+
+                                        // Disparar evento para que otros componentes se actualicen
+                                        if (typeof window !== 'undefined') {
+                                            window.dispatchEvent(
+                                                new CustomEvent(
+                                                    'lead-data-updated',
+                                                    {
+                                                        detail: {
+                                                            leadId,
+                                                            data: leadData,
+                                                        },
+                                                    },
+                                                ),
+                                            )
+                                        }
+                                    })
+                                    .catch((err) => {
+                                        console.error(
+                                            'Error al actualizar lead:',
+                                            err,
+                                        )
+                                        // No mostrar toast de error para no interrumpir la conversación
+                                    })
+                            },
+                        )
                     } catch (updateError) {
-                        console.error('Error actualizando datos del lead:', updateError);
+                        console.error(
+                            'Error actualizando datos del lead:',
+                            updateError,
+                        )
                     }
                 } else if (Object.keys(leadData).length > 0) {
-                    console.log('Datos de lead detectados pero no aplicados:', leadData);
+                    console.log(
+                        'Datos de lead detectados pero no aplicados:',
+                        leadData,
+                    )
                 }
 
                 // Extraer nodeId si viene en la respuesta para tracking del flujo
-                const nodeId = response?.metadata?.nodeId || 
-                              response?.data?.metadata?.nodeId || 
-                              response?.nodeId
-                
+                const nodeId =
+                    response?.metadata?.nodeId ||
+                    response?.data?.metadata?.nodeId ||
+                    response?.nodeId
+
                 // Siempre mostramos una respuesta al usuario
                 const botMessage: Message = {
                     id: uniqueId('chat-conversation-'),
@@ -771,7 +907,7 @@ const ChatBody = () => {
 
                 // Agregamos la respuesta del bot a la conversación con nodeId
                 handlePushMessage(botMessage, nodeId)
-                
+
                 // Procesar la respuesta del bot (sin persistir el mensaje porque ya se hace en handlePushMessage)
                 if (selectedChat.id?.startsWith('lead_')) {
                     // Extraer y guardar datos recolectados sin duplicar el mensaje
@@ -780,18 +916,28 @@ const ChatBody = () => {
                         response?.metadata?.collected_data,
                         response?.data?.metadata?.collected_data,
                         response?.collected_data,
-                        response?.flow_data
+                        response?.flow_data,
                     ]
-                    
+
                     for (const dataObj of dataToExtract) {
                         if (dataObj && typeof dataObj === 'object') {
                             Object.entries(dataObj).forEach(([key, value]) => {
                                 if (value !== undefined && value !== null) {
                                     // Guardar datos recolectados
-                                    import('@/utils/conversationPersistence').then(({ saveConversationData }) => {
-                                        const leadId = selectedChat.id?.replace('lead_', '')
+                                    import(
+                                        '@/utils/conversationPersistence'
+                                    ).then(({ saveConversationData }) => {
+                                        const leadId = selectedChat.id?.replace(
+                                            'lead_',
+                                            '',
+                                        )
                                         if (leadId && activeTemplateId) {
-                                            saveConversationData(leadId, activeTemplateId, key, value)
+                                            saveConversationData(
+                                                leadId,
+                                                activeTemplateId,
+                                                key,
+                                                value,
+                                            )
                                         }
                                     })
                                 }
@@ -879,7 +1025,16 @@ const ChatBody = () => {
                         onClick={handleProfileClick}
                     >
                         <div>
-                            <Avatar icon={<TbUser />} />
+                            {/* Mostrar ícono de WhatsApp para leads */}
+                            {selectedChat.id?.startsWith('lead_') ? (
+                                <Avatar
+                                    src="/img/icons/whatsIcon.png"
+                                    alt="WhatsApp"
+                                    size="md"
+                                />
+                            ) : (
+                                <Avatar icon={<TbUser />} />
+                            )}
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex justify-between">
@@ -887,10 +1042,14 @@ const ChatBody = () => {
                                     <span>{selectedChat.user?.name}</span>
                                     {/* Mostrar etapa del lead con colores que coinciden con SalesFunnel */}
                                     {selectedChat.id &&
-                                        selectedChat.id.startsWith('lead_') && 
+                                        selectedChat.id.startsWith('lead_') &&
                                         selectedChat.stage && (
-                                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStageColorClasses(selectedChat.stage)}`}>
-                                                {getStageName(selectedChat.stage)}
+                                            <span
+                                                className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStageColorClasses(selectedChat.stage)}`}
+                                            >
+                                                {getStageName(
+                                                    selectedChat.stage,
+                                                )}
                                             </span>
                                         )}
                                 </div>
@@ -1095,9 +1254,12 @@ const ChatBody = () => {
             {selectedChat.id ? (
                 <Card
                     className="flex-1 h-full max-h-full dark:border-gray-700"
-                    bodyClass="h-[calc(100%-80px)] relative" // Reducir a 80px para dar más espacio
+                    bodyClass="h-[calc(100%-80px)] relative bg-repeat bg-[url('/img/chat/fondoLightchat.png')] dark:bg-[url('/img/chat/fondodarkchat.png')]" // Fondo repetido manteniendo proporciones originales
                     {...cardHeaderProps}
                 >
+                    {/* Overlay con transparencia */}
+                    <div className="absolute inset-0 bg-white/60 dark:bg-gray-900/95 pointer-events-none"></div>
+
                     <ChatBox
                         ref={scrollRef}
                         messageList={messageList}
@@ -1110,8 +1272,9 @@ const ChatBody = () => {
                         }
                         showAvatar={true}
                         avatarGap={true}
-                        messageListClass="h-[calc(100%-80px)]" // Restar la altura del input/footer
-                        bubbleClass="max-w-[300px] whitespace-pre-wrap"
+                        messageListClass="h-[calc(100%-80px)] bg-transparent relative z-10" // Hacer transparente y con z-index
+                        bubbleClass="max-w-[300px] whitespace-pre-wrap backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 border border-gray-200/50 dark:border-gray-700/50 shadow-sm"
+                        containerClass="relative z-10 [&>div:last-child]:bg-white [&>div:last-child]:dark:bg-gray-800" // Solo fondo sólido para el input, no para todo el container
                         onInputChange={handleInputChange}
                         onButtonClick={(buttonText) => {
                             console.log(

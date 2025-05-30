@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { supabase } from '@/services/supabase/SupabaseClient';
+import { createServiceClient } from '@/services/supabase/server';
 import { Database } from '@/types/supabase';
 
 /**
@@ -31,6 +31,9 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const includeExceptions = url.searchParams.get('include_exceptions') === 'true';
     const locationId = url.searchParams.get('location_id') || null;
+    
+    // Crear cliente de Supabase con permisos de servicio
+    const supabase = createServiceClient();
     
     // Obtener los horarios para el tenant
     let query = supabase
@@ -124,12 +127,35 @@ export async function PUT(req: NextRequest) {
     // Obtener los datos del body
     const hours = await req.json();
     
+    console.log('PUT /api/business/hours - Datos recibidos:', hours);
+    console.log('PUT /api/business/hours - tenant_id:', tenant_id);
+    console.log('PUT /api/business/hours - userRole:', userRole);
+    
     if (!Array.isArray(hours)) {
       return NextResponse.json(
         { error: 'Formato inválido' },
         { status: 400 }
       );
     }
+    
+    // Crear cliente de Supabase con permisos de servicio
+    const supabase = createServiceClient();
+    
+    // Primero verificar si la tabla existe
+    const { data: existingHours, error: fetchError } = await supabase
+      .from('tenant_business_hours')
+      .select('*')
+      .eq('tenant_id', tenant_id);
+      
+    if (fetchError) {
+      console.error('Error al verificar horarios existentes:', fetchError);
+      return NextResponse.json(
+        { error: 'Error al acceder a la base de datos', details: fetchError.message },
+        { status: 500 }
+      );
+    }
+    
+    console.log('Horarios existentes:', existingHours);
     
     // Eliminar horarios existentes
     const { error: deleteError } = await supabase
@@ -140,7 +166,7 @@ export async function PUT(req: NextRequest) {
     if (deleteError) {
       console.error('Error al eliminar horarios existentes:', deleteError);
       return NextResponse.json(
-        { error: 'Error al eliminar horarios existentes' },
+        { error: 'Error al eliminar horarios existentes', details: deleteError.message },
         { status: 500 }
       );
     }
@@ -151,6 +177,8 @@ export async function PUT(req: NextRequest) {
       tenant_id,
     }));
     
+    console.log('Datos a insertar:', hoursWithTenant);
+    
     const { error: insertError } = await supabase
       .from('tenant_business_hours')
       .insert(hoursWithTenant);
@@ -158,7 +186,7 @@ export async function PUT(req: NextRequest) {
     if (insertError) {
       console.error('Error al guardar horarios:', insertError);
       return NextResponse.json(
-        { error: 'Error al guardar horarios' },
+        { error: 'Error al guardar horarios', details: insertError.message },
         { status: 500 }
       );
     }
@@ -218,6 +246,9 @@ export async function PATCH(req: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Crear cliente de Supabase con permisos de servicio
+    const supabase = createServiceClient();
     
     // Actualizar cada registro individualmente
     const updatePromises = updates.map(async (update) => {

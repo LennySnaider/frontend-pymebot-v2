@@ -31,7 +31,8 @@ import {
     PiPackageDuotone,
     PiRulerDuotone,
     PiSquaresFourDuotone,
-    PiListNumbersDuotone
+    PiListNumbersDuotone,
+    PiFolderOpenDuotone
 } from 'react-icons/pi'
 import { Drawer, Button } from '@/components/ui'
 
@@ -224,6 +225,12 @@ const NODE_CATEGORIES = [
                 label: 'Calificar Lead',
                 description: 'Califica leads basado en respuestas',
                 icon: <PiUserGearDuotone className="text-purple-500" />,
+            },
+            {
+                type: 'categories',
+                label: 'Categorías',
+                description: 'Muestra categorías de productos con botones',
+                icon: <PiFolderOpenDuotone className="text-amber-500" />,
             },
             {
                 type: 'services',

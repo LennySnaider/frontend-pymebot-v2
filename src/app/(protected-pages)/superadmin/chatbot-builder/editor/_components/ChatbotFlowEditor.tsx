@@ -77,6 +77,7 @@ interface TemplateData {
 // Importar nodos homologados
 import ProductNode from './nodes/ProductNode'
 import ServicesNode from './nodes/ServicesNode'
+import CategoriesNode from './nodes/CategoriesNode'
 import CheckAvailabilityNode from './nodes/CheckAvailabilityNode'
 import BookAppointmentNode from './nodes/BookAppointmentNode'
 import RescheduleAppointmentNode from './nodes/RescheduleAppointmentNode'
@@ -138,6 +139,10 @@ const nodeTypes: NodeTypes = {
     products_list: ProductNode,
     'products-list': ProductNode,
     productNode: ProductNode,
+    'categories': CategoriesNode,
+    categories_list: CategoriesNode,
+    'categories-list': CategoriesNode,
+    categoriesNode: CategoriesNode,
 
     action: ActionNode,
 }
@@ -635,6 +640,11 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                     return 'Lista Interactiva'
                 case 'endNode':
                     return 'Fin Conversación'
+                case 'categories':
+                case 'categoriesNode':
+                case 'categories_list':
+                case 'categories-list':
+                    return 'Categorías'
                 default:
                     return 'Nodo'
             }
@@ -729,6 +739,16 @@ const ChatbotFlowEditor = forwardRef<any, ChatbotFlowEditorProps>(
                 case 'endNode':
                     return {
                         message: 'Gracias por tu participación',
+                    }
+                case 'categories':
+                case 'categoriesNode':
+                case 'categories_list':
+                case 'categories-list':
+                    return {
+                        message: '¿Qué tipo de productos te interesan?',
+                        waitForResponse: true,
+                        delay: 0,
+                        label: 'Categorías'
                     }
                 default:
                     return {}

@@ -220,10 +220,15 @@ const TemplateSelector = memo(({ onTemplateChange }: TemplateSelectorProps) => {
                 className="template-select"
                 classNamePrefix="template-select"
                 styles={{
-                    control: (base: any) => ({
+                    control: (base: any, state: any) => ({
                         ...base,
                         minHeight: '36px',
-                        height: '36px'
+                        height: '36px',
+                        backgroundColor: 'transparent', // Permitir que los estilos CSS manejen el color
+                        borderColor: state.isFocused ? 'rgb(34 197 94)' : 'rgb(209 213 219)', // border-gray-300
+                        '&:hover': {
+                            borderColor: state.isFocused ? 'rgb(34 197 94)' : 'rgb(156 163 175)' // border-gray-400
+                        }
                     }),
                     valueContainer: (base: any) => ({
                         ...base,
@@ -233,6 +238,15 @@ const TemplateSelector = memo(({ onTemplateChange }: TemplateSelectorProps) => {
                     input: (base: any) => ({
                         ...base,
                         margin: '0px',
+                        color: 'inherit' // Heredar color del tema
+                    }),
+                    singleValue: (base: any) => ({
+                        ...base,
+                        color: 'inherit' // Heredar color del tema
+                    }),
+                    placeholder: (base: any) => ({
+                        ...base,
+                        color: 'rgb(156 163 175)' // text-gray-400
                     }),
                     indicatorSeparator: () => ({
                         display: 'none'
@@ -240,9 +254,81 @@ const TemplateSelector = memo(({ onTemplateChange }: TemplateSelectorProps) => {
                     indicatorsContainer: (base: any) => ({
                         ...base,
                         height: '36px'
+                    }),
+                    menu: (base: any) => ({
+                        ...base,
+                        backgroundColor: 'transparent' // Permitir que CSS maneje el color
+                    }),
+                    option: (base: any, state: any) => ({
+                        ...base,
+                        backgroundColor: state.isSelected 
+                            ? 'rgb(34 197 94)' // green-500
+                            : state.isFocused 
+                            ? 'rgb(243 244 246)' // gray-100 para light, se sobrescribirá con CSS
+                            : 'transparent',
+                        color: state.isSelected ? 'white' : 'inherit'
                     })
                 }}
             />
+            
+            {/* Estilos CSS para dark mode */}
+            <style jsx>{`
+                :global(.template-select .template-select__control) {
+                    background-color: white;
+                    border-color: rgb(209 213 219);
+                    color: rgb(17 24 39);
+                }
+                
+                :global(.dark .template-select .template-select__control) {
+                    background-color: #404040 !important;
+                    border-color: #505050 !important;
+                    color: #e5e5e5 !important;
+                }
+                
+                :global(.template-select .template-select__control--is-focused) {
+                    border-color: rgb(34 197 94) !important;
+                    box-shadow: 0 0 0 1px rgb(34 197 94) !important;
+                }
+                
+                :global(.template-select .template-select__single-value) {
+                    color: rgb(17 24 39);
+                }
+                
+                :global(.dark .template-select .template-select__single-value) {
+                    color: #e5e5e5 !important;
+                }
+                
+                :global(.template-select .template-select__menu) {
+                    background-color: white;
+                    border: 1px solid rgb(209 213 219);
+                }
+                
+                :global(.dark .template-select .template-select__menu) {
+                    background-color: #404040 !important;
+                    border-color: #505050 !important;
+                }
+                
+                :global(.template-select .template-select__option--is-focused:not(.template-select__option--is-selected)) {
+                    background-color: rgb(243 244 246);
+                }
+                
+                :global(.dark .template-select .template-select__option--is-focused:not(.template-select__option--is-selected)) {
+                    background-color: #505050 !important;
+                    color: #e5e5e5 !important;
+                }
+                
+                :global(.template-select .template-select__dropdown-indicator svg) {
+                    color: rgb(107 114 128);
+                }
+                
+                :global(.dark .template-select .template-select__dropdown-indicator svg) {
+                    color: #a0a0a0 !important;
+                }
+                
+                :global(.dark .template-select .template-select__option) {
+                    color: #e5e5e5 !important;
+                }
+            `}</style>
         </div>
     );
 });

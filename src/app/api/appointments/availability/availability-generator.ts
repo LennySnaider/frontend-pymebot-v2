@@ -191,7 +191,62 @@ export async function generateAvailability({
     console.error('Error al obtener citas existentes:', appointmentsError);
     throw new Error('Error al obtener citas existentes');
   }
+
+  // Obtener disponibilidad del agente específico si se especifica
+  let agentAvailability: any = null;
+  if (agent_id) {
+    const { data: agentData, error: agentError } = await supabase
+      .from('users')
+      .select('metadata')
+      .eq('id', agent_id)
+      .eq('tenant_id', tenant_id)
+      .eq('role', 'agent')
+      .single();
+    
+    if (agentError) {
+      console.error('Error al obtener datos del agente:', agentError);
+      throw new Error('Error al obtener datos del agente');
+    }
+    
+    agentAvailability = agentData?.metadata?.availability;
+  }
   
+  // Función para verificar si el agente está disponible en un slot específico
+  const isAgentAvailableForSlot = (slotStart: Date, slotEnd: Date): boolean => {
+    if (!agentAvailability) return true; // Si no hay restricciones de agente, está disponible
+    
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeekName = dayNames[slotStart.getDay()];
+    
+    // Verificar disponibilidad del día de la semana
+    const dayAvailability = agentAvailability[dayOfWeekName];
+    
+    if (!dayAvailability || !dayAvailability.enabled) {
+      return false; // El agente no trabaja este día
+    }
+    
+    // Verificar si el slot está dentro de alguno de los rangos horarios del agente
+    const slotStartTime = slotStart.toTimeString().slice(0, 5); // HH:MM
+    const slotEndTime = slotEnd.toTimeString().slice(0, 5); // HH:MM
+    
+    if (!dayAvailability.slots || dayAvailability.slots.length === 0) {
+      return false; // No hay slots definidos para este día
+    }
+    
+    // Verificar si el slot se solapa con algún rango horario del agente
+    for (const agentSlot of dayAvailability.slots) {
+      const agentStart = agentSlot.start;
+      const agentEnd = agentSlot.end;
+      
+      // Verificar si el slot de la cita está completamente dentro del rango del agente
+      if (slotStartTime >= agentStart && slotEndTime <= agentEnd) {
+        return true;
+      }
+    }
+    
+    return false; // El slot no está dentro de ningún rango horario del agente
+  };
+
   // Generar slots de tiempo desde la apertura hasta el cierre
   const totalMinutes = (closeDateTime.getTime() - openDateTime.getTime()) / (1000 * 60);
   const slots: TimeSlot[] = [];
@@ -219,19 +274,26 @@ export async function generateAvailability({
     // Por defecto el slot está disponible
     let available = true;
     
-    // Verificar si el slot se solapa con alguna cita existente
-    for (const appointment of existingAppointments || []) {
-      const appointmentStart = new Date(`${date}T${appointment.start_time}`);
-      const appointmentEnd = new Date(`${date}T${appointment.end_time}`);
-      
-      // Si hay solapamiento, marcar como no disponible
-      if (
-        (slotStart >= appointmentStart && slotStart < appointmentEnd) ||
-        (slotEnd > appointmentStart && slotEnd <= appointmentEnd) ||
-        (slotStart <= appointmentStart && slotEnd >= appointmentEnd)
-      ) {
-        available = false;
-        break;
+    // Verificar si el agente está disponible en este slot
+    if (!isAgentAvailableForSlot(slotStart, slotEnd)) {
+      available = false;
+    }
+    
+    // Verificar si el slot se solapa con alguna cita existente (solo si aún está disponible)
+    if (available) {
+      for (const appointment of existingAppointments || []) {
+        const appointmentStart = new Date(`${date}T${appointment.start_time}`);
+        const appointmentEnd = new Date(`${date}T${appointment.end_time}`);
+        
+        // Si hay solapamiento, marcar como no disponible
+        if (
+          (slotStart >= appointmentStart && slotStart < appointmentEnd) ||
+          (slotEnd > appointmentStart && slotEnd <= appointmentEnd) ||
+          (slotStart <= appointmentStart && slotEnd >= appointmentEnd)
+        ) {
+          available = false;
+          break;
+        }
       }
     }
     

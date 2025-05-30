@@ -17,7 +17,7 @@ import LocationSection from './components/LocationSection'
 import FeaturesSection from './components/FeaturesSection'
 import MediaSection from './components/MediaSection'
 import AgentSection from './components/AgentSection'
-import DebugInfo from './components/DebugInfo'
+// import DebugInfo from './components/DebugInfo' // Comentado - no necesario en producción
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import isEmpty from 'lodash/isEmpty'
@@ -119,7 +119,7 @@ const PropertyForm = (props: PropertyFormProps) => {
                         <div className="lg:min-w-[440px] 2xl:w-[500px] gap-4 flex flex-col">
                             <MediaSection control={control} errors={errors} />
                             <AgentSection control={control} errors={errors} />
-                            <DebugInfo />
+                            {/* <DebugInfo /> - Componente de debug removido */}
                         </div>
                     </div>
                 </Container>

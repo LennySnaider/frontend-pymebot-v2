@@ -44,6 +44,9 @@ export const getPlacementTransition = ({
     return scaleTransition(offsetX, offsetY)[placement]
 }
 
+// Exportación por defecto como respaldo
+export default { getPlacementTransition }
+
 const scaleMotionProps = {
     initial: {
         opacity: 0,

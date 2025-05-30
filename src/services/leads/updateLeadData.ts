@@ -1,204 +1,158 @@
 /**
- * Servicio para actualizar datos de leads
- * @version 1.0.0
+ * Servicio básico para actualizar datos de leads
  */
 
 import { supabase } from '@/services/supabase/SupabaseClient'
 
-export interface LeadUpdateData {
-    full_name?: string
-    email?: string
-    phone?: string
-    notes?: string
-    budget_min?: number
-    budget_max?: number
-    property_type?: string
-    source?: string
-    interest_level?: string
-    metadata?: Record<string, any>
-}
-
 /**
- * Actualiza los datos de un lead en la base de datos
- * @param leadId ID del lead a actualizar
- * @param data Datos a actualizar
- * @returns Promesa con el resultado de la actualización
+ * Actualiza los datos básicos de un lead
  */
-export async function updateLeadData(leadId: string, data: LeadUpdateData) {
+export async function updateLeadData(leadId: string, data: Record<string, any>) {
+    if (!leadId) {
+        const error = new Error('leadId es requerido para updateLeadData')
+        console.error('updateLeadData: leadId faltante', { leadId, data })
+        throw error
+    }
+    
+    if (!data || typeof data !== 'object') {
+        const error = new Error('data debe ser un objeto válido para updateLeadData')
+        console.error('updateLeadData: data inválido', { leadId, data, dataType: typeof data })
+        throw error
+    }
+
     try {
-        console.log(`Actualizando lead ${leadId} con datos:`, data)
-        
-        // Filtrar solo los campos que tienen valor
-        const updateData: Record<string, any> = {}
-        
-        if (data.full_name) updateData.full_name = data.full_name
-        if (data.email) updateData.email = data.email
-        if (data.phone) updateData.phone = data.phone
-        if (data.notes) updateData.notes = data.notes
-        if (data.budget_min !== undefined) updateData.budget_min = data.budget_min
-        if (data.budget_max !== undefined) updateData.budget_max = data.budget_max
-        if (data.property_type) updateData.property_type = data.property_type
-        if (data.source) updateData.source = data.source
-        if (data.interest_level) updateData.interest_level = data.interest_level
-        
-        // Combinar metadata existente con nueva
-        if (data.metadata) {
-            const { data: existingLead, error: fetchError } = await supabase
-                .from('leads')
-                .select('metadata')
-                .eq('id', leadId)
-                .single()
-            
-            if (fetchError) {
-                console.error('Error obteniendo lead existente:', fetchError)
-            } else {
-                updateData.metadata = {
-                    ...(existingLead?.metadata || {}),
-                    ...data.metadata
-                }
-            }
+        // Agregar timestamp de actualización
+        const updateData = {
+            ...data,
+            updated_at: new Date().toISOString()
         }
-        
-        // Actualizar en la base de datos
-        const { data: updatedLead, error } = await supabase
+
+        const { data: result, error } = await supabase
             .from('leads')
             .update(updateData)
             .eq('id', leadId)
             .select()
             .single()
-        
-        if (error) {
-            throw error
-        }
-        
-        console.log('Lead actualizado exitosamente:', updatedLead)
-        
-        // Actualizar caché global si está disponible
-        if (typeof window !== 'undefined' && (window as any).__globalLeadCache) {
-            const cache = (window as any).__globalLeadCache
-            if (data.full_name) {
-                cache.updateLeadData(leadId, { name: data.full_name })
-            }
-        }
-        
-        // Emitir evento de actualización
-        if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('lead-updated', {
-                detail: { leadId, data: updateData },
-                bubbles: true
-            }))
-        }
-        
-        return { success: true, data: updatedLead }
-    } catch (error) {
-        console.error('Error actualizando lead:', error)
-        return { success: false, error }
-    }
-}
 
-/**
- * Extrae datos del lead desde el contenido del mensaje
- * @param messageContent Contenido del mensaje a analizar
- * @returns Datos extraídos del lead
- */
-export function extractLeadDataFromMessage(messageContent: string): LeadUpdateData {
-    const leadData: LeadUpdateData = {}
-    
-    // Extraer email
-    const emailMatch = messageContent.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/)
-    if (emailMatch) {
-        leadData.email = emailMatch[0]
-    }
-    
-    // Extraer teléfono (varios formatos)
-    const phoneMatch = messageContent.match(/(\+?[0-9]{1,3}[-\s]?)?(\(?[0-9]{3}\)?[-\s]?[0-9]{3}[-\s]?[0-9]{4})/)
-    if (phoneMatch) {
-        leadData.phone = phoneMatch[0].replace(/[-\s\(\)]/g, '')
-    }
-    
-    // Extraer nombre (más complejo, buscar patrones comunes)
-    const namePatterns = [
-        /mi nombre es ([A-Za-zÀ-ÿ\s]+)/i,
-        /me llamo ([A-Za-zÀ-ÿ\s]+)/i,
-        /soy ([A-Za-zÀ-ÿ\s]+)/i,
-        /nombre:\s*([A-Za-zÀ-ÿ\s]+)/i
-    ]
-    
-    for (const pattern of namePatterns) {
-        const nameMatch = messageContent.match(pattern)
-        if (nameMatch && nameMatch[1]) {
-            leadData.full_name = nameMatch[1].trim()
-            break
+        if (error) {
+            console.error('Error actualizando lead:', error)
+            throw new Error(error.message)
         }
+
+        console.log(`Lead ${leadId} actualizado:`, result)
+        return result
+
+    } catch (error) {
+        console.error('Error en updateLeadData:', error)
+        throw error
     }
-    
-    return leadData
 }
 
 /**
  * Actualiza el contador de mensajes de un lead
- * @param leadId ID del lead
- * @param messageCount Nuevo contador de mensajes
- * @param lastMessage Último mensaje (opcional)
  */
-export async function updateLeadMessageCount(leadId: string, messageCount: number, lastMessage?: string) {
+export async function updateLeadMessageCount(
+    leadId: string, 
+    messageCount: number, 
+    lastMessage?: string
+) {
+    if (!leadId) {
+        const error = new Error('leadId es requerido')
+        console.error('updateLeadMessageCount: leadId faltante', { leadId, messageCount, lastMessage })
+        throw error
+    }
+    
+    if (typeof messageCount !== 'number' || messageCount < 0) {
+        const error = new Error('messageCount debe ser un número positivo')
+        console.error('updateLeadMessageCount: messageCount inválido', { leadId, messageCount, lastMessage })
+        throw error
+    }
+
+    console.log('updateLeadMessageCount: Iniciando actualización', { 
+        leadId, 
+        messageCount, 
+        lastMessage: lastMessage?.substring(0, 50) 
+    })
+
+    // Verificar que Supabase esté inicializado
+    if (!supabase) {
+        const error = new Error('Cliente Supabase no está inicializado')
+        console.error('updateLeadMessageCount: Supabase no inicializado')
+        throw error
+    }
+
     try {
-        console.log(`Actualizando contador de mensajes para lead ${leadId}: ${messageCount} mensajes`)
-        
-        // Obtener metadata existente
-        const { data: existingLead, error: fetchError } = await supabase
-            .from('leads')
-            .select('metadata')
-            .eq('id', leadId)
-            .single()
-        
-        if (fetchError) {
-            console.error('Error obteniendo lead existente:', fetchError)
-            return { success: false, error: fetchError }
-        }
-        
-        // Preparar metadata actualizada
-        const updatedMetadata = {
-            ...(existingLead?.metadata || {}),
+        const updateData: Record<string, any> = {
             message_count: messageCount,
-            last_activity: new Date().toISOString()
+            last_contact: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         }
-        
-        // Si hay último mensaje, agregarlo
+
         if (lastMessage) {
-            updatedMetadata.last_message = lastMessage.length > 100 
-                ? lastMessage.substring(0, 97) + '...' 
-                : lastMessage
+            updateData.last_message = lastMessage.substring(0, 200)
         }
-        
-        // Actualizar en la base de datos
-        const { data: updatedLead, error } = await supabase
+
+        console.log('updateLeadMessageCount: Ejecutando query Supabase', {
+            leadId,
+            updateData,
+            table: 'leads'
+        })
+
+        const { data: result, error } = await supabase
             .from('leads')
-            .update({ 
-                metadata: updatedMetadata,
-                last_contact_date: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('id', leadId)
-            .select()
-            .single()
-        
+
+        console.log('updateLeadMessageCount: Respuesta de Supabase', {
+            leadId,
+            result,
+            error,
+            hasError: !!error,
+            hasResult: !!result
+        })
+
         if (error) {
-            throw error
+            console.error('Error actualizando contador de mensajes en Supabase:', {
+                leadId,
+                messageCount,
+                lastMessage: lastMessage?.substring(0, 50),
+                updateData,
+                error: {
+                    message: error.message || 'No hay mensaje de error',
+                    details: error.details || 'No hay detalles',
+                    hint: error.hint || 'No hay hint',
+                    code: error.code || 'No hay código',
+                    errorString: error.toString(),
+                    fullError: error
+                }
+            })
+            throw new Error(`Error de Supabase actualizando lead: ${error.message || 'Error desconocido'}`)
         }
-        
-        console.log('Contador de mensajes actualizado exitosamente')
-        
-        // Emitir evento de actualización
-        if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('lead-message-count-updated', {
-                detail: { leadId, messageCount, lastMessage },
-                bubbles: true
-            }))
-        }
-        
-        return { success: true, data: updatedLead }
+
+        console.log('updateLeadMessageCount: Actualización exitosa', { leadId, messageCount })
+        return true
+
     } catch (error) {
-        console.error('Error actualizando contador de mensajes:', error)
-        return { success: false, error }
+        const errorInfo = {
+            leadId,
+            messageCount,
+            lastMessage: lastMessage?.substring(0, 50),
+            error: error instanceof Error ? {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            } : {
+                type: typeof error,
+                value: error,
+                string: String(error),
+                json: JSON.stringify(error)
+            },
+            timestamp: new Date().toISOString()
+        }
+        
+        console.error('Error en updateLeadMessageCount:', errorInfo)
+        
+        // Re-lanzar el error con más información para que sea capturado arriba
+        throw new Error(`updateLeadMessageCount falló: ${error instanceof Error ? error.message : String(error)}`)
     }
 }

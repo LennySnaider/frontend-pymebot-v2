@@ -52,7 +52,7 @@ export interface AppointmentFilters {
 export interface AgentOption {
     id: string
     name: string
-    avatar?: string
+    avatar_url?: string
 }
 
 export interface PropertyTypeOption {

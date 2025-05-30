@@ -39,6 +39,7 @@ export class SupabaseClient {
   private static connectionVerified: boolean = false;
   private static lastConnectionCheck: number = 0;
   private static connectionError: Error | null = null;
+  private static hasLoggedInitialization: boolean = false;
 
   /**
    * Obtiene la instancia única del cliente Supabase
@@ -64,15 +65,19 @@ export class SupabaseClient {
     SupabaseClient.lastConnectionCheck = now;
     SupabaseClient.connectionError = null;
 
-    // Verificar que tenemos las credenciales necesarias
-    console.log('Verificando credenciales de Supabase...');
-    console.log('Supabase URL:', supabaseUrl ? `Configurada (${supabaseUrl.substring(0, 15)}...)` : 'NO CONFIGURADA');
-    console.log('Supabase Key:', supabaseKey ? 'Configurada (********)' : 'NO CONFIGURADA');
+    // Verificar que tenemos las credenciales necesarias (solo loguear la primera vez)
+    if (!SupabaseClient.hasLoggedInitialization) {
+      console.log('Verificando credenciales de Supabase...');
+      console.log('Supabase URL:', supabaseUrl ? `Configurada (${supabaseUrl.substring(0, 15)}...)` : 'NO CONFIGURADA');
+      console.log('Supabase Key:', supabaseKey ? 'Configurada (********)' : 'NO CONFIGURADA');
+    }
 
     try {
       // Si ya tenemos una instancia, sólo verificamos la conexión
       if (!SupabaseClient.instance) {
-        console.log('Creando nueva instancia de Supabase...');
+        if (!SupabaseClient.hasLoggedInitialization) {
+          console.log('Creando nueva instancia de Supabase...');
+        }
         SupabaseClient.instance = createClient(supabaseUrl, supabaseKey, {
           auth: {
             persistSession: true,
@@ -82,9 +87,10 @@ export class SupabaseClient {
             headers: customHeaders,
           },
         });
-        console.log('Nueva instancia de Supabase creada.');
-      } else {
-        // console.log('Retornando instancia existente de Supabase.'); // Descomentar para debugging si es necesario
+        if (!SupabaseClient.hasLoggedInitialization) {
+          console.log('Nueva instancia de Supabase creada.');
+          SupabaseClient.hasLoggedInitialization = true;
+        }
       }
       
       // NOTA: Deshabilitamos la verificación asincrónica para evitar problemas por promesas no resueltas
@@ -103,18 +109,8 @@ export class SupabaseClient {
   }
 }
 
-// Crear el cliente Supabase para uso general
-const supabaseClient = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-  global: {
-    headers: customHeaders,
-  },
-});
-
-console.log('Cliente Supabase principal inicializado correctamente.');
+// Obtener la instancia singleton del cliente
+const supabaseClient = SupabaseClient.getInstance();
 
 // Exportar el cliente como 'supabase' para compatibilidad con el código existente
 export const supabase = supabaseClient;

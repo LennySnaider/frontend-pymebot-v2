@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   
   try {
     // Intentar conectar con el backend real
-    const response = await fetch(`${backendUrl}/api/health`, {
+    const response = await fetch(`${backendUrl}/health`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

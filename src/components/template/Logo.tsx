@@ -41,7 +41,7 @@ const Logo = (props: LogoProps) => {
                         alt={`${APP_NAME} logo`}
                         width={width}
                         height={height}
-                        style={{ width: 'auto', height: height }}
+                        style={{ width: 'auto', height: 'auto' }}
                         priority
                     />
                     <Image
@@ -54,7 +54,7 @@ const Logo = (props: LogoProps) => {
                         alt={`${APP_NAME} logo`}
                         width={width}
                         height={height}
-                        style={{ width: 'auto', height: height }}
+                        style={{ width: 'auto', height: 'auto' }}
                         priority
                     />
                 </>
@@ -70,7 +70,7 @@ const Logo = (props: LogoProps) => {
                         alt={`${APP_NAME} logo`}
                         width={width}
                         height={height}
-                        style={{ width: 'auto', height: height }}
+                        style={{ width: 'auto', height: 'auto' }}
                         priority
                     />
                     <Image
@@ -82,7 +82,7 @@ const Logo = (props: LogoProps) => {
                         alt={`${APP_NAME} logo`}
                         width={width}
                         height={height}
-                        style={{ width: 'auto', height: height }}
+                        style={{ width: 'auto', height: 'auto' }}
                         priority
                     />
                 </>

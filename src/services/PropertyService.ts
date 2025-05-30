@@ -156,12 +156,119 @@ const PropertyService = {
       
       console.log('Datos para Supabase:', filteredData)
 
-      // Crear la propiedad en Supabase
-      const { data, error } = await supabase
-        .from('properties')
-        .insert(filteredData)
+      // Primero, buscar o crear la categoría de propiedades inmobiliarias
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('product_categories')
+        .select('id')
+        .eq('tenant_id', propertyData.tenant_id)
+        .eq('name', 'Propiedades Inmobiliarias')
+        .maybeSingle()
+      
+      let categoryId = categoryData?.id
+      
+      // Si no existe la categoría, crearla
+      if (!categoryId) {
+        const { data: newCategory, error: createCategoryError } = await supabase
+          .from('product_categories')
+          .insert({
+            tenant_id: propertyData.tenant_id,
+            name: 'Propiedades Inmobiliarias',
+            description: 'Propiedades disponibles para venta o alquiler',
+            display_order: 1,
+            is_active: true
+          })
+          .select()
+          .single()
+        
+        if (createCategoryError) {
+          console.error('Error al crear categoría:', createCategoryError)
+          throw createCategoryError
+        }
+        
+        categoryId = newCategory.id
+      }
+      
+      // Preparar datos para la tabla products
+      const productData = {
+        tenant_id: propertyData.tenant_id,
+        category_id: categoryId,
+        name: filteredData.title,
+        description: filteredData.description,
+        price: filteredData.price,
+        currency: filteredData.currency,
+        is_active: filteredData.is_active,
+        display_order: 0,
+        metadata: {
+          property_code: filteredData.code,
+          operation_type: filteredData.operation_type || 'sale',
+          status: filteredData.status,
+          agent_id: filteredData.agent_id,
+          colony: filteredData.colony,
+          parking_spots: filteredData.parking_spots,
+          has_garage: filteredData.has_garage,
+          has_garden: filteredData.has_garden,
+          has_pool: filteredData.has_pool,
+          has_security: filteredData.has_security,
+          show_approximate_location: filteredData.show_approximate_location,
+          original_property_id: filteredData.id || null
+        }
+      }
+      
+      // Crear el producto
+      const { data: productResult, error: productError } = await supabase
+        .from('products')
+        .insert(productData)
         .select()
         .single()
+      
+      if (productError) {
+        console.error('Error al crear producto:', productError)
+        throw productError
+      }
+      
+      // Crear los detalles específicos de la propiedad
+      const propertyDetailsData = {
+        product_id: productResult.id,
+        property_type: filteredData.property_type || 'house',
+        address: filteredData.address,
+        city: filteredData.city,
+        state: filteredData.state,
+        zip_code: filteredData.zip_code,
+        bedrooms: filteredData.bedrooms,
+        bathrooms: filteredData.bathrooms,
+        square_meters: filteredData.area,
+        lot_size_meters: null,
+        year_built: filteredData.year_built,
+        latitude: filteredData.latitude,
+        longitude: filteredData.longitude,
+        features: [],
+        amenities: [
+          filteredData.has_garage && 'Garage',
+          filteredData.has_garden && 'Jardín',
+          filteredData.has_pool && 'Piscina',
+          filteredData.has_security && 'Seguridad'
+        ].filter(Boolean) // Filtrar valores falsy
+      }
+      
+      const { data: propertyDetails, error: detailsError } = await supabase
+        .from('product_properties')
+        .insert(propertyDetailsData)
+        .select()
+        .single()
+      
+      if (detailsError) {
+        console.error('Error al crear detalles de propiedad:', detailsError)
+        // Si falla, eliminar el producto creado
+        await supabase.from('products').delete().eq('id', productResult.id)
+        throw detailsError
+      }
+      
+      // Combinar los datos para devolver un objeto completo
+      const data = {
+        ...productResult,
+        ...propertyDetails,
+        id: productResult.id // Asegurar que usamos el ID del producto
+      }
 
       if (error) {
         console.error('Error al crear propiedad:', error)
@@ -169,15 +276,37 @@ const PropertyService = {
       }
 
       // Gestionar imágenes si existen
-      if (propertyData.media && Array.isArray(propertyData.media) && data?.id) {
-        console.log(`Procesando ${propertyData.media.length} imágenes para la propiedad ${data.id}`)
+      if (propertyData.media && Array.isArray(propertyData.media) && productResult?.id) {
+        console.log(`Procesando ${propertyData.media.length} imágenes para el producto ${productResult.id}`)
         
         // Insertar imágenes nuevas
         await Promise.all(propertyData.media.map(async (media: any, index: number) => {
           if (media.url) {
+            // Extraer información del storage path si está en la URL
+            let storagePath = media._storagePath || null;
+            let tenantId = propertyData.tenant_id;
+            let filename = null;
+            
+            if (media.url && media.url.includes('/storage/v1/object/public/')) {
+              // Extraer el path después de /public/
+              const match = media.url.match(/\/public\/(.*)$/);
+              if (match) {
+                storagePath = match[1];
+                // Extraer partes del path: bucket/tenant_id/folder/filename
+                const pathParts = storagePath.split('/');
+                if (pathParts.length >= 4) {
+                  filename = pathParts[pathParts.length - 1];
+                }
+              }
+            }
+            
             const imageData = {
-              property_id: data.id,
+              product_id: productResult.id,
               url: media.url,
+              storage_path: storagePath,
+              storage_bucket: 'properties',
+              tenant_id: tenantId,
+              filename: filename,
               is_primary: media.isPrimary || index === 0,
               display_order: index,
               created_at: new Date().toISOString(),
@@ -186,7 +315,7 @@ const PropertyService = {
             
             console.log(`Insertando imagen: ${media.id}`)
             await supabase
-              .from('property_images')
+              .from('product_images')
               .insert({
                 id: media.id,
                 ...imageData
@@ -206,88 +335,47 @@ const PropertyService = {
   },
 
   /**
-   * Elimina una propiedad por su ID
-   * Versión mejorada que verifica primero si existe y realiza una eliminación más robusta
+   * Elimina una propiedad por su ID (producto)
    * 
-   * @param id ID de la propiedad a eliminar
+   * @param id ID del producto a eliminar
    * @returns Resultado de la operación
    */
   apiDeleteProperty: async (id: string): Promise<ApiResponse> => {
     try {
       const supabase = SupabaseClient.getInstance()
-      console.log(`PropertyService.apiDeleteProperty: Eliminando propiedad con ID ${id}`)
+      console.log(`PropertyService.apiDeleteProperty: Eliminando producto con ID ${id}`)
       
-      // Primero verificamos una vez más que la propiedad existe
-      const { data: propertyExists, error: propertyCheckError } = await supabase
-        .from('properties')
+      // Verificar que el producto existe
+      const { data: productExists, error: checkError } = await supabase
+        .from('products')
         .select('id')
         .eq('id', id)
         .maybeSingle()
       
-      if (propertyCheckError) {
-        console.error('Error al verificar existencia de la propiedad:', propertyCheckError)
-        throw propertyCheckError
+      if (checkError) {
+        console.error('Error al verificar existencia del producto:', checkError)
+        throw checkError
       }
       
-      if (!propertyExists) {
-        console.warn(`La propiedad ${id} no existe o ya fue eliminada`)
-        return { success: true } // Consideramos éxito si ya no existe
+      if (!productExists) {
+        console.warn(`El producto ${id} no existe o ya fue eliminado`)
+        return { success: true }
       }
       
-      // Primero eliminamos las imágenes asociadas de la base de datos
-      console.log(`Comenzando a eliminar imágenes de la propiedad ${id}`)
-      const { error: imageDeleteError } = await supabase
-        .from('property_images')
+      // Las imágenes y detalles se eliminarán en cascada debido a ON DELETE CASCADE
+      // Solo necesitamos eliminar el producto
+      const { error } = await supabase
+        .from('products')
         .delete()
-        .eq('property_id', id)
+        .eq('id', id)
       
-      if (imageDeleteError) {
-        console.error('Error al eliminar imágenes asociadas:', imageDeleteError)
-        // Continuamos a pesar del error para intentar eliminar la propiedad
-      } else {
-        console.log(`Imágenes de la propiedad ${id} eliminadas correctamente de la base de datos`)
+      if (error) {
+        console.error(`Error al eliminar producto:`, error)
+        throw error
       }
       
-      // Eliminar la propiedad con reintentos
-      let deleteAttempts = 0
-      const maxDeleteAttempts = 3
-      let lastError = null
-      
-      while (deleteAttempts < maxDeleteAttempts) {
-        deleteAttempts++
-        try {
-          console.log(`Intento ${deleteAttempts}/${maxDeleteAttempts} de eliminar propiedad ${id}`)
-          
-          const { error } = await supabase
-            .from('properties')
-            .delete()
-            .eq('id', id)
-          
-          if (error) {
-            console.error(`Error en intento ${deleteAttempts}:`, error)
-            lastError = error
-            
-            // Esperar antes del siguiente intento
-            if (deleteAttempts < maxDeleteAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 500 * deleteAttempts))
-            }
-          } else {
-            console.log(`Propiedad ${id} eliminada correctamente en intento ${deleteAttempts}`)
-            return { success: true }
-          }
-        } catch (attemptError) {
-          console.error(`Error inesperado en intento ${deleteAttempts}:`, attemptError)
-          lastError = attemptError
-          
-          if (deleteAttempts < maxDeleteAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 500 * deleteAttempts))
-          }
-        }
-      }
-      
-      // Si llegamos aquí, todos los intentos fallaron
-      console.error(`No se pudo eliminar la propiedad ${id} después de ${maxDeleteAttempts} intentos`)
-      throw lastError || new Error('Error persistente al intentar eliminar la propiedad')
+      console.log(`Producto ${id} eliminado correctamente`)
+      return { success: true }
     } catch (error) {
       console.error('Error en apiDeleteProperty:', error)
       return { 
@@ -307,12 +395,12 @@ const PropertyService = {
       const supabase = SupabaseClient.getInstance()
       console.log(`PropertyService.apiGetPropertyById: Obteniendo propiedad con ID ${id}`)
       
-      // Consultar propiedad por ID
+      // Consultar propiedad usando la vista unificada
       const { data, error } = await supabase
-        .from('properties')
+        .from('v_products_with_properties')
         .select(`
           *,
-          property_images(*)
+          property_images:product_images(*)
         `)
         .eq('id', id)
         .single()
@@ -347,9 +435,9 @@ const PropertyService = {
   },
 
   /**
-   * Actualiza una propiedad existente
+   * Actualiza una propiedad existente (producto)
    * 
-   * @param id ID de la propiedad a actualizar
+   * @param id ID del producto a actualizar
    * @param propertyData Nuevos datos de la propiedad
    * @returns Resultado de la operación
    */
@@ -477,26 +565,89 @@ const PropertyService = {
       
       console.log('Datos para Supabase:', filteredData)
 
-      // Actualizar la propiedad en Supabase
-      const { data, error } = await supabase
-        .from('properties')
-        .update(filteredData)
+      // Primero actualizar el producto base
+      const productData = {
+        name: filteredData.title,
+        description: filteredData.description,
+        price: filteredData.price,
+        currency: filteredData.currency,
+        is_active: filteredData.is_active !== undefined ? filteredData.is_active : true,
+        metadata: {
+          property_code: filteredData.code,
+          operation_type: filteredData.operation_type || 'sale',
+          status: filteredData.status,
+          agent_id: filteredData.agent_id,
+          colony: filteredData.colony,
+          parking_spots: filteredData.parking_spots,
+          has_garage: filteredData.has_garage,
+          has_garden: filteredData.has_garden,
+          has_pool: filteredData.has_pool,
+          has_security: filteredData.has_security,
+          show_approximate_location: filteredData.show_approximate_location
+        },
+        updated_at: new Date().toISOString()
+      }
+      
+      const { data: productResult, error: productError } = await supabase
+        .from('products')
+        .update(productData)
         .eq('id', id)
         .select()
         .single()
-
-      if (error) {
-        console.error('Error al actualizar propiedad:', error)
-        throw error
+      
+      if (productError) {
+        console.error('Error al actualizar producto:', productError)
+        throw productError
+      }
+      
+      // Actualizar los detalles de la propiedad
+      const propertyDetailsData = {
+        property_type: filteredData.property_type || 'house',
+        address: filteredData.address,
+        city: filteredData.city,
+        state: filteredData.state,
+        zip_code: filteredData.zip_code,
+        bedrooms: filteredData.bedrooms,
+        bathrooms: filteredData.bathrooms,
+        square_meters: filteredData.area,
+        year_built: filteredData.year_built,
+        latitude: filteredData.latitude,
+        longitude: filteredData.longitude,
+        amenities: [
+          filteredData.has_garage && 'Garage',
+          filteredData.has_garden && 'Jardín',
+          filteredData.has_pool && 'Piscina',
+          filteredData.has_security && 'Seguridad'
+        ].filter(Boolean),
+        updated_at: new Date().toISOString()
+      }
+      
+      const { data: propertyDetails, error: detailsError } = await supabase
+        .from('product_properties')
+        .update(propertyDetailsData)
+        .eq('product_id', id)
+        .select()
+        .single()
+      
+      if (detailsError) {
+        console.error('Error al actualizar detalles de propiedad:', detailsError)
+        throw detailsError
+      }
+      
+      // Combinar los datos para devolver un objeto completo
+      const data = {
+        ...productResult,
+        ...propertyDetails,
+        id: productResult.id
       }
 
       // Gestionar imágenes (eliminar existentes si es necesario y agregar nuevas)
       if (propertyData.media) {
-        // Obtener IDs de imágenes existentes para esta propiedad
+        // Obtener IDs de imágenes existentes para este producto
         const { data: existingImages } = await supabase
-          .from('property_images')
+          .from('product_images')
           .select('id')
-          .eq('property_id', id)
+          .eq('product_id', id)
         
         const existingIds = existingImages?.map(img => img.id) || []
         const newIds = propertyData.media.map((m: any) => m.id)
@@ -508,7 +659,7 @@ const PropertyService = {
         if (idsToDelete.length > 0) {
           console.log(`Eliminando ${idsToDelete.length} imágenes que ya no se necesitan`)
           await supabase
-            .from('property_images')
+            .from('product_images')
             .delete()
             .in('id', idsToDelete)
         }
@@ -531,19 +682,40 @@ const PropertyService = {
               return;
             }
             
+            // Extraer información del storage path si está en la URL
+            let storagePath = media._storagePath || null;
+            let tenantId = propertyData.tenant_id;
+            let filename = null;
+            
+            if (media.url && media.url.includes('/storage/v1/object/public/')) {
+              // Extraer el path después de /public/
+              const match = media.url.match(/\/public\/(.*)$/);
+              if (match) {
+                storagePath = match[1];
+                // Extraer partes del path: bucket/tenant_id/folder/filename
+                const pathParts = storagePath.split('/');
+                if (pathParts.length >= 4) {
+                  filename = pathParts[pathParts.length - 1];
+                }
+              }
+            }
+            
             // Datos base para la imagen
             const imageData = {
-              property_id: id,
+              product_id: id,
               url: media.url,
+              storage_path: storagePath,
+              storage_bucket: 'properties',
+              tenant_id: tenantId,
+              filename: filename,
               is_primary: media.isPrimary || index === 0,
               display_order: index,
-              storage_path: media._storagePath, // Guardar ruta de storage si existe
               updated_at: new Date().toISOString()
             }
             
             // Verificar si la imagen ya existe
             const { data: existing, error: queryError } = await supabase
-              .from('property_images')
+              .from('product_images')
               .select('id')
               .eq('id', media.id)
               .maybeSingle()
@@ -556,7 +728,7 @@ const PropertyService = {
               // Actualizar imagen existente
               console.log(`Actualizando imagen existente: ${media.id}`);
               const { error: updateError } = await supabase
-                .from('property_images')
+                .from('product_images')
                 .update(imageData)
                 .eq('id', media.id);
                 
@@ -567,7 +739,7 @@ const PropertyService = {
               // Insertar nueva imagen
               console.log(`Insertando nueva imagen: ${media.id}`);
               const { error: insertError } = await supabase
-                .from('property_images')
+                .from('product_images')
                 .insert({
                   id: media.id,
                   ...imageData,
@@ -632,13 +804,13 @@ const PropertyService = {
       
       console.log(`PropertyService.apiGetProperties: Consultando propiedades (página ${page}, tamaño ${pageSize})`)
       
-      // Iniciar la consulta
+      // Iniciar la consulta usando la vista unificada
       let query = supabase
-        .from('properties')
+        .from('v_products_with_properties')
         .select(`
           *,
-          property_images(*),
-          agent:agents(id, name, email, profile_image)
+          product_images(*),
+          agent:users!metadata->>agent_id(id, full_name, email, avatar_url)
         `)
         .order('created_at', { ascending: false })
       
@@ -662,7 +834,7 @@ const PropertyService = {
           } else if (key === 'tenant_id') {
             query = query.eq('tenant_id', value)
           } else if (key === 'search') {
-            query = query.or(`title.ilike.%${value}%,description.ilike.%${value}%,address.ilike.%${value}%`)
+            query = query.or(`name.ilike.%${value}%,description.ilike.%${value}%,address.ilike.%${value}%`)
           } else {
             query = query.eq(key, value)
           }
@@ -717,7 +889,7 @@ const PropertyService = {
       // Obtener el total de registros que coinciden con los filtros
       // Iniciamos una nueva consulta para contar
       let countQuery = supabase
-        .from('properties')
+        .from('v_products_with_properties')
         .select('id', { count: 'exact' })
       
       // Aplicamos los mismos filtros a la consulta de conteo
@@ -740,7 +912,7 @@ const PropertyService = {
           } else if (key === 'tenant_id') {
             countQuery = countQuery.eq('tenant_id', value)
           } else if (key === 'search') {
-            countQuery = countQuery.or(`title.ilike.%${value}%,description.ilike.%${value}%,address.ilike.%${value}%`)
+            countQuery = countQuery.or(`name.ilike.%${value}%,description.ilike.%${value}%,address.ilike.%${value}%`)
           } else {
             countQuery = countQuery.eq(key, value)
           }
@@ -817,10 +989,10 @@ const PropertyService = {
       // Si no hay criterios específicos, devolver las propiedades más recientes
       if (Object.keys(criteria).length === 0) {
         const { data, error } = await supabase
-          .from('properties')
+          .from('v_products_with_properties')
           .select(`
             *,
-            property_images(*)
+            product_images(*)
           `)
           .eq('is_active', true)
           .order('created_at', { ascending: false })
@@ -839,10 +1011,10 @@ const PropertyService = {
       
       // Iniciar consulta con criterios específicos
       let query = supabase
-        .from('properties')
+        .from('v_products_with_properties')
         .select(`
           *,
-          property_images(*)
+          product_images(*)
         `)
         .eq('is_active', true)
       
@@ -929,18 +1101,18 @@ const PropertyService = {
       
       // Obtener propiedades activas del tenant con formato simplificado para selector
       const { data, error } = await supabase
-        .from('properties')
+        .from('v_products_with_properties')
         .select(`
           id,
-          title,
+          name,
           address,
           city,
           state,
           price,
           currency,
           property_type,
-          operation_type,
-          property_images(id, url, is_primary)
+          metadata,
+          product_images(id, url, is_primary)
         `)
         .eq('tenant_id', criteria.tenant_id)
         .eq('is_active', true)
@@ -954,8 +1126,8 @@ const PropertyService = {
       // Formatear los datos para el selector de propiedades en citas
       const formattedProperties = data?.map(prop => {
         // Encontrar la imagen principal
-        const primaryImage = prop.property_images?.find((img: any) => img.is_primary) || 
-                            prop.property_images?.[0];
+        const primaryImage = prop.product_images?.find((img: any) => img.is_primary) || 
+                            prop.product_images?.[0];
         
         // Formatear precio
         const formattedPrice = new Intl.NumberFormat('es-MX', {
@@ -965,13 +1137,20 @@ const PropertyService = {
           maximumFractionDigits: 0
         }).format(prop.price || 0);
         
+        // Obtener el tipo de operación del metadata
+        const operationType = prop.metadata?.operation_type || 'sale';
+        
         return {
           id: prop.id,
-          title: prop.title,
+          title: prop.name,
           subtitle: `${prop.address}, ${prop.city}`,
           description: `${prop.property_type} - ${formattedPrice}`,
           imageUrl: primaryImage?.url || null,
-          data: prop  // Datos completos para referencia
+          data: {
+            ...prop,
+            title: prop.name, // Compatibilidad con código existente
+            operation_type: operationType
+          }
         }
       });
       
@@ -1012,7 +1191,7 @@ const PropertyService = {
       
       // 1. Primero intentar obtener una propiedad destacada con ese tipo (si se especificó)
       let query = supabase
-        .from('properties')
+        .from('v_products_with_properties')
         .select('*')
         .eq('tenant_id', tenantId)
         .eq('is_active', true)
@@ -1022,9 +1201,9 @@ const PropertyService = {
         query = query.eq('property_type', propertyType)
       }
       
-      // Primero buscar propiedades destacadas
+      // Primero buscar propiedades destacadas (usando metadata)
       const { data: featuredData, error: featuredError } = await query
-        .eq('is_featured', true)
+        .eq('metadata->>is_featured', 'true')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
@@ -1033,7 +1212,11 @@ const PropertyService = {
         console.log(`Propiedad destacada encontrada para tenant ${tenantId}`)
         return {
           success: true,
-          data: featuredData
+          data: {
+            ...featuredData,
+            title: featuredData.name, // Compatibilidad
+            operation_type: featuredData.metadata?.operation_type || 'sale'
+          }
         }
       }
       
@@ -1047,14 +1230,18 @@ const PropertyService = {
         console.log(`Propiedad no destacada encontrada para tenant ${tenantId}`)
         return {
           success: true,
-          data: anyPropertyData
+          data: {
+            ...anyPropertyData,
+            title: anyPropertyData.name, // Compatibilidad
+            operation_type: anyPropertyData.metadata?.operation_type || 'sale'
+          }
         }
       }
       
       // 3. Si aún no se encuentra nada, intentar encontrar cualquier propiedad del tenant sin filtrar por tipo
       if (propertyType) {
         const { data: anyTypeData, error: anyTypeError } = await supabase
-          .from('properties')
+          .from('v_products_with_properties')
           .select('*')
           .eq('tenant_id', tenantId)
           .eq('is_active', true)
@@ -1066,7 +1253,11 @@ const PropertyService = {
           console.log(`Propiedad de cualquier tipo encontrada para tenant ${tenantId}`)
           return {
             success: true,
-            data: anyTypeData
+            data: {
+              ...anyTypeData,
+              title: anyTypeData.name, // Compatibilidad
+              operation_type: anyTypeData.metadata?.operation_type || 'sale'
+            }
           }
         }
       }
@@ -1084,7 +1275,11 @@ const PropertyService = {
           console.log(`Propiedad encontrada mediante RPC para tenant ${tenantId}`)
           return {
             success: true,
-            data: rpcData
+            data: {
+              ...rpcData,
+              title: rpcData.name || rpcData.title, // Compatibilidad
+              operation_type: rpcData.metadata?.operation_type || rpcData.operation_type || 'sale'
+            }
           }
         }
       } catch (rpcError) {

@@ -121,7 +121,16 @@ const ContactInfoDrawer = () => {
             {!isEmpty(data?.userDetails) && (
                 <ScrollBar className="h-[calc(100%-30px)]">
                     <div className="mt-10 flex justify-center">
-                        <Avatar src={data?.userDetails.img} size={90} />
+                        {/* Mostrar ícono de WhatsApp para leads */}
+                        {isLead ? (
+                            <Avatar 
+                                src="/img/icons/whatsIcon.png" 
+                                alt="WhatsApp" 
+                                size={90} 
+                            />
+                        ) : (
+                            <Avatar src={data?.userDetails.img} size={90} />
+                        )}
                     </div>
                     <div className="mt-4 text-center">
                         <h5 className="font-bold">{data?.userDetails.name}</h5>

@@ -1,7 +1,6 @@
 import Avatar from '@/components/ui/Avatar'
 import Attachment from './Attachment'
 import classNames from '@/utils/classNames'
-import { TbUser } from 'react-icons/tb'
 import Image from 'next/image'
 import type { ReactNode } from 'react'
 
@@ -47,7 +46,6 @@ const Message = (props: MessageProps) => {
         showAvatar = true,
         avatarGap,
         isMyMessage,
-        sender,
         type,
         customRenderer,
         customAction,
@@ -60,8 +58,16 @@ const Message = (props: MessageProps) => {
     } = props
 
     // Determine the avatar icon based on whether it's the user's message
-    // Use TbUser for user messages and custom bot icon for bot messages
-    const avatarIcon = isMyMessage ? <TbUser /> : (
+    // Use WhatsApp icon for user messages and custom bot icon for bot messages
+    const avatarIcon = isMyMessage ? (
+        <Image 
+            src="/img/icons/whatsIcon.png" 
+            alt="WhatsApp User" 
+            width={35} 
+            height={35}
+            className="rounded-full"
+        />
+    ) : (
         <Image 
             src="/img/logo/iconBot.png" 
             alt="Bot" 

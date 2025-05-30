@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Dialog, Input, Notification, toast, Table, Tag, Badge, Form, FormItem } from '@/components/ui';
+import { Card, Button, Dialog, Input, Notification, toast, Tag, Badge, FormItem } from '@/components/ui';
 import InputGroup from '@/components/ui/InputGroup';
+import DataTable from '@/components/shared/DataTable';
 import { AppointmentTypeConfig } from './types';
+import type { ColumnDef } from '@tanstack/react-table';
+import { useMemo } from 'react';
 
 // Función temporal para traducciones mientras solucionamos el problema
 const mockTranslation = (key: string) => {
@@ -86,36 +89,25 @@ const AppointmentTypesSettings = () => {
   const fetchAppointmentTypes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/appointments/types');
+      const response = await fetch('/api/appointments/types', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
-      // Si la respuesta es una redirección (status 302), usamos valores por defecto
-      if (response.redirected || !response.ok) {
-        console.warn('Usando tipos de cita por defecto debido a error en la API:', 
-          response.status, response.statusText, response.redirected ? 'Redirección' : '');
-        
-        // Solo mostrar notificación si no es una redirección por falta de autenticación
-        if (!response.redirected) {
-          toast.push(
-            <Notification title={t('common.error')} type="danger">
-              {t('appointments.types.fetch_error')}
-            </Notification>
-          );
-        }
-        
-        // Usar tipos por defecto
+      if (!response.ok) {
+        console.error('Error al cargar tipos de cita:', response.status);
         setTypes([]);
         setLoading(false);
         return;
       }
       
       const data = await response.json();
-      console.log('Tipos de cita cargados:', data);
       setTypes(Array.isArray(data) ? data : []);
       setLoading(false);
     } catch (error) {
       console.error('Error al cargar tipos de cita:', error);
-      
-      // En caso de error, establecer un array vacío
       setTypes([]);
       setLoading(false);
     }
@@ -175,6 +167,25 @@ const AppointmentTypesSettings = () => {
     
     if (!currentType.name.trim()) {
       newErrors.name = t('appointments.types.errors.name_required');
+    } else {
+      // Verificar si el nombre ya existe (solo en modo creación)
+      if (!editMode) {
+        const nameExists = types.some(type => 
+          type.name.toLowerCase() === currentType.name.trim().toLowerCase()
+        );
+        if (nameExists) {
+          newErrors.name = 'Ya existe un tipo de cita con este nombre';
+        }
+      } else {
+        // En modo edición, verificar que no sea igual a otro tipo existente
+        const nameExists = types.some(type => 
+          type.id !== currentType.id && 
+          type.name.toLowerCase() === currentType.name.trim().toLowerCase()
+        );
+        if (nameExists) {
+          newErrors.name = 'Ya existe un tipo de cita con este nombre';
+        }
+      }
     }
     
     if (currentType.duration <= 0) {
@@ -201,6 +212,11 @@ const AppointmentTypesSettings = () => {
   const handleSaveType = async () => {
     try {
       if (!validateForm()) {
+        toast.push(
+          <Notification title={t('common.error')} type="danger">
+            Por favor corrige los errores en el formulario
+          </Notification>
+        );
         return;
       }
       
@@ -210,6 +226,7 @@ const AppointmentTypesSettings = () => {
         // Actualizar tipo existente
         response = await fetch(`/api/appointments/types/${currentType.id}`, {
           method: 'PUT',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -219,6 +236,7 @@ const AppointmentTypesSettings = () => {
         // Crear nuevo tipo
         response = await fetch('/api/appointments/types', {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -242,6 +260,16 @@ const AppointmentTypesSettings = () => {
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
+          
+          // Si es un error de duplicado, mostrar mensaje específico
+          if (response.status === 409) {
+            toast.push(
+              <Notification title={t('common.error')} type="danger">
+                {errorMessage}
+              </Notification>
+            );
+            return; // No cerrar el modal para que el usuario pueda corregir
+          }
         } catch (parseError) {
           console.warn('No se pudo procesar respuesta de error como JSON:', parseError);
         }
@@ -273,6 +301,7 @@ const AppointmentTypesSettings = () => {
     try {
       const response = await fetch(`/api/appointments/types/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       
       // Manejar redirecciones por falta de autenticación
@@ -327,85 +356,100 @@ const AppointmentTypesSettings = () => {
   };
   
   // Columnas para la tabla
-  const columns = [
-    {
-      key: 'name',
-      title: t('appointments.types.fields.name'),
-      render: (_, row: AppointmentTypeConfig) => (
-        <div>
-          <div className="font-medium">{row.name}</div>
-          <div className="text-sm text-gray-500">{row.description}</div>
-        </div>
-      ),
-    },
-    {
-      key: 'duration',
-      title: t('appointments.types.fields.duration'),
-      render: (_, row: AppointmentTypeConfig) => (
-        <span>{row.duration} {t('appointments.types.minutes')}</span>
-      ),
-    },
-    {
-      key: 'color',
-      title: t('appointments.types.fields.color'),
-      render: (_, row: AppointmentTypeConfig) => (
-        <div className="flex items-center space-x-2">
-          <div 
-            className="h-4 w-4 rounded-full"
-            style={{ backgroundColor: row.color || '#cccccc' }}
-          />
-          <span>{row.color || '-'}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'buffer',
-      title: t('appointments.types.fields.buffer'),
-      render: (_, row: AppointmentTypeConfig) => (
-        <span>
-          {row.buffer_time > 0 
-            ? `${row.buffer_time} ${t('appointments.types.minutes')}`
-            : '-'}
-        </span>
-      ),
-    },
-    {
-      key: 'status',
-      title: t('appointments.types.fields.status'),
-      render: (_, row: AppointmentTypeConfig) => (
-        <Badge className={row.is_active ? 'bg-green-500' : 'bg-gray-500'}>
-          {row.is_active
-            ? t('appointments.types.active')
-            : t('appointments.types.inactive')}
-        </Badge>
-      ),
-    },
-    {
-      key: 'actions',
-      title: '',
-      render: (_, row: AppointmentTypeConfig) => (
-        <div className="flex space-x-2">
-          <Button
-            size="sm"
-            variant="twoTone"
-            color="blue"
-            onClick={() => handleOpenModal(row)}
-          >
-            {t('common.edit')}
-          </Button>
-          <Button
-            size="sm"
-            variant="twoTone"
-            color="red"
-            onClick={() => handleDeleteType(row.id || '')}
-            disabled={!row.id}
-          >
-            {t('common.delete')}
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  const columns = useMemo<ColumnDef<AppointmentTypeConfig>[]>(
+    () => [
+      {
+        header: t('appointments.types.fields.name'),
+        accessorKey: 'name',
+        cell: ({ row }) => {
+          const type = row.original;
+          return (
+            <div>
+              <div className="font-medium">{type.name}</div>
+              <div className="text-sm text-gray-500">{type.description || '-'}</div>
+            </div>
+          );
+        },
+      },
+      {
+        header: t('appointments.types.fields.duration'),
+        accessorKey: 'duration',
+        cell: ({ row }) => {
+          const type = row.original;
+          return <span>{type.duration} {t('appointments.types.minutes')}</span>;
+        },
+      },
+      {
+        header: t('appointments.types.fields.color'),
+        accessorKey: 'color',
+        cell: ({ row }) => {
+          const type = row.original;
+          return (
+            <div className="flex items-center space-x-2">
+              <div 
+                className="h-4 w-4 rounded-full"
+                style={{ backgroundColor: type.color || '#cccccc' }}
+              />
+              <span>{type.color || '-'}</span>
+            </div>
+          );
+        },
+      },
+      {
+        header: t('appointments.types.fields.buffer'),
+        accessorKey: 'buffer_time',
+        cell: ({ row }) => {
+          const type = row.original;
+          return (
+            <span>
+              {type.buffer_time > 0 ? `${type.buffer_time} ${t('appointments.types.minutes')}` : '-'}
+            </span>
+          );
+        },
+      },
+      {
+        header: t('appointments.types.fields.status'),
+        accessorKey: 'is_active',
+        cell: ({ row }) => {
+          const type = row.original;
+          return (
+            <Badge color={type.is_active ? 'green' : 'gray'}>
+              {type.is_active ? t('appointments.types.active') : t('appointments.types.inactive')}
+            </Badge>
+          );
+        },
+      },
+      {
+        header: '',
+        id: 'actions',
+        cell: ({ row }) => {
+          const type = row.original;
+          return (
+            <div className="flex space-x-2">
+              <Button
+                size="sm"
+                variant="twoTone"
+                color="blue"
+                onClick={() => handleOpenModal(type)}
+              >
+                {t('common.edit')}
+              </Button>
+              <Button
+                size="sm"
+                variant="twoTone"
+                color="red"
+                onClick={() => handleDeleteType(type.id || '')}
+                disabled={!type.id}
+              >
+                {t('common.delete')}
+              </Button>
+            </div>
+          );
+        },
+      },
+    ],
+    []
+  );
   
   return (
     <div className="p-4">
@@ -434,7 +478,12 @@ const AppointmentTypesSettings = () => {
               <p>{t('appointments.types.no_data')}</p>
             </Card>
           ) : (
-            <Table columns={columns} data={types} />
+            <DataTable 
+              columns={columns} 
+              data={types}
+              skeletonAvatarColumns={[0]}
+              skeletonAvatarProps={{ className: 'rounded-md' }}
+            />
           )}
         </div>
       )}
@@ -452,7 +501,7 @@ const AppointmentTypesSettings = () => {
             : t('appointments.types.add')}
         </h5>
         
-        <Form layout="vertical">
+        <div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormItem
               label={t('appointments.types.fields.name')}
@@ -605,14 +654,22 @@ const AppointmentTypesSettings = () => {
           </div>
           
           <div className="mt-6 flex justify-end space-x-2">
-            <Button variant="plain" onClick={handleCloseModal}>
+            <Button type="button" variant="plain" onClick={handleCloseModal}>
               {t('common.cancel')}
             </Button>
-            <Button variant="solid" color="primary" onClick={handleSaveType}>
+            <Button 
+              type="button" 
+              variant="solid" 
+              color="primary" 
+              onClick={() => {
+                console.log('Save button clicked');
+                handleSaveType();
+              }}
+            >
               {t('common.save')}
             </Button>
           </div>
-        </Form>
+        </div>
       </Dialog>
     </div>
   );

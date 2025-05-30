@@ -1,14 +1,16 @@
 import ToastWrapper from './ToastWrapper'
-import { PLACEMENT } from '../utils/constants'
 import type { ToastProps, ToastWrapperProps } from './ToastWrapper'
 import { NotificationPlacement } from '../@types/placement'
 import type { ReactNode } from 'react'
 
+// Default placement value - hardcoded to avoid import issues
+const DEFAULT_PLACEMENT = 'top-end' as NotificationPlacement
+
 export const toastDefaultProps = {
-    placement: PLACEMENT.TOP_END,
+    placement: DEFAULT_PLACEMENT as NotificationPlacement,
     offsetX: 30,
     offsetY: 30,
-    transitionType: 'scale',
+    transitionType: 'scale' as const,
     block: false,
 }
 

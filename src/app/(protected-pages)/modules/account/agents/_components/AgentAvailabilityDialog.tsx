@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import Dialog from '@/components/ui/Dialog'
 import Button from '@/components/ui/Button'
 import Switcher from '@/components/ui/Switcher'
-import TimeInput from '@/components/ui/TimeInput'
+import Input from '@/components/ui/Input'
 import { TbPlus, TbTrash, TbClock } from 'react-icons/tb'
-import { toast } from '@/components/ui'
-import { updateAgentAvailability } from '@/services/AgentService'
+import { toast, Notification } from '@/components/ui'
+import { updateAgentAvailability } from '@/server/actions/agents/updateAgentAvailability'
 import type { AgentAvailabilityUpdate, DailyAvailability, TimeSlot } from '@/server/actions/agents/updateAgentAvailability'
 
 interface AgentAvailabilityDialogProps {
@@ -143,7 +143,11 @@ export default function AgentAvailabilityDialog({
                 if (dayData?.enabled && dayData.slots) {
                     for (const slot of dayData.slots) {
                         if (slot.start >= slot.end) {
-                            toast.error(`En ${day.label}: La hora de inicio debe ser anterior a la hora de fin`)
+                            toast.push(
+                                <Notification title="Error de validación" type="danger">
+                                    En {day.label}: La hora de inicio debe ser anterior a la hora de fin
+                                </Notification>
+                            )
                             setIsLoading(false)
                             return
                         }
@@ -152,11 +156,19 @@ export default function AgentAvailabilityDialog({
             }
 
             await updateAgentAvailability(agentId, availability)
-            toast.success('Disponibilidad actualizada correctamente')
+            toast.push(
+                <Notification title="Éxito" type="success">
+                    Disponibilidad actualizada correctamente
+                </Notification>
+            )
             onClose()
         } catch (error) {
             console.error('Error al actualizar disponibilidad:', error)
-            toast.error('Error al actualizar la disponibilidad')
+            toast.push(
+                <Notification title="Error" type="danger">
+                    Error al actualizar la disponibilidad
+                </Notification>
+            )
         } finally {
             setIsLoading(false)
         }
@@ -209,16 +221,20 @@ export default function AgentAvailabilityDialog({
                                         <div key={index} className="flex items-center gap-3">
                                             <div className="flex items-center gap-2 flex-1">
                                                 <TbClock className="text-gray-500" />
-                                                <TimeInput
+                                                <Input
+                                                    type="time"
                                                     value={slot.start}
-                                                    onChange={(value) => handleTimeChange(day.key, index, 'start', value)}
+                                                    onChange={(e) => handleTimeChange(day.key, index, 'start', e.target.value)}
                                                     className="w-32"
+                                                    size="sm"
                                                 />
                                                 <span className="text-gray-500">-</span>
-                                                <TimeInput
+                                                <Input
+                                                    type="time"
                                                     value={slot.end}
-                                                    onChange={(value) => handleTimeChange(day.key, index, 'end', value)}
+                                                    onChange={(e) => handleTimeChange(day.key, index, 'end', e.target.value)}
                                                     className="w-32"
+                                                    size="sm"
                                                 />
                                             </div>
                                             

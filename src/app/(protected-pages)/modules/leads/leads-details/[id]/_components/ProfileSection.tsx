@@ -90,10 +90,11 @@ const ProfileSection = ({ data }: ProfileSectionProps) => {
             </div>
             <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
                 <div className="flex xl:flex-col items-center gap-4 mt-6">
+                    {/* Mostrar ícono de WhatsApp si el lead viene de WhatsApp */}
                     <Avatar 
                         size={90} 
                         shape="circle" 
-                        src={data.img || 'https://i.pravatar.cc/150?img=25'} 
+                        src={data.source === 'whatsapp' || !data.source ? '/img/icons/whatsIcon.png' : (data.img || 'https://i.pravatar.cc/150?img=25')} 
                     />
                     <div className="flex flex-col items-center">
                         <div className="flex items-center gap-2">

@@ -47,54 +47,19 @@ export const ensureBucketExists = async (): Promise<boolean> => {
     
     if (listError) {
       console.error('Error al listar buckets:', listError)
-      
-      // Si el error es de permisos, intentar con createBucket directamente
-      if (listError.message.includes('permission') || listError.message.includes('not authorized')) {
-        console.log('Error de permisos al listar buckets, intentando crear directamente...')
-        try {
-          const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
-            public: true // Hacer el bucket público para acceder a las imágenes sin autenticación
-          })
-          
-          // Si no hay error o el error es que ya existe, consideramos exitoso
-          if (!createError || createError.message.includes('already exists')) {
-            console.log(`Bucket '${BUCKET_NAME}' posiblemente creado o ya existía`)
-            bucketVerified = true
-            return true
-          }
-          
-          console.error(`Error al crear bucket '${BUCKET_NAME}' directamente:`, createError)
-        } catch (createAttemptError) {
-          console.error('Error al intentar crear bucket directamente:', createAttemptError)
-        }
-      }
-      
+      // No intentar crear el bucket automáticamente debido a políticas RLS
+      bucketVerified = false
       return false
     }
     
     // Verificar si el bucket ya existe
     const bucketExists = buckets.some(bucket => bucket.name === BUCKET_NAME)
     
-    // Si no existe, crearlo
+    // Si no existe, no intentar crearlo debido a políticas RLS
     if (!bucketExists) {
-      console.log(`Bucket '${BUCKET_NAME}' no encontrado, creándolo...`)
-      const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
-        public: true // Hacer el bucket público para acceder a las imágenes sin autenticación
-      })
-      
-      if (createError) {
-        // Si el error es que ya existe, consideramos exitoso
-        if (createError.message.includes('already exists')) {
-          console.log(`Bucket '${BUCKET_NAME}' ya existía`)
-          bucketVerified = true
-          return true
-        }
-        
-        console.error(`Error al crear bucket '${BUCKET_NAME}':`, createError)
-        return false
-      }
-      
-      console.log(`Bucket '${BUCKET_NAME}' creado correctamente`)
+      console.log(`Bucket '${BUCKET_NAME}' no encontrado. No se puede crear automáticamente debido a políticas RLS.`)
+      bucketVerified = false
+      return false
     } else {
       console.log(`Bucket '${BUCKET_NAME}' ya existe`)
     }

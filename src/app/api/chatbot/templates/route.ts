@@ -30,10 +30,17 @@ export async function GET(request: NextRequest) {
     // El token 'desarrollo' causa error de JWT, así que omitimos completamente el header de Authorization
     // Dejamos que el backend use su lógica de desarrollo sin token (línea 86 en auth.ts)
     
+    // Agregar timeout a la petición
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos máximo
+    
     const response = await fetch(templatesEndpoint, {
       method: 'GET',
-      headers
+      headers,
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       console.error(`Error del backend: ${response.status} ${response.statusText}`);
@@ -87,6 +94,18 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error al obtener plantillas:', error);
+    
+    // Manejar timeout específicamente
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json(
+        { 
+          error: 'Timeout al obtener plantillas',
+          details: 'La operación tardó demasiado tiempo. Intente nuevamente.',
+          timestamp: new Date().toISOString()
+        },
+        { status: 504 }
+      );
+    }
     
     // En caso de error, mostrar el error específico
     return NextResponse.json(

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTenantFromRequest, verifyAdminOrManager } from '../tenant-middleware';
 // Just a comment to force rebuild
-import { supabase } from '@/services/supabase/SupabaseClient';
+import { createServiceClient } from '@/services/supabase/server';
 import { BusinessHourExceptionRequest } from '../types';
 
 /**
@@ -29,6 +29,9 @@ export async function GET(req: NextRequest) {
     const end_date = searchParams.get('end_date');
     
     console.log('GET /api/business/hours/exceptions - Parámetros:', { location_id, start_date, end_date });
+    
+    // Crear cliente de Supabase con permisos de servicio
+    const supabase = createServiceClient();
     
     // Construir consulta
     let query = supabase
@@ -112,6 +115,9 @@ export async function POST(req: NextRequest) {
       );
     }
     
+    // Crear cliente de Supabase con permisos de servicio
+    const supabase = createServiceClient();
+    
     // Añadir tenant_id al objeto de datos
     const dataWithTenant = {
       ...exceptionData,
@@ -176,6 +182,9 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Crear cliente de Supabase con permisos de servicio
+    const supabase = createServiceClient();
     
     // Eliminar la excepción (verificando que pertenezca al tenant)
     const { data, error } = await supabase

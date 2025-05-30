@@ -76,7 +76,7 @@ const ChatInput = (props: ChatInputProps) => {
                 </Upload>
                 <input
                     ref={useMergeRef(inputRef, ref)}
-                    className="flex-1 h-full placeholder:text-gray-400 bg-transparent focus:outline-hidden heading-text"
+                    className="flex-1 h-full placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-transparent focus:outline-hidden heading-text text-gray-900 dark:text-white"
                     placeholder={placeholder}
                     onKeyDown={handleKeyDown}
                 />

@@ -44,6 +44,8 @@ const apiSendChatMessage = async (
         
         // Obtener la plantilla activa del store si no se proporciona explícitamente
         let template_id = templateId;
+        let templateChanged = false;
+        
         if (!template_id) {
             try {
                 // Paso 1: Verificar el localStorage (máxima prioridad)
@@ -51,6 +53,15 @@ const apiSendChatMessage = async (
                 if (savedTemplateId) {
                     console.log('🔍 USANDO PLANTILLA DE LOCALSTORAGE 🔍:', savedTemplateId);
                     template_id = savedTemplateId;
+                    
+                    // Verificar si cambió la plantilla comparando con el último uso
+                    const lastUsedTemplate = localStorage.getItem('lastUsedTemplateId');
+                    if (lastUsedTemplate && lastUsedTemplate !== savedTemplateId) {
+                        console.log('🔄 PLANTILLA CAMBIÓ 🔄:', lastUsedTemplate, '→', savedTemplateId);
+                        templateChanged = true;
+                    }
+                    // Actualizar último template usado
+                    localStorage.setItem('lastUsedTemplateId', savedTemplateId);
                 }
                 else {
                     // Paso 2: Consultar el store global
@@ -136,6 +147,7 @@ const apiSendChatMessage = async (
             bot_id: currentBotId,
             template_id: template_id, // Añadir template_id a la solicitud
             is_internal_test: true, // Marcar como prueba interna para evitar errores de cuota
+            force_template_reset: templateChanged, // Forzar reinicio del backend si cambió la plantilla
             // Incluir leadId si existe
             lead_id: leadId
         };

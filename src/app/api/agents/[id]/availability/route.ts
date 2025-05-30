@@ -22,9 +22,10 @@ export async function GET(
 
         const supabase = await createClient()
         const { data, error } = await supabase
-            .from('agents')
-            .select('id, name, availability')
+            .from('users')
+            .select('id, full_name, metadata')
             .eq('id', params.id)
+            .eq('role', 'agent')
             .single()
 
         if (error) {
@@ -34,7 +35,11 @@ export async function GET(
             )
         }
 
-        return NextResponse.json(data)
+        return NextResponse.json({
+            id: data.id,
+            name: data.full_name,
+            availability: data.metadata?.availability || {}
+        })
     } catch (error) {
         console.error('Error al obtener disponibilidad:', error)
         return NextResponse.json(

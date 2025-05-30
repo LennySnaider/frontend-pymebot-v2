@@ -892,14 +892,21 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 const mainApiUrl = '/api/chatbot/templates';
                 console.log(`ChatStore: Intentando cargar desde API principal: ${mainApiUrl}`);
                 
+                // Agregar timeout de 15 segundos
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                
                 const mainResponse = await fetch(mainApiUrl, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                         'Cache-Control': 'no-cache',
                         // Ya no enviamos token para evitar error de JWT
-                    }
+                    },
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 
                 if (!mainResponse.ok) {
                     console.error(`Error del servidor: ${mainResponse.status} ${mainResponse.statusText}`);
@@ -943,8 +950,14 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 
                 return;
             } catch (error) {
-                // Si falla la API principal, intentamos recuperar de localStorage como último recurso
-                console.error('Error al cargar plantillas desde API:', error);
+                // Manejar timeout específicamente
+                if (error instanceof Error && error.name === 'AbortError') {
+                    console.error('ChatStore: Timeout al cargar plantillas (excedió 15 segundos)');
+                    set(() => ({ templatesError: 'Tiempo de espera agotado. El servidor está tardando demasiado en responder.' }));
+                } else {
+                    // Si falla la API principal, intentamos recuperar de localStorage como último recurso
+                    console.error('Error al cargar plantillas desde API:', error);
+                }
                 
                 try {
                     const localTemplatesJSON = localStorage.getItem('chatbot_templates');

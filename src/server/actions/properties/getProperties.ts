@@ -10,7 +10,7 @@
  * @updated 2025-07-14
  */
 
-import { supabase } from '@/services/supabase/SupabaseClient'
+import { createServiceClient } from '@/services/supabase/server'
 import { getTenantFromSession } from '@/server/actions/tenant/getTenantFromSession'
 import getServerSession from '@/server/actions/auth/getServerSession'
 import { mapSupabaseToProperties } from '@/services/mappers/PropertyMapper'
@@ -27,47 +27,7 @@ type PropertyResult = {
     isMockData?: boolean // Indica si se están usando datos de ejemplo
 };
 
-// Datos de ejemplo como fallback cuando Supabase no está disponible
-const MOCK_PROPERTIES = [
-    {
-        id: '9dd01c94-8f92-4114-8a19-3404cb3ff1a9',
-        name: 'Casa Claudia (Datos de ejemplo)',
-        description: 'Casa Claudia es una exclusiva propiedad en Querétaro',
-        propertyType: 'house',
-        status: 'available',
-        price: 7845000,
-        currency: 'MXN',
-        location: {
-            address: 'Blvd. Paseos del Pedregal 731',
-            city: 'Querétaro', 
-            state: 'Querétaro',
-            country: 'México',
-            zipCode: '76226',
-            colony: 'Grand Juriquilla',
-            coordinates: {
-                lat: 20.741862,
-                lng: -100.473159
-            },
-            showApproximateLocation: false
-        },
-        media: [],
-        features: {
-            bedrooms: 3,
-            bathrooms: 3.5,
-            parkingSpots: 3,
-            hasGarage: true,
-            hasGarden: true,
-            hasPool: false,
-            hasSecurity: false,
-            area: 318,
-            areaUnit: 'm²',
-            yearBuilt: 2025
-        },
-        code: 'VJUQ-002',
-        operationType: 'sale',
-        agent_id: 'agent-3'
-    }
-];
+// No usar datos mock - consultar solo datos reales de la base de datos
 
 /**
  * Obtener propiedades con filtros y paginación
@@ -86,17 +46,17 @@ export async function getProperties(params: any = {}): Promise<PropertyResult> {
         // Obtener sesión del usuario
         const session = await getServerSession()
         
-        // Si no hay sesión, devolver datos de ejemplo en modo desarrollo
+        // Si no hay sesión, devolver lista vacía
         if (!session) {
-            console.warn('No hay sesión activa, usando datos de ejemplo')
+            console.warn('No hay sesión activa')
             return {
-                properties: MOCK_PROPERTIES,
-                list: MOCK_PROPERTIES,
-                total: MOCK_PROPERTIES.length,
+                properties: [],
+                list: [],
+                total: 0,
                 page,
                 limit,
-                error: 'No hay sesión activa. Mostrando datos de ejemplo.',
-                isMockData: true
+                error: 'No hay sesión activa.',
+                isMockData: false
             }
         }
         
@@ -105,27 +65,27 @@ export async function getProperties(params: any = {}): Promise<PropertyResult> {
         try {
             tenant_id = await getTenantFromSession()
             if (!tenant_id) {
-                console.warn('No se pudo determinar el tenant, usando datos de ejemplo')
+                console.warn('No se pudo determinar el tenant')
                 return {
-                    properties: MOCK_PROPERTIES,
-                    list: MOCK_PROPERTIES,
-                    total: MOCK_PROPERTIES.length,
+                    properties: [],
+                    list: [],
+                    total: 0,
                     page,
                     limit,
-                    error: 'No se pudo determinar el tenant. Mostrando datos de ejemplo.',
-                    isMockData: true
+                    error: 'No se pudo determinar el tenant.',
+                    isMockData: false
                 }
             }
         } catch (tenantError) {
             console.error('Error al obtener tenant_id:', tenantError)
             return {
-                properties: MOCK_PROPERTIES,
-                list: MOCK_PROPERTIES,
-                total: MOCK_PROPERTIES.length,
+                properties: [],
+                list: [],
+                total: 0,
                 page,
                 limit,
-                error: 'Error al obtener tenant_id. Mostrando datos de ejemplo.',
-                isMockData: true
+                error: 'Error al obtener tenant_id.',
+                isMockData: false
             }
         }
         
@@ -135,34 +95,53 @@ export async function getProperties(params: any = {}): Promise<PropertyResult> {
         
         // Intentar obtener datos reales de Supabase
         try {
-            // Construir la consulta
+            // Usar el cliente de servicio para bypasear RLS
+            const supabase = createServiceClient()
+            
+            // Construir la consulta usando la vista v_products_with_properties
             console.log('Preparando consulta a Supabase para tenant_id:', tenant_id)
             let query = supabase
-                .from('properties')
-                .select('*, property_images(*)', { count: 'exact' })
+                .from('v_products_with_properties')
+                .select('*', { count: 'exact' })
+                .eq('category_name', 'Propiedades Inmobiliarias')
                 .range(from, to)
             
             // Filtrar por tenant_id si no es super_admin
-            if (session.role !== 'super_admin' || !session.tenant_id) {
+            // Super admin puede ver todas las propiedades sin filtrar por tenant
+            const userRole = session?.user?.role
+            console.log('Role del usuario detectado:', userRole)
+            
+            // Solo aplicar filtro si NO es super_admin
+            if (userRole !== 'super_admin') {
+                console.log('Aplicando filtro por tenant_id:', tenant_id)
                 query = query.eq('tenant_id', tenant_id)
+            } else {
+                console.log('Usuario super_admin detectado - Mostrando TODAS las propiedades sin filtro de tenant')
             }
             
             // Ejecutar la consulta
             console.log('Ejecutando consulta a Supabase...')
             const response = await query
             
+            console.log('Respuesta de Supabase:', {
+                data: response.data,
+                count: response.count,
+                error: response.error,
+                status: response.status,
+                statusText: response.statusText
+            })
+            
             // Manejar posibles errores
             if (response.error) {
                 console.error('Error en la consulta a Supabase:', response.error)
-                // Fallback a datos de ejemplo si hay error
                 return {
-                    properties: MOCK_PROPERTIES,
-                    list: MOCK_PROPERTIES,
-                    total: MOCK_PROPERTIES.length,
+                    properties: [],
+                    list: [],
+                    total: 0,
                     page,
                     limit,
-                    error: `Error en la consulta a Supabase: ${response.error.message || 'Error desconocido'}. Mostrando datos de ejemplo.`,
-                    isMockData: true
+                    error: `Error en la consulta a Supabase: ${response.error.message || 'Error desconocido'}`,
+                    isMockData: false
                 }
             }
             
@@ -195,29 +174,28 @@ export async function getProperties(params: any = {}): Promise<PropertyResult> {
             }
             
         } catch (supabaseError) {
-            // Si cualquier operación con Supabase falla, usar datos de ejemplo
             console.error('Error al obtener datos de Supabase:', supabaseError)
             return {
-                properties: MOCK_PROPERTIES,
-                list: MOCK_PROPERTIES,
-                total: MOCK_PROPERTIES.length,
+                properties: [],
+                list: [],
+                total: 0,
                 page,
                 limit,
-                error: `Error al obtener datos de Supabase. Mostrando datos de ejemplo.`,
-                isMockData: true
+                error: `Error al obtener datos de Supabase.`,
+                isMockData: false
             }
         }
     } catch (err) {
         // Capturar cualquier otro error inesperado
         console.error('Error general en getProperties:', err)
         return {
-            properties: MOCK_PROPERTIES,
-            list: MOCK_PROPERTIES,
-            total: MOCK_PROPERTIES.length,
+            properties: [],
+            list: [],
+            total: 0,
             page,
             limit,
-            error: 'Error inesperado. Mostrando datos de ejemplo.',
-            isMockData: true
+            error: 'Error inesperado.',
+            isMockData: false
         }
     }
 }

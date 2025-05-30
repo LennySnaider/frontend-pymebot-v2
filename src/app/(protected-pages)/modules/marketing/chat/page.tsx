@@ -20,6 +20,7 @@ import ChatForceUpdater from './_components/ChatForceUpdater'
 import ConversationPersistenceProvider from './_components/ConversationPersistenceProvider'
 import getChatListFromLeads from '@/server/actions/getChatListFromLeads'
 import { auth } from '@/auth'
+import ChatDebugInfo from './_components/ChatDebugInfo'
 // import ChatPersistenceInitializer from './_components/ChatPersistenceInitializer' // Ya incluido en StoreInitializer
 // import ChatSyncDebugPanel from './_components/ChatSyncDebugPanel' // Comentado - archivo no existe
 
@@ -46,6 +47,9 @@ export default async function Page() {
                     
                     {/* Usando el componente cliente para el header */}
                     <ClientChatHeader />
+                    
+                    {/* Panel de debug temporal */}
+                    <ChatDebugInfo />
                     
                     <div className="flex flex-auto h-full gap-8">
                         <ChatSidebar />

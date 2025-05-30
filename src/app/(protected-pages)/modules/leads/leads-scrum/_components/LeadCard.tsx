@@ -19,6 +19,8 @@ import Tag from '@/components/ui/Tag'
 import UsersAvatarGroup from '@/components/shared/UsersAvatarGroup'
 import IconText from '@/components/shared/IconText'
 import Avatar from '@/components/ui/Avatar'
+import Image from 'next/image'
+import { FaInstagram } from 'react-icons/fa'
 import {
     TbPaperclip,
     TbMessageCircle,
@@ -107,6 +109,9 @@ const LeadCard = (props: LeadCardProps) => {
     const leadEmail = email || metadata?.email || ''
     const leadPhone = phone || metadata?.phone || ''
     const description = data.description || ''
+    
+    // Obtener la fuente del lead (por defecto WhatsApp)
+    const leadSource = metadata?.source || 'whatsapp'
 
     // Función para convertir nivel de interés a etiqueta de prioridad
     const interestToLabel = (interest: string | undefined): string => {
@@ -537,20 +542,56 @@ const LeadCard = (props: LeadCardProps) => {
 
                 {/* Miembros, comentarios y adjuntos - siempre al final */}
                 <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100 dark:border-gray-700">
-                    {/* Miembros asignados (siempre visible, con avatar placeholder si está vacío) */}
-                    <div className="flex items-center">
+                    {/* Miembros asignados con icono de fuente del lead */}
+                    <div className="flex items-center gap-1">
                         {localMembers.length > 0 ? (
-                            <UsersAvatarGroup
-                                avatarProps={{ size: 25 }}
-                                users={localMembers}
-                                className="z-10" // Asegurar que esté por encima de otros elementos
-                            />
-                        ) : (
-                            <div className="w-6 h-6 flex items-center justify-center text-gray-400">
-                                <TbUserCircle
-                                    size={20}
-                                    className="opacity-70"
+                            <>
+                                <UsersAvatarGroup
+                                    avatarProps={{ size: 25 }}
+                                    users={localMembers}
+                                    className="z-10" // Asegurar que esté por encima de otros elementos
                                 />
+                                {/* Icono de la fuente del lead (WhatsApp/Instagram) */}
+                                {leadSource === 'instagram' ? (
+                                    <div className="relative w-[25px] h-[25px] rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
+                                        <FaInstagram className="text-pink-600 dark:text-pink-400 w-4 h-4" />
+                                    </div>
+                                ) : (
+                                    <div className="relative w-[25px] h-[25px] rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center p-1">
+                                        <Image 
+                                            src="/img/icons/whatsIcon.png"
+                                            alt="WhatsApp"
+                                            width={18}
+                                            height={18}
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="flex items-center gap-1">
+                                <div className="w-6 h-6 flex items-center justify-center text-gray-400">
+                                    <TbUserCircle
+                                        size={20}
+                                        className="opacity-70"
+                                    />
+                                </div>
+                                {/* Icono de la fuente del lead incluso cuando no hay agente */}
+                                {leadSource === 'instagram' ? (
+                                    <div className="relative w-[25px] h-[25px] rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
+                                        <FaInstagram className="text-pink-600 dark:text-pink-400 w-4 h-4" />
+                                    </div>
+                                ) : (
+                                    <div className="relative w-[25px] h-[25px] rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center p-1">
+                                        <Image 
+                                            src="/img/icons/whatsIcon.png"
+                                            alt="WhatsApp"
+                                            width={18}
+                                            height={18}
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

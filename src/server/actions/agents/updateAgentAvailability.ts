@@ -48,35 +48,39 @@ export async function updateAgentAvailability(agentId: string, availability: Age
             throw new Error('No se pudo obtener el tenant_id')
         }
         
-        // Verificar que el agente existe y pertenece al tenant actual
-        const { data: agent, error: checkError } = await supabase
-            .from('agents')
-            .select('id, availability')
+        // Verificar que el usuario existe, tiene rol agent y pertenece al tenant actual
+        const { data: user, error: checkError } = await supabase
+            .from('users')
+            .select('id, metadata')
             .eq('id', agentId)
+            .eq('role', 'agent')
             .eq('tenant_id', tenant_id)
             .single()
         
-        if (checkError || !agent) {
+        if (checkError || !user) {
             console.error('Error al verificar agente:', checkError)
             throw new Error('El agente no existe o no tienes permiso para actualizarlo')
         }
         
-        // Combinar la disponibilidad existente con la nueva
-        const currentAvailability = agent.availability || {}
-        const updatedAvailability = {
-            ...currentAvailability,
-            ...availability
+        // Combinar la metadata existente con la nueva disponibilidad
+        const currentMetadata = user.metadata || {}
+        const updatedMetadata = {
+            ...currentMetadata,
+            availability: {
+                ...(currentMetadata.availability || {}),
+                ...availability
+            }
         }
         
-        // Actualizar la disponibilidad del agente
+        // Actualizar la metadata del usuario con la disponibilidad
         const { data, error } = await supabase
-            .from('agents')
+            .from('users')
             .update({
-                availability: updatedAvailability
+                metadata: updatedMetadata
             })
             .eq('id', agentId)
             .eq('tenant_id', tenant_id)
-            .select('id, availability')
+            .select('id, metadata')
             .single()
         
         if (error) {
@@ -84,7 +88,10 @@ export async function updateAgentAvailability(agentId: string, availability: Age
             throw new Error(`Error al actualizar la disponibilidad: ${error.message}`)
         }
         
-        return data
+        return {
+            id: data.id,
+            availability: data.metadata?.availability || {}
+        }
     } catch (error) {
         console.error('Error en updateAgentAvailability:', error)
         throw error

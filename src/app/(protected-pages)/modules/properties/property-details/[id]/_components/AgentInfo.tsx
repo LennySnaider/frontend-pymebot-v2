@@ -46,101 +46,37 @@ const AgentInfo = ({ agentId, property }: AgentInfoProps) => {
                     return;
                 }
 
-                // En un futuro, esto debería consultar a una API real para obtener
-                // la información del agente desde la base de datos
-                // Por ahora, simularemos algunos perfiles de agentes basados en el ID
-                setTimeout(() => {
-                    // Mapeo de agentes según los datos del sistema
-                    // Sincronizados con los de AgentSection.tsx
-                    if (agentId === "agent-1") {
-                        setAgent({
-                            id: "agent-1",
-                            name: "Carlos Rodríguez",
-                            position: "Senior Agent",
-                            email: "carlos.rodriguez@agentprop.com",
-                            phone: "555-123-4567",
-                            avatar: "/img/avatars/thumb-1.jpg"
+                // Consultar agente real desde la base de datos
+                try {
+                    // Importar y usar el servicio real de agentes
+                    import('@/services/AgentService').then(({ getAgentById }) => {
+                        getAgentById(agentId).then((agentData) => {
+                            if (agentData) {
+                                setAgent({
+                                    id: agentData.id,
+                                    name: agentData.full_name || agentData.email,
+                                    position: "Agent", // Valor por defecto
+                                    email: agentData.email,
+                                    phone: agentData.phone,
+                                    avatar: agentData.avatar_url
+                                });
+                            } else {
+                                setAgent(null);
+                            }
+                            setLoading(false);
+                        }).catch((error) => {
+                            console.error('Error al cargar agente:', error);
+                            setAgent(null);
+                            setLoading(false);
                         });
-                    } else if (agentId === "agent-2") {
-                        setAgent({
-                            id: "agent-2",
-                            name: "Lucía Hernández",
-                            position: "Sales Manager",
-                            email: "lucia.hernandez@agentprop.com",
-                            phone: "555-987-6543",
-                            avatar: "/img/avatars/thumb-2.jpg"
-                        });
-                    } else if (agentId === "agent-3") {
-                        setAgent({
-                            id: "agent-3",
-                            name: "Miguel Ángel Torres",
-                            position: "Junior Agent",
-                            email: "miguel.torres@agentprop.com",
-                            phone: "555-321-7890",
-                            avatar: "/img/avatars/thumb-3.jpg"
-                        });
-                    } else if (agentId === "agent-4") {
-                        setAgent({
-                            id: "agent-4",
-                            name: "Ana García",
-                            position: "Senior Agent",
-                            email: "ana.garcia@agentprop.com",
-                            phone: "555-456-7890",
-                            avatar: "/img/avatars/thumb-4.jpg"
-                        });
-                    } else if (agentId === "agent-5") {
-                        setAgent({
-                            id: "agent-5",
-                            name: "Javier López",
-                            position: "Director",
-                            email: "javier.lopez@agentprop.com",
-                            phone: "555-234-5678",
-                            avatar: "/img/avatars/thumb-5.jpg"
-                        });
-                    } else if (agentId === "user-1") {
-                        // Mantener compatibilidad con IDs anteriores
-                        setAgent({
-                            id: "user-1",
-                            name: "María García",
-                            position: "Asesora Inmobiliaria Senior",
-                            email: "maria.garcia@inmobiliaria.com",
-                            phone: "+52 555 123 4567",
-                            avatar: "/img/avatars/thumb-1.jpg"
-                        });
-                    } else if (agentId === "user-2") {
-                        setAgent({
-                            id: "user-2",
-                            name: "Carlos Rodríguez",
-                            position: "Agente de Ventas Senior",
-                            email: "carlos.rodriguez@inmobiliaria.com",
-                            phone: "+52 555 234 5678",
-                            avatar: "/img/avatars/thumb-2.jpg"
-                        });
-                    } else if (agentId === "user-3") {
-                        setAgent({
-                            id: "user-3",
-                            name: "Laura Martínez",
-                            position: "Asesora Inmobiliaria",
-                            email: "laura.martinez@inmobiliaria.com",
-                            phone: "+52 555 345 6789",
-                            avatar: "/img/avatars/thumb-3.jpg"
-                        });
-                    } else {
-                        // Si no tenemos un agente predefinido, creamos uno genérico
-                        console.log(`Agente no encontrado en la lista predefinida: ${agentId}`);
-                        setAgent({
-                            id: agentId,
-                            name: "Agente Inmobiliario",
-                            position: "Asesor de Bienes Raíces",
-                            email: "contacto@inmobiliaria.com",
-                            phone: "+52 555 123 4567"
-                        });
-                    }
+                    });
+                } catch (error) {
+                    console.error('Error al importar AgentService:', error);
+                    setAgent(null);
                     setLoading(false);
-                }, 500);
-
+                }
             } catch (error) {
-                console.error("Error al cargar información del agente:", error);
+                console.error('Error general al cargar agente:', error);
                 setAgent(null);
                 setLoading(false);
             }

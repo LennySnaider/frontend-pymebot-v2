@@ -120,7 +120,7 @@ const PropertyEdit = ({ data }: PropertyEditProps) => {
                         data.location?.showApproximateLocation ?? false,
                 },
                 media: data.media || [],
-                agentId: data.agentId || '1',
+                agentId: data.agentId || '550e8400-e29b-41d4-a716-446655440001',
             }
         }
 
@@ -180,7 +180,7 @@ const PropertyEdit = ({ data }: PropertyEditProps) => {
                 // Incluir media filtrada sin duplicados
                 media: uniqueMedia,
                 // Agregar agentId si existe
-                agentId: values.agentId || 'agent-1',
+                agentId: values.agentId || '550e8400-e29b-41d4-a716-446655440001',
             }
 
             // Log para depuración

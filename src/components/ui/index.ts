@@ -38,7 +38,7 @@ export { default as Tabs } from './tabs'
 export { default as Tag } from './Tag'
 export { default as TimeInput } from './TimeInput'
 export { default as Timeline } from './Timeline'
-export { default as toast } from './toast/toast'
+export { default as toast } from './toast'
 export { default as Tooltip } from './Tooltip'
 export { default as Upload } from './Upload'
 

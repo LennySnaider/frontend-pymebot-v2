@@ -10,8 +10,9 @@
 
 'use server'
 
-import PropertyService from '@/services/PropertyService'
+import { createServiceClient } from '@/services/supabase/server'
 import { getTenantFromSession } from '@/server/actions/tenant/getTenantFromSession'
+import getServerSession from '@/server/actions/auth/getServerSession'
 import { mapSupabaseToProperty } from '@/services/mappers/PropertyMapper'
 
 /**
@@ -34,40 +35,49 @@ const getProperty = async (_queryParams: {
     }
 
     try {
-        // Obtener el tenant_id del usuario actual para verificación
+        // Obtener sesión y tenant_id
+        const session = await getServerSession()
         const tenant_id = await getTenantFromSession()
-        console.log(`Obteniendo propiedad con ID: ${id} para tenant: ${tenant_id}`)
+        const userRole = session?.user?.role
         
-        // Usar el método apiGetPropertyById del servicio PropertyService
-        const response = await PropertyService.apiGetPropertyById(id)
+        console.log(`Obteniendo propiedad con ID: ${id}, rol: ${userRole}`)
         
-        // Si no hay respuesta o hay un error, devolvemos null
-        if (!response.success || !response.data) {
-            console.log(`No se encontró la propiedad con ID: ${id} (posiblemente eliminada)`)
-            return null
+        // Usar el cliente de servicio para bypasear RLS
+        const supabase = createServiceClient()
+        
+        // Consultar propiedad por ID usando la vista v_products_with_properties
+        let query = supabase
+            .from('v_products_with_properties')
+            .select('*')
+            .eq('id', id)
+            .eq('category_name', 'Propiedades Inmobiliarias')
+            .single()
+        
+        // Si NO es super_admin, filtrar por tenant_id
+        if (userRole !== 'super_admin') {
+            query = query.eq('tenant_id', tenant_id)
+            console.log(`Aplicando filtro por tenant_id: ${tenant_id}`)
         }
         
-        // Verificar que la propiedad pertenece al tenant del usuario (excepto super_admin)
-        if (response.data.tenant_id !== tenant_id && tenant_id !== process.env.DEFAULT_TENANT_ID) {
-            console.error(`La propiedad con ID: ${id} no pertenece al tenant: ${tenant_id}`)
+        const { data, error } = await query
+        
+        if (error || !data) {
+            console.log(`No se encontró la propiedad con ID: ${id}`, error)
             return null
         }
         
         // Debug de la respuesta cruda para diagnosticar problemas de tipos
         console.log('Datos crudos de la propiedad:', {
-            id: response.data.id,
+            id: data.id,
+            tenant_id: data.tenant_id,
             show_approximate_location: {
-                value: response.data.show_approximate_location,
-                type: typeof response.data.show_approximate_location
+                value: data.show_approximate_location,
+                type: typeof data.show_approximate_location
             }
         })
         
         // IMPORTANTE: Usamos siempre el mapeador oficial para garantizar la consistencia
-        // Ignoramos el mapeo previo del servicio y aplicamos el mapeador correcto
-        const rawData = response.data
-        
-        // Si los datos ya están mapeados, pasamos la propiedad sin procesar para un mapeo limpio
-        const dataToMap = rawData.features ? rawData : rawData.property_data || rawData
+        const dataToMap = data
         
         // Aplicar el mapeador
         const mappedProperty = mapSupabaseToProperty(dataToMap)

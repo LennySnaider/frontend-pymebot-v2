@@ -6,10 +6,10 @@
  * @updated 2025-06-22
  */
 
-import type { Property, PropertyMedia } from '@/app/(protected-pages)/concepts/properties/property-list/types';
+import type { Property, PropertyMedia } from '@/app/(protected-pages)/modules/properties/property-list/types';
 
 /**
- * Mapea una propiedad desde el formato de Supabase al formato interno de la aplicación
+ * Mapea una propiedad desde el formato de la vista v_products_with_properties al formato interno
  */
 export function mapSupabaseToProperty(supabaseProperty: any): Property {
     // Validar que supabaseProperty sea un objeto válido
@@ -33,21 +33,20 @@ export function mapSupabaseToProperty(supabaseProperty: any): Property {
         // Asignar un ID temporal
         supabaseProperty.id = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     }
-    // Extraer imágenes de la relación property_images
+
+    // Extraer imágenes del campo images
     const media: PropertyMedia[] = [];
+    const images = supabaseProperty.images || [];
     
-    // Verificar si las imágenes están en property_images o en media (para compatibilidad)
-    const propertyImages = supabaseProperty.property_images || supabaseProperty.media;
-    
-    if (propertyImages && Array.isArray(propertyImages)) {
-        propertyImages.forEach((image: any) => {
+    if (Array.isArray(images)) {
+        images.forEach((image: any) => {
             if (image && image.url) {
                 media.push({
                     id: image.id || `img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
                     type: 'image',
                     url: image.url,
-                    isPrimary: image.is_primary,
-                    displayOrder: image.display_order,
+                    isPrimary: image.is_primary || false,
+                    displayOrder: image.display_order || 0,
                     _storagePath: image.storage_path
                 });
             }
@@ -62,47 +61,41 @@ export function mapSupabaseToProperty(supabaseProperty: any): Property {
         media[0].isPrimary = true;
     }
 
-    // Mapeo de propiedad completa
+    // Mapeo directo desde los campos de la vista (que ahora son campos directos de properties)
     return {
         id: supabaseProperty.id,
-        name: supabaseProperty.title,
-        propertyCode: supabaseProperty.code,
+        name: supabaseProperty.name || supabaseProperty.title,
+        propertyCode: supabaseProperty.code || '',
         description: supabaseProperty.description,
         propertyType: supabaseProperty.property_type || 'house',
-        status: supabaseProperty.status || 'available',
+        status: supabaseProperty.status || (supabaseProperty.is_active ? 'available' : 'unavailable'),
         operationType: supabaseProperty.operation_type || 'sale',
-        price: supabaseProperty.price || 0,
+        price: parseFloat(supabaseProperty.price) || 0,
         currency: supabaseProperty.currency || 'MXN',
         features: {
-            bedrooms: supabaseProperty.bedrooms,
-            bathrooms: supabaseProperty.bathrooms,
-            area: supabaseProperty.area,
-            parkingSpots: supabaseProperty.parking_spots,
-            yearBuilt: supabaseProperty.year_built,
-            hasPool: supabaseProperty.has_pool,
-            hasGarden: supabaseProperty.has_garden,
-            hasGarage: supabaseProperty.has_garage,
-            hasSecurity: supabaseProperty.has_security
+            bedrooms: parseInt(supabaseProperty.bedrooms) || 0,
+            bathrooms: parseFloat(supabaseProperty.bathrooms) || 0,
+            area: parseFloat(supabaseProperty.area) || 0,
+            parkingSpots: parseInt(supabaseProperty.parking_spots) || 0,
+            yearBuilt: parseInt(supabaseProperty.year_built) || null,
+            hasPool: supabaseProperty.has_pool === true,
+            hasGarden: supabaseProperty.has_garden === true,
+            hasGarage: supabaseProperty.has_garage === true,
+            hasSecurity: supabaseProperty.has_security === true
         },
         location: {
-            address: supabaseProperty.address,
-            city: supabaseProperty.city,
-            state: supabaseProperty.state,
-            zipCode: supabaseProperty.zip_code,
+            address: supabaseProperty.address || '',
+            city: supabaseProperty.city || '',
+            state: supabaseProperty.state || '',
+            zipCode: supabaseProperty.zip_code || '',
             colony: supabaseProperty.colony || '',
-            country: supabaseProperty.country,
-            // Aseguramos que el valor booleano se interprete correctamente
-            // Comprobamos tanto el valor booleano como la cadena "true"
-            showApproximateLocation: 
-                supabaseProperty.show_approximate_location === true || 
-                supabaseProperty.show_approximate_location === "true" || 
-                false,
+            country: supabaseProperty.country || 'México',
+            showApproximateLocation: supabaseProperty.show_approximate_location === true,
             coordinates: {
-                lat: supabaseProperty.latitude,
-                lng: supabaseProperty.longitude
+                lat: parseFloat(supabaseProperty.latitude) || null,
+                lng: parseFloat(supabaseProperty.longitude) || null
             }
         },
-        // Ya no necesitamos mantener el show_approximate_location a nivel raíz
         media,
         agentId: supabaseProperty.agent_id,
         createdAt: supabaseProperty.created_at,

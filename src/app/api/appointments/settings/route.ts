@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { supabase } from '@/services/supabase/SupabaseClient';
+import { createServiceClient } from '@/services/supabase/server';
 
 /**
  * GET: Obtiene la configuración de citas para el tenant
@@ -25,6 +25,9 @@ export async function GET(req: NextRequest) {
         { status: 403 }
       );
     }
+    
+    // Crear cliente de Supabase con permisos de servicio
+    const supabase = createServiceClient();
     
     // Obtener la configuración de citas para el tenant
     const { data: appointmentSettings, error } = await supabase
@@ -127,6 +130,9 @@ export async function PUT(req: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Crear cliente de Supabase con permisos de servicio
+    const supabase = createServiceClient();
     
     // Preparar los datos para actualizar
     const updateData = {

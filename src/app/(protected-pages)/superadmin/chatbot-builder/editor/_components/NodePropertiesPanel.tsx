@@ -21,6 +21,7 @@ import { containsVariables } from '@/services/SystemVariablesService'
 import APIConfigModal from './APIConfigModal'
 import SalesFunnelStageSelector, { MoveToStageSelector } from './SalesFunnelStageSelector'
 import { SALES_FUNNEL_STAGES } from '../types/salesFunnelIntegration'
+import { AppointmentTypeSelector, LocationSelector, AgentSelector } from './AppointmentSelectors'
 
 // Tipos de propiedades
 interface NodePropertiesPanelProps {
@@ -1775,6 +1776,79 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                     </>
                 )}
 
+                {/* CategoriesNode */}
+                {(node.type === 'categoriesNode' || node.type === 'categories' || node.type === 'categories_list' || node.type === 'categories-list') && (
+                    <>
+                        <FormItem label="Mensaje">
+                            <div className="relative">
+                                <textarea
+                                    className="w-full h-24 p-2 border border-gray-300 rounded-md"
+                                    value={node.data.message || ''}
+                                    onChange={(e) => handlePropertyChange('message', e.target.value)}
+                                    placeholder="¿Qué tipo de productos te interesan?"
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <SystemVariableSelector
+                                        onSelectVariable={(variable) => {
+                                            const textarea = document.activeElement as HTMLTextAreaElement
+                                            if (textarea && textarea.tagName === 'TEXTAREA') {
+                                                const start = textarea.selectionStart
+                                                const end = textarea.selectionEnd
+                                                const newValue = node.data.message.substring(0, start) + variable + node.data.message.substring(end)
+                                                handlePropertyChange('message', newValue)
+                                            } else {
+                                                handlePropertyChange('message', (node.data.message || '') + variable)
+                                            }
+                                        }}
+                                        buttonLabel="+ {{...}}"
+                                        tooltipText="Insertar variable"
+                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm flex items-center"
+                                    />
+                                </div>
+                            </div>
+                            {containsVariables(node.data.message) && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">
+                                        Vista previa con variables:
+                                    </p>
+                                    <SystemVariableHighlighter
+                                        text={node.data.message || ''}
+                                        className="text-sm"
+                                    />
+                                </div>
+                            )}
+                        </FormItem>
+                        <FormItem label="Retraso (ms)">
+                            <div className="flex items-center">
+                                <Input
+                                    type="number"
+                                    value={node.data.delay || 0}
+                                    onChange={(e) => handlePropertyChange('delay', parseInt(e.target.value))}
+                                    className="flex-grow"
+                                />
+                                <span className="ml-2 text-sm text-gray-500">milisegundos</span>
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="waitForResponse"
+                                    checked={node.data.waitForResponse || false}
+                                    onChange={(e) => handlePropertyChange('waitForResponse', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                                />
+                                <label htmlFor="waitForResponse" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Esperar respuesta
+                                </label>
+                                <span className="ml-2 text-xs text-gray-500 italic">
+                                    {node.data.waitForResponse ? "Pausa hasta seleccionar categoría" : "Continúa automáticamente"}
+                                </span>
+                            </div>
+                        </FormItem>
+                    </>
+                )}
+
                 {/* ServicesNode */}
                 {(node.type === 'servicesNode' || node.type === 'services' || node.type === 'services_list' || node.type === 'services-list') && (
                     <>
@@ -1922,42 +1996,18 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                 </div>
                             )}
                         </FormItem>
-                        <FormItem label="Tipo de cita">
-                            <Select
-                                options={[
-                                    { value: "", label: "Cualquier tipo" },
-                                    { value: "1", label: "Consulta Inicial" },
-                                    { value: "2", label: "Seguimiento" },
-                                    { value: "3", label: "Tratamiento" }
-                                ]}
-                                value={{value: node.data.appointment_type_id || '', label: node.data.appointment_type_id ? 'Tipo ' + node.data.appointment_type_id : 'Cualquier tipo'}}
-                                onChange={(option) => handlePropertyChange('appointment_type_id', option?.value)}
-                            />
-                        </FormItem>
-                        <FormItem label="Ubicación">
-                            <Select
-                                options={[
-                                    { value: "", label: "Cualquier ubicación" },
-                                    { value: "1", label: "Oficina Central" },
-                                    { value: "2", label: "Sucursal Norte" },
-                                    { value: "3", label: "Sucursal Sur" }
-                                ]}
-                                value={{value: node.data.location_id || '', label: node.data.location_id ? 'Ubicación ' + node.data.location_id : 'Cualquier ubicación'}}
-                                onChange={(option) => handlePropertyChange('location_id', option?.value)}
-                            />
-                        </FormItem>
-                        <FormItem label="Agente">
-                            <Select
-                                options={[
-                                    { value: "", label: "Cualquier agente" },
-                                    { value: "1", label: "Carlos Rodríguez" },
-                                    { value: "2", label: "Ana Martínez" },
-                                    { value: "3", label: "Miguel Sánchez" }
-                                ]}
-                                value={{value: node.data.agent_id || '', label: node.data.agent_id ? 'Agente ' + node.data.agent_id : 'Cualquier agente'}}
-                                onChange={(option) => handlePropertyChange('agent_id', option?.value)}
-                            />
-                        </FormItem>
+                        <AppointmentTypeSelector
+                            value={node.data.appointment_type_id}
+                            onChange={(value) => handlePropertyChange('appointment_type_id', value)}
+                        />
+                        <LocationSelector
+                            value={node.data.location_id}
+                            onChange={(value) => handlePropertyChange('location_id', value)}
+                        />
+                        <AgentSelector
+                            value={node.data.agent_id}
+                            onChange={(value) => handlePropertyChange('agent_id', value)}
+                        />
                         <FormItem label="Retraso (ms)">
                             <div className="flex items-center">
                                 <Input
@@ -2027,6 +2077,32 @@ const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
                                     />
                                 </div>
                             )}
+                        </FormItem>
+                        <AppointmentTypeSelector
+                            value={node.data.appointment_type_id}
+                            onChange={(value) => handlePropertyChange('appointment_type_id', value)}
+                        />
+                        <LocationSelector
+                            value={node.data.location_id}
+                            onChange={(value) => handlePropertyChange('location_id', value)}
+                        />
+                        <AgentSelector
+                            value={node.data.agent_id}
+                            onChange={(value) => handlePropertyChange('agent_id', value)}
+                        />
+                        <FormItem>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="auto_confirm"
+                                    checked={node.data.auto_confirm !== false}
+                                    onChange={(e) => handlePropertyChange('auto_confirm', e.target.checked)}
+                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                />
+                                <label htmlFor="auto_confirm" className="text-sm text-gray-700 dark:text-gray-300">
+                                    Confirmar automáticamente
+                                </label>
+                            </div>
                         </FormItem>
                         <FormItem>
                             <div className="flex items-center">

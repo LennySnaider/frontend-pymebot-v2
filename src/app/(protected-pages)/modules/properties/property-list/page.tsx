@@ -45,12 +45,12 @@ const Page = async ({ searchParams: rawSearchParams }: PageProps) => {
     })
 
     // Verificar si hay una cookie para forzar revalidación
-    const cookieStore = cookies()
-    const revalidateProperties = await cookieStore.get('revalidate_properties')
+    const cookieStore = await cookies()
+    const revalidateProperties = cookieStore.get('revalidate_properties')
 
     // Borrar la cookie después de leerla para evitar revalidaciones innecesarias
     if (revalidateProperties) {
-        await cookieStore.delete('revalidate_properties')
+        cookieStore.delete('revalidate_properties')
     }
 
     // Obtener datos de propiedades (ya mapeados por la acción del servidor)

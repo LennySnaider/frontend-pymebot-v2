@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react'
 import Avatar from '@/components/ui/Avatar'
-import Table from '@/components/ui/Table'
+import DataTable from '@/components/shared/DataTable'
 import Tag from '@/components/ui/Tag'
 import { useAgentContext } from './AgentProvider'
 import type { Agent } from '../types'
@@ -171,7 +171,7 @@ export default function AgentList({ pageIndex, pageSize }: AgentListProps) {
     
     return (
         <>
-            <Table
+            <DataTable
                 columns={columns}
                 data={agents}
                 pagingData={{
