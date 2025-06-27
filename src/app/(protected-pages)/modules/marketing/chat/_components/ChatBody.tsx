@@ -331,8 +331,8 @@ const ChatBody = () => {
                                 messageCount,
                                 message.content,
                             ).catch((err) => {
-                                console.error(
-                                    'ChatBody: Error actualizando contador de mensajes:', {
+                                console.warn(
+                                    'ChatBody: Error actualizando contador de mensajes (no crítico):', {
                                         leadId,
                                         messageCount,
                                         messageContent: message.content?.substring(0, 50),

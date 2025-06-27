@@ -10,17 +10,19 @@ const publicRoutes = Object.entries(_publicRoutes).map(([key]) => key)
 const authRoutes = Object.entries(_authRoutes).map(([key]) => key)
 
 const apiAuthPrefix = `${appConfig.apiPrefix}/auth`
+const apiChatbotPrefix = `${appConfig.apiPrefix}/chatbot`
 
 export default auth((req) => {
     const { nextUrl } = req
     const isSignedIn = !!req.auth
 
     const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix)
+    const isApiChatbotRoute = nextUrl.pathname.startsWith(apiChatbotPrefix)
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname)
     const isAuthRoute = authRoutes.includes(nextUrl.pathname)
 
     /** Skip auth middleware for api routes */
-    if (isApiAuthRoute) return
+    if (isApiAuthRoute || isApiChatbotRoute) return
 
     if (isAuthRoute) {
         if (isSignedIn) {

@@ -166,7 +166,7 @@ const apiSendChatMessage = async (
                     'Content-Type': 'application/json'
                 },
                 // Timeout extendido para dar tiempo al procesamiento de IA
-                timeout: 60000, // 60 segundos
+                timeout: 180000, // 3 minutos (temporal para debugging)
                 // No necesitamos withCredentials cuando usamos nuestro propio proxy
                 withCredentials: false
             },

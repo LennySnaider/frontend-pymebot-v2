@@ -253,6 +253,7 @@ export async function processChatMessage(
             }
           }
         }
+      }
     } catch (flowError) {
       console.error('⭐ ERROR GENERAL ⭐ Error al procesar flujo:', flowError);
     }
@@ -282,10 +283,10 @@ export async function processChatMessage(
           bot_id: botId,
           template_id: templateId
         }
-      })
+      });
     
     if (responseError) {
-      console.error('Error al registrar respuesta:', responseError)
+      console.error('Error al registrar respuesta:', responseError);
     }
     
     // Actualizar el timestamp de la sesión
@@ -294,7 +295,7 @@ export async function processChatMessage(
       .update({
         last_interaction_at: new Date().toISOString()
       })
-      .eq('id', sessionId)
+      .eq('id', sessionId);
     
     return { 
       response: responseText,
@@ -302,12 +303,12 @@ export async function processChatMessage(
         processedAt: new Date().toISOString(),
         source: 'chat-handler.ts'
       }
-    }
+    };
   } catch (error) {
-    console.error('Error en procesamiento de mensaje:', error)
+    console.error('Error en procesamiento de mensaje:', error);
     return { 
       response: "Lo siento, ocurrió un error al procesar tu mensaje. Por favor, intenta nuevamente.",
       metadata: { error: true }
-    }
+    };
   }
 }

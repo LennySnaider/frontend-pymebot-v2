@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     console.log('API: Solicitando plantillas desde la ruta principal');
     
     // Hacer llamada al backend para obtener las plantillas reales
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3090';
+    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3090';
     const templatesEndpoint = `${backendUrl}/api/templates/tenant`;
     
     console.log(`Obteniendo plantillas desde: ${templatesEndpoint}`);
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     
     // Agregar timeout a la petición
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos máximo
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos máximo
     
     const response = await fetch(templatesEndpoint, {
       method: 'GET',
