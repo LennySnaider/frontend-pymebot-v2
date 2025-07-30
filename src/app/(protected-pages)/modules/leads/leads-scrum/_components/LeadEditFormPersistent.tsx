@@ -24,7 +24,7 @@ import {
     clearLeadFormState,
 } from '@/utils/leadPropertyStorage'
 import { registerLeadName } from '@/utils/directSyncLeadNames'
-import { subscribeLeadNameChange } from '@/utils/globalSyncEvent'
+// import { subscribeLeadNameChange } from '@/utils/globalSyncEvent'
 
 // Opciones de rangos de presupuesto
 const budgetRangeOptions = [
@@ -317,7 +317,7 @@ const LeadEditFormPersistent = ({
     const sourceOptions = leadFormOptions.leadSources
     const interestOptions = leadFormOptions.interestLevels
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
         setLeadData({
             ...leadData,
@@ -449,7 +449,7 @@ const LeadEditFormPersistent = ({
                         }
                     }
 
-                    leadDataToSave.metadata = cleanedMetadata
+                    leadDataToSave.metadata = cleanedMetadata as any
 
                     const leadIdToUse = leadData.id
                     const isValidUUID =

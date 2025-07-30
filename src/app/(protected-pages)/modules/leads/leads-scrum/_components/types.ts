@@ -57,6 +57,9 @@ export interface LeadMetadata {
     source?: string
     interest?: string
     nextContactDate?: string
+    leadStatus?: string
+    agentId?: string
+    property_ids?: string[]
 }
 
 export interface Lead {

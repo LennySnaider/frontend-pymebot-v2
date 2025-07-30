@@ -653,7 +653,6 @@ const LeadsList = ({
                 isOpen={deleteDialogOpen}
                 type="danger"
                 title="Eliminar prospecto"
-                confirmButtonColor="red-600"
                 confirmText="Eliminar"
                 cancelText="Cancelar"
                 onClose={handleCancelDelete}

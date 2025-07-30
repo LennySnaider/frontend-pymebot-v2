@@ -11,7 +11,7 @@ import Checkbox from '@/components/ui/Checkbox'
 import { useTranslations } from 'next-intl'
 import dayjs from 'dayjs'
 import { showSuccess, showError } from '@/utils/notifications'
-import { Lead, Property } from './types'
+import { Lead, LeadMetadata, Property } from './types'
 import { leadFormOptions } from '../utils'
 import usePermissionsCheck from '@/hooks/core/usePermissionsCheck'
 import { useSalesFunnelStore } from '../_store/salesFunnelStore'
@@ -359,7 +359,7 @@ const LeadEditForm = ({
     const sourceOptions = leadFormOptions.leadSources
     const interestOptions = leadFormOptions.interestLevels
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
         setLeadData({
             ...leadData,
@@ -522,7 +522,7 @@ const LeadEditForm = ({
                     }
 
                     // Asignar metadatos limpios
-                    leadDataToSave.metadata = cleanedMetadata
+                    leadDataToSave.metadata = cleanedMetadata as any
 
                     console.log(
                         'Datos preparados para actualización:',
@@ -1621,7 +1621,7 @@ const LeadEditForm = ({
                 <div className="flex space-x-2">
                     <Button
                         variant="solid"
-                        onClick={handleSave}
+                        onClick={() => handleSave()}
                         loading={isSaving}
                         disabled={isSaving}
                     >
