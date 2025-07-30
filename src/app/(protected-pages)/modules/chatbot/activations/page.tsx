@@ -23,7 +23,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const ChatbotActivationsPage = () => {
     const router = useRouter()
-    const { user, session } = useAuth()
+    const { user } = useAuth()
     const [tenantId, setTenantId] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const [isSuperAdmin, setIsSuperAdmin] = useState(false)
@@ -32,7 +32,7 @@ const ChatbotActivationsPage = () => {
 
     // Cargar datos iniciales
     useEffect(() => {
-        if (session) {
+        if (user) {
             const init = async () => {
                 try {
                     setLoading(true)
@@ -60,7 +60,7 @@ const ChatbotActivationsPage = () => {
             
             init()
         }
-    }, [session, user])
+    }, [user])
     
     // Cargar tenants para superadmin
     const fetchTenants = async () => {
@@ -208,8 +208,7 @@ const ChatbotActivationsPage = () => {
                             ) : (
                                 <ChatbotActivationsList
                                     tenantId={selectedTenantId || ''}
-                                    onToggleActivation={handleToggleActivation}
-                                    onConfigureActivation={handleConfigureActivation}
+                                    onConfigure={handleConfigureActivation}
                                 />
                             )}
                         </div>

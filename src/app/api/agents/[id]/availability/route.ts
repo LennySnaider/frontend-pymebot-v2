@@ -9,8 +9,9 @@ import { createClient } from '@/services/supabase/server'
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const resolvedParams = await params
     try {
         const session = await auth()
         if (!session) {
@@ -24,7 +25,7 @@ export async function GET(
         const { data, error } = await supabase
             .from('users')
             .select('id, full_name, metadata')
-            .eq('id', params.id)
+            .eq('id', resolvedParams.id)
             .eq('role', 'agent')
             .single()
 
@@ -51,8 +52,9 @@ export async function GET(
 
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const resolvedParams = await params
     try {
         const session = await auth()
         if (!session) {
@@ -65,7 +67,7 @@ export async function PUT(
         const body = await request.json()
         const { availability } = body
 
-        const result = await updateAgentAvailability(params.id, availability)
+        const result = await updateAgentAvailability(resolvedParams.id, availability)
 
         return NextResponse.json(result)
     } catch (error) {

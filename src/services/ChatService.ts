@@ -184,6 +184,7 @@ export async function apiTestChatbotConnection(): Promise<{status: string, times
 
 // Funciones originales
 export async function apiGetConversation<T>({ id }: { id: string }) {
+    console.log('[ChatService] apiGetConversation - ID:', id);
     return ApiService.fetchDataWithAxios<T>({
         url: `/conversations/${id}`,
         method: 'get',

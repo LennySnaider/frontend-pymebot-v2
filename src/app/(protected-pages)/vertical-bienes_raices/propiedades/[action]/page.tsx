@@ -9,17 +9,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { PropertyStatus, OperationType } from '@/components/verticals/bienes_raices/features/PropertyCard';
-
-/**
- * Parámetros recibidos en la URL
- */
-interface PageProps {
-  params: {
-    action: string; // 'nueva' o ID de la propiedad para editar
-  };
-}
 
 /**
  * Datos de formulario para propiedades
@@ -44,10 +35,12 @@ interface PropertyFormData {
 /**
  * Página para agregar o editar propiedades
  */
-export default function PropertyActionPage({ params }: PageProps) {
+export default function PropertyActionPage() {
   const router = useRouter();
-  const isNew = params.action === 'nueva';
-  const propertyId = isNew ? undefined : params.action;
+  const params = useParams();
+  const action = params.action as string;
+  const isNew = action === 'nueva';
+  const propertyId = isNew ? undefined : action;
   
   // Estado para datos del formulario
   const [formData, setFormData] = useState<PropertyFormData>({

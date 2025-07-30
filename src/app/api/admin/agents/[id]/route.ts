@@ -4,8 +4,9 @@ import { auth } from '@/auth'
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const resolvedParams = await params
     try {
         // Verificar autenticación
         const session = await auth()
@@ -26,7 +27,7 @@ export async function GET(
         const { data: user, error: userError } = await supabase
             .from('users')
             .select('*')
-            .eq('id', String(params?.id || ''))
+            .eq('id', String(resolvedParams?.id || ''))
             .eq('role', 'agent')
             .single()
         
@@ -53,8 +54,9 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const resolvedParams = await params
     try {
         const body = await request.json()
         
@@ -124,7 +126,7 @@ export async function PUT(
                 avatar_url: body.profileImage,
                 updated_at: new Date().toISOString()
             })
-            .eq('id', String(params?.id || ''))
+            .eq('id', String(resolvedParams?.id || ''))
         
         if (userError) {
             return NextResponse.json(
@@ -137,7 +139,7 @@ export async function PUT(
         const { data: existingUser } = await serviceSupabase
             .from('users')
             .select('email')
-            .eq('id', String(params?.id || ''))
+            .eq('id', String(resolvedParams?.id || ''))
             .single()
         
         if (existingUser && existingUser.email !== body.email) {
@@ -169,8 +171,9 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const resolvedParams = await params
     try {
         // Verificar autenticación
         const session = await auth()
@@ -233,7 +236,7 @@ export async function DELETE(
         const { error: userError } = await serviceSupabase
             .from('users')
             .delete()
-            .eq('id', String(params?.id || ''))
+            .eq('id', String(resolvedParams?.id || ''))
         
         if (userError) {
             return NextResponse.json(

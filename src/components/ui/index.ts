@@ -18,6 +18,7 @@ export { default as FormContainer } from './Form/FormContainer'
 export { default as hooks } from './hooks'
 export { default as Input } from './Input'
 export { default as InputGroup } from './InputGroup'
+export { default as InputNumber } from './InputNumber'
 export { default as Menu } from './Menu'
 export { default as MenuItem } from './MenuItem'
 export { default as Notification } from './Notification'
@@ -71,6 +72,7 @@ export type {
 export type { FormProps, FormContainerProps, FormItemProps } from './Form'
 export type { InputProps } from './Input'
 export type { InputGroupProps, AddonProps } from './InputGroup'
+export type { InputNumberProps } from './InputNumber'
 export type {
     MenuProps,
     MenuCollapseProps,

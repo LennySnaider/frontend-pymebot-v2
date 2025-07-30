@@ -30,7 +30,7 @@ import { Tag } from '@/components/ui/Tag'
 import { AlertCircle, Check, Copy, ExternalLink, Info, Save } from 'lucide-react'
 import { supabase } from '@/services/supabase/SupabaseClient'
 import { useAuth } from '@/hooks/useAuth'
-import useTranslation from '@/utils/hooks/useTranslation'
+import { useTranslations } from 'next-intl'
 
 /**
  * Interfaz para la configuración de WhatsApp
@@ -55,7 +55,7 @@ interface WhatsAppSettingsProps {
  * Componente para la configuración de WhatsApp
  */
 const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
-  const { t } = useTranslation()
+  const t = useTranslations()
   const { user } = useAuth()
   
   // Estados para la configuración
@@ -237,8 +237,6 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormItem
                 label={t('ID de número de teléfono')}
-                labelFor="phoneNumberId"
-                extra={t('ID del número de teléfono en WhatsApp Business')}
               >
                 <Input
                   id="phoneNumberId"
@@ -250,7 +248,7 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
               
               <FormItem
                 label={t('Número de teléfono')}
-                labelFor="phoneNumber"
+
                 extra={t('Formato internacional con + y código de país')}
               >
                 <Input
@@ -263,7 +261,7 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
               
               <FormItem
                 label={t('Nombre para mostrar')}
-                labelFor="displayName"
+
               >
                 <Input
                   id="displayName"
@@ -275,7 +273,7 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
               
               <FormItem
                 label={t('Descripción')}
-                labelFor="description"
+
               >
                 <Input
                   id="description"
@@ -304,12 +302,12 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
                 </div>
                 <div>
                   {isVerified ? (
-                    <Tag color="success" prefixCls="tag">
+                    <Tag>
                       <Check size={14} className="mr-1" />
                       {t('Verificado')}
                     </Tag>
                   ) : (
-                    <Tag color="warning" prefixCls="tag">
+                    <Tag>
                       <AlertCircle size={14} className="mr-1" />
                       {t('No verificado')}
                     </Tag>
@@ -344,7 +342,7 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
               <div className="space-y-4">
                 <FormItem
                   label={t('Mensaje de bienvenida')}
-                  labelFor="welcome_message"
+
                 >
                   <Input
                     id="welcome_message"
@@ -356,7 +354,7 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
                 
                 <FormItem
                   label={t('Mensaje de despedida')}
-                  labelFor="farewell_message"
+
                 >
                   <Input
                     id="farewell_message"
@@ -369,9 +367,9 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     checked={config.business_hours_enabled}
-                    onChange={(e) => setConfig({
+                    onChange={(checked) => setConfig({
                       ...config, 
-                      business_hours_enabled: e.target.checked
+                      business_hours_enabled: checked
                     })}
                     id="business_hours_enabled"
                   />
@@ -386,7 +384,7 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
                 {config.business_hours_enabled && (
                   <FormItem
                     label={t('Mensaje fuera de horario')}
-                    labelFor="business_hours_message"
+
                   >
                     <Input
                       id="business_hours_message"
@@ -403,9 +401,9 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     checked={config.enable_templates}
-                    onChange={(e) => setConfig({
+                    onChange={(checked) => setConfig({
                       ...config, 
-                      enable_templates: e.target.checked
+                      enable_templates: checked
                     })}
                     id="enable_templates"
                   />
@@ -456,9 +454,9 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
         isOpen={showTokenDialog}
         onClose={() => setShowTokenDialog(false)}
         onRequestClose={() => setShowTokenDialog(false)}
-        title={t('Token de verificación de webhook')}
       >
         <div className="space-y-4">
+          <h3 className="text-lg font-semibold">{t('Token de verificación de webhook')}</h3>
           <p className="text-gray-600 dark:text-gray-300">
             {t('Usa este token para verificar tu webhook en la configuración de WhatsApp Business API.')}
           </p>
@@ -507,9 +505,9 @@ const WhatsAppSettings: React.FC<WhatsAppSettingsProps> = ({ tenantId }) => {
         isOpen={showWebhookInfo}
         onClose={() => setShowWebhookInfo(false)}
         onRequestClose={() => setShowWebhookInfo(false)}
-        title={t('Información de configuración de WhatsApp')}
       >
         <div className="space-y-4">
+          <h3 className="text-lg font-semibold">{t('Información de configuración de WhatsApp')}</h3>
           <div>
             <h5 className="font-medium mb-1">{t('URL del webhook:')}</h5>
             <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-md flex justify-between items-center">

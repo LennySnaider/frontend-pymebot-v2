@@ -53,11 +53,11 @@ export default function AgentAvailabilityDialog({
                 initialAvailability[dayKey] = currentAvailability[dayKey]
             } else {
                 // Configuración por defecto: Lunes a Viernes habilitado, fin de semana deshabilitado
-                const isWeekday = !['saturday', 'sunday'].includes(day.key)
-                initialAvailability[dayKey] = {
-                    enabled: isWeekday,
+                const isWeekday = !['saturday', 'sunday'].includes(day.key);
+                (initialAvailability as any)[dayKey] = {
+                    available: isWeekday,
                     slots: isWeekday ? [{ ...DEFAULT_TIME_SLOT }] : []
-                }
+                };
             }
         })
         
@@ -70,9 +70,9 @@ export default function AgentAvailabilityDialog({
             [dayKey]: {
                 ...(prev[dayKey as keyof AgentAvailabilityUpdate] || { slots: [] }),
                 enabled,
-                slots: enabled && (!prev[dayKey as keyof AgentAvailabilityUpdate]?.slots?.length) 
+                slots: enabled && (!(prev[dayKey as keyof AgentAvailabilityUpdate] as any)?.slots?.length) 
                     ? [{ ...DEFAULT_TIME_SLOT }] 
-                    : prev[dayKey as keyof AgentAvailabilityUpdate]?.slots || []
+                    : (prev[dayKey as keyof AgentAvailabilityUpdate] as any)?.slots || []
             } as DailyAvailability
         }))
     }
@@ -206,7 +206,7 @@ export default function AgentAvailabilityDialog({
                                 {isEnabled && (
                                     <Button
                                         size="sm"
-                                        variant="twoTone"
+                                        variant="solid"
                                         icon={<TbPlus />}
                                         onClick={() => handleAddTimeSlot(day.key)}
                                     >

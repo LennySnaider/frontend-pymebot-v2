@@ -44,8 +44,8 @@ const FileManager = () => {
         {
             onSuccess: (resp) => {
                 // Acceder a resp.data
-                setDirectories(resp.data.directory)
-                setFileList(resp.data.list)
+                setDirectories((resp as any).data.directory)
+                setFileList((resp as any).data.list)
             },
         },
     )

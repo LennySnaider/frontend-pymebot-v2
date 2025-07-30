@@ -8,10 +8,11 @@ import { Controller } from 'react-hook-form'
 import Select from '@/components/ui/Select'
 import { FormItem } from '@/components/ui/Form'
 import Avatar from '@/components/ui/Avatar'
-import { FormControl, Member } from './types'
+import { Member } from './types'
+import { Control } from 'react-hook-form'
 
 interface AgentSelectorProps {
-    control: FormControl
+    control: Control<any>
     boardMembers: Member[]
     errors: Record<string, { message?: string }>
     tSalesFunnel: (key: string) => string

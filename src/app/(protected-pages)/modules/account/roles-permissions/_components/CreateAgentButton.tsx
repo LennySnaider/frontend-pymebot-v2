@@ -9,7 +9,7 @@ import AvatarCropper from '@/components/shared/AvatarCropper'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { supabase } from '@/services/supabase/SupabaseClient'
-import { toast } from '@/components/ui/toast'
+import { toast } from '@/components/ui'
 import { Notification } from '@/components/ui/Notification'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
@@ -99,7 +99,7 @@ export default function CreateAgentButton() {
     }
 
     // Solo los admins pueden crear agentes
-    if (role !== 'admin' && role !== 'super_admin') {
+    if (role !== 'tenant_admin' && role !== 'super_admin') {
         return null
     }
 
@@ -136,7 +136,6 @@ export default function CreateAgentButton() {
                                 })}
                                 type="email"
                                 placeholder="agent@example.com"
-                                error={errors.email?.message || undefined}
                             />
                         </div>
                         
@@ -154,7 +153,6 @@ export default function CreateAgentButton() {
                                 })}
                                 type="password"
                                 placeholder="********"
-                                error={errors.password?.message || undefined}
                             />
                             <p className="text-xs mt-1 text-gray-500">
                                 {t('hints.temporaryPasswordHint')}
@@ -170,7 +168,6 @@ export default function CreateAgentButton() {
                                     required: tCommon('required')
                                 })}
                                 placeholder="Juan Pérez"
-                                error={errors.fullName?.message || undefined}
                             />
                         </div>
                         
@@ -209,7 +206,6 @@ export default function CreateAgentButton() {
                                         <Avatar 
                                             size={80}
                                             src={profileImage || undefined}
-                                            name={watch('fullName') || 'Agent'}
                                             className="cursor-pointer hover:opacity-80 transition-opacity"
                                         />
                                     </Upload>
@@ -236,8 +232,6 @@ export default function CreateAgentButton() {
                             </label>
                             <Input
                                 {...register('bio')}
-                                as="textarea"
-                                rows={3}
                                 placeholder={t('placeholders.bioPlaceholder')}
                             />
                         </div>

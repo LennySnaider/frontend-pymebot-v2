@@ -175,7 +175,7 @@ const RouterNodeConfig: React.FC<RouterNodeConfigProps> = ({ data, onChange }) =
                     <li>Este nodo permite cambiar a otra plantilla de chatbot durante la conversación.</li>
                     <li>El estado de la conversación (variables) se mantiene al cambiar de plantilla.</li>
                     <li>Solo puedes enrutar a plantillas que estén publicadas.</li>
-                    <li>Si el tenant no tiene activada la plantilla de destino, seguirá el camino de "Error".</li>
+                    <li>Si el tenant no tiene activada la plantilla de destino, seguirá el camino de &quot;Error&quot;.</li>
                     <li>{data.waitForResponse !== false ? 'El flujo esperará respuesta del usuario.' : 'El flujo continuará automáticamente después del enrutamiento.'}</li>
                 </ul>
             </div>

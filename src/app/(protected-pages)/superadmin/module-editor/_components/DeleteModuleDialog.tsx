@@ -86,7 +86,7 @@ export default function DeleteModuleDialog() {
       // Mostrar notificación de éxito
       toast.push(
         <Notification title="Módulo Eliminado" type="success">
-          Módulo "{moduleToDelete.name}" eliminado correctamente
+          Módulo &quot;{moduleToDelete.name}&quot; eliminado correctamente
         </Notification>
       );
       
@@ -127,7 +127,7 @@ export default function DeleteModuleDialog() {
           Delete Module
         </h4>
         <p className="text-gray-500 dark:text-gray-400">
-          Are you sure you want to delete "{moduleToDelete.name}"? This action cannot be undone.
+          Are you sure you want to delete &quot;{moduleToDelete.name}&quot;? This action cannot be undone.
         </p>
       </div>
       
@@ -141,7 +141,7 @@ export default function DeleteModuleDialog() {
                 Warning: Other modules depend on this
               </h5>
               <p className="text-amber-700 dark:text-amber-400 text-sm mb-3">
-                The following modules depend on "{moduleToDelete.name}". Deleting it may cause those modules to malfunction:
+                The following modules depend on &quot;{moduleToDelete.name}&quot;. Deleting it may cause those modules to malfunction:
               </p>
               <ul className="space-y-1 text-sm">
                 {dependentModules.map(module => (

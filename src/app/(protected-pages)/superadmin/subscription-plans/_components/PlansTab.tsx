@@ -221,7 +221,7 @@ const PlansTab = () => {
             >
                 {plans.length === 0 && !loadingPlans ? (
                     <div className="p-6 text-center text-gray-500">
-                        No hay planes de suscripción. Cree uno nuevo con el botón "Nuevo Plan".
+                        No hay planes de suscripción. Cree uno nuevo con el botón &quot;Nuevo Plan&quot;.
                     </div>
                 ) : (
                     <DataTable

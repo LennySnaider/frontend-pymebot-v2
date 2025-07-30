@@ -15,7 +15,7 @@ type FormSchema = {
     title: string
 }
 
-const validationSchema: ZodType<FormSchema> = z.object({
+const validationSchema = z.object({
     title: z.string().min(1, 'Please do not leave chat title blank!'),
 })
 

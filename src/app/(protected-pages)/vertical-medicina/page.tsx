@@ -9,6 +9,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/cards';
 import Tabs from '@/components/ui/tabs';
 import { useVerticalContext } from '@/contexts/VerticalContext';
@@ -176,22 +177,22 @@ export default function MedicinaPage() {
                       <h4 className="text-sm font-medium">{patient.name}</h4>
                       <p className="text-xs text-gray-500">Última visita: {patient.date.toLocaleDateString()}</p>
                     </div>
-                    <a 
+                    <Link 
                       href={`/vertical-medicina/pacientes/${patient.id}`}
                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
                       Ver
-                    </a>
+                    </Link>
                   </div>
                 ))}
               </div>
               <div className="mt-4 text-center">
-                <a 
+                <Link 
                   href="/vertical-medicina/pacientes"
                   className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                 >
                   Ver todos los pacientes
-                </a>
+                </Link>
               </div>
             </CardContent>
           </Card>

@@ -106,7 +106,7 @@ const MapDisplay = ({ showApproximateLocation = false }: MapDisplayProps) => {
                             Las coordenadas se mostrarán aquí cuando completes la dirección, ciudad y estado.
                         </p>
                         <p className="text-sm">
-                            Haz clic en el botón "Geocodificar" para obtener las coordenadas exactas de la dirección.
+                            Haz clic en el botón &quot;Geocodificar&quot; para obtener las coordenadas exactas de la dirección.
                         </p>
                     </div>
                 </div>

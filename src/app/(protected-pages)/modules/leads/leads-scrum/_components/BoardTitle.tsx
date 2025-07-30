@@ -107,7 +107,7 @@ const BoardTitle = (props: FunnelTitleProps) => {
         openDialog,
         updateColumns,
         updateDialogView,
-        setSelectedBoard,
+        // setSelectedBoard,
         updateOrdered,
     } = useSalesFunnelStore()
 
@@ -132,8 +132,7 @@ const BoardTitle = (props: FunnelTitleProps) => {
 
     const onAddNewTicket = () => {
         openDialog()
-        updateDialogView('NEW_TICKET')
-        setSelectedBoard(title)
+        updateDialogView('NEW_LEAD')
     }
 
     const onDelete = () => {

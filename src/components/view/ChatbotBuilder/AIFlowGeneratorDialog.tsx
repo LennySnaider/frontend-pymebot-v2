@@ -246,10 +246,6 @@ const AIFlowGeneratorDialog: React.FC<AIFlowGeneratorDialogProps> = ({
                                         null
                                 }
                                 onClick={() => handleFeatureSelect(feature.value)}
-                                className={
-                                    options.features?.includes(feature.value) ?
-                                        "mr-1" : ""
-                                }
                                 color={
                                     options.features?.includes(feature.value) ?
                                         "blue" : "gray"

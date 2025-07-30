@@ -10,12 +10,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 
-// Tipo para los parámetros de ruta
-type RouteParams = {
-  params: {
-    id: string;
-  };
-};
 
 // Interfaces para tipos de respuesta
 interface PlanModule {
@@ -51,10 +45,11 @@ interface PlanDetails {
  */
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
-    const { id } = params;
+    const { id } = resolvedParams;
     
     // Obtener parámetros de consulta
     const searchParams = request.nextUrl.searchParams;
@@ -128,7 +123,7 @@ export async function GET(
       }
     });
   } catch (error) {
-    console.error(`Error obteniendo módulos para plan ${String(params?.id || '')}:`, error);
+    console.error(`Error obteniendo módulos para plan ${String(resolvedParams?.id || '')}:`, error);
     
     return NextResponse.json({
       error: 'Error interno al obtener módulos del plan',
@@ -143,10 +138,11 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
-    const { id } = params;
+    const { id } = resolvedParams;
     
     // Verificar permisos (super_admin)
     const headersList = headers();
@@ -189,7 +185,7 @@ export async function PATCH(
       }
     }, { status: 200 });
   } catch (error) {
-    console.error(`Error actualizando módulos para plan ${String(params?.id || '')}:`, error);
+    console.error(`Error actualizando módulos para plan ${String(resolvedParams?.id || '')}:`, error);
     
     return NextResponse.json({
       error: 'Error interno al actualizar módulos del plan',

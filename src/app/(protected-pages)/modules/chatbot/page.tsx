@@ -80,7 +80,7 @@ const ChatbotPage = () => {
                             <div className="mt-2 text-sm text-blue-700">
                                 <p>
                                     Estás utilizando un ID de tenant temporal
-                                    ("current-tenant") que es redirigido
+                                    (&quot;current-tenant&quot;) que es redirigido
                                     internamente a un tenant de prueba.
                                     Asegúrate de crear previamente un tenant con
                                     el UUID:

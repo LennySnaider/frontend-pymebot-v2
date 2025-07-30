@@ -44,7 +44,7 @@ type CountryOption = {
 
 const { Control } = components
 
-const validationSchema: ZodType<ProfileSchema> = z.object({
+const validationSchema = z.object({
     firstName: z.string().min(1, { message: 'Nombre requerido' }),
     lastName: z.string().min(1, { message: 'Apellido requerido' }),
     email: z

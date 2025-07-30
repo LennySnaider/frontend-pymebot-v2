@@ -16,9 +16,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const templateId = String(params?.id || '');
+    const resolvedParams = await params;
+    const templateId = String(resolvedParams?.id || '');
     
     if (!templateId) {
       return NextResponse.json({ error: 'El parámetro id es requerido' }, { status: 400 });

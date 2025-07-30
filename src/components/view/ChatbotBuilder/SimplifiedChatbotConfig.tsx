@@ -394,7 +394,7 @@ const SimplifiedChatbotConfig: React.FC<SimplifiedChatbotConfigProps> = ({
                             {isInherited && !hasOverride && inheritedValue && (
                                 <div className="flex items-center text-xs text-gray-500 mt-1">
                                     <PiStorefront className="mr-1.5 text-gray-400" />
-                                    Usando valor de la empresa: <span className="font-medium ml-1">"{inheritedValue}"</span>
+                                    Usando valor de la empresa: <span className="font-medium ml-1">&quot;{inheritedValue}&quot;</span>
                                 </div>
                             )}
                             
@@ -506,7 +506,7 @@ const SimplifiedChatbotConfig: React.FC<SimplifiedChatbotConfigProps> = ({
                             {isInherited && !hasOverride && inheritedValue && (
                                 <div className="flex items-center text-xs text-gray-500 mt-1">
                                     <PiStorefront className="mr-1.5 text-gray-400" />
-                                    Usando valor de la empresa: <span className="font-medium ml-1">"{inheritedValue}"</span>
+                                    Usando valor de la empresa: <span className="font-medium ml-1">&quot;{inheritedValue}&quot;</span>
                                 </div>
                             )}
                             
@@ -844,7 +844,7 @@ const SimplifiedChatbotConfig: React.FC<SimplifiedChatbotConfigProps> = ({
                                             <div className="mt-2 text-sm text-amber-600 bg-amber-50 p-2 rounded flex items-center">
                                                 <PiInfoBold className="mr-1 flex-shrink-0" />
                                                 <span>
-                                                    Para habilitar esta funcionalidad, activa la opción "Habilitar reconocimiento de voz" en la pestaña Voz.
+                                                    Para habilitar esta funcionalidad, activa la opción &quot;Habilitar reconocimiento de voz&quot; en la pestaña Voz.
                                                 </span>
                                             </div>
                                         )}

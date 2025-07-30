@@ -89,7 +89,7 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                 
                 for (const columnKey in columns) {
                     const lead = columns[columnKey]?.find(
-                        (lead) => lead.metadata?.original_lead_id === selectedLeadId
+                        (lead) => lead.metadata && 'original_lead_id' in lead.metadata && (lead.metadata as any).original_lead_id === selectedLeadId
                     )
                     if (lead) {
                         foundLead = lead
@@ -202,7 +202,7 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
         } else {
             console.warn('No lead found with ID:', selectedLeadId)
         }
-    }, [selectedLeadId])
+    }, [selectedLeadId, setSelectedLeadId])
 
     useEffect(() => {
         if (dialogOpen && dialogView === 'LEAD') {
@@ -221,9 +221,9 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                 typeof leadData.metadata.interest === 'object',
                 typeof leadData.metadata.selectedProperty === 'object',
                 // Comprobar si hay valores importantes faltantes que podrían estar en la metadata o en el objeto principal
-                leadData.metadata.propertyType === undefined && leadData.property_type !== undefined,
-                leadData.metadata.bathroomsNeeded === undefined && leadData.bathrooms_needed !== undefined, 
-                leadData.metadata.bedroomsNeeded === undefined && leadData.bedrooms_needed !== undefined
+                leadData.metadata.propertyType === undefined && 'property_type' in leadData && (leadData as any).property_type !== undefined,
+                leadData.metadata.bathroomsNeeded === undefined && 'bathrooms_needed' in leadData && (leadData as any).bathrooms_needed !== undefined, 
+                leadData.metadata.bedroomsNeeded === undefined && 'bedrooms_needed' in leadData && (leadData as any).bedrooms_needed !== undefined
             ].some(Boolean)
 
             if (needsUpdate) {
@@ -237,32 +237,32 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                             // Usar valores del objeto principal si existen en la metadata pero como objetos
                             propertyType:
                                 typeof prevState.metadata?.propertyType === 'object'
-                                    ? prevState.metadata.propertyType?.value || ''
-                                    : prevState.metadata?.propertyType || prevState.property_type || '',
+                                    ? (prevState.metadata.propertyType as any)?.value || ''
+                                    : prevState.metadata?.propertyType || ('property_type' in prevState ? (prevState as any).property_type : '') || '',
                             source:
                                 typeof prevState.metadata?.source === 'object'
-                                    ? prevState.metadata.source?.value || ''
+                                    ? (prevState.metadata.source as any)?.value || ''
                                     : prevState.metadata?.source || '',
                             interest:
                                 typeof prevState.metadata?.interest === 'object'
-                                    ? prevState.metadata.interest?.value || 'medio'
+                                    ? (prevState.metadata.interest as any)?.value || 'medio'
                                     : prevState.metadata?.interest || 'medio',
                             selectedProperty:
                                 typeof prevState.metadata?.selectedProperty === 'object'
-                                    ? prevState.metadata.selectedProperty?.value || ''
+                                    ? (prevState.metadata.selectedProperty as any)?.value || ''
                                     : prevState.metadata?.selectedProperty || '',
                             // Asegurarse de que bedroomsNeeded y bathroomsNeeded estén en metadata
                             bedroomsNeeded: prevState.metadata?.bedroomsNeeded !== undefined 
                                 ? prevState.metadata.bedroomsNeeded 
-                                : prevState.bedrooms_needed,
+                                : ('bedrooms_needed' in prevState ? (prevState as any).bedrooms_needed : undefined),
                             bathroomsNeeded: prevState.metadata?.bathroomsNeeded !== undefined 
                                 ? prevState.metadata.bathroomsNeeded 
-                                : prevState.bathrooms_needed,
+                                : ('bathrooms_needed' in prevState ? (prevState as any).bathrooms_needed : undefined),
                             // También asegurarse de que agentId esté sincronizado
-                            agentId: prevState.metadata?.agentId || prevState.agentId
+                            agentId: ('agentId' in (prevState.metadata || {}) ? (prevState.metadata as any).agentId : undefined) || (prevState as any).agentId
                         },
                         // Sincronizar en ambas direcciones
-                        agentId: prevState.agentId || prevState.metadata?.agentId
+                        agentId: (prevState as any).agentId || ('agentId' in (prevState.metadata || {}) ? (prevState.metadata as any).agentId : undefined)
                     }
                 })
             }
@@ -318,7 +318,7 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                     description: leadData.description || '',
                     selected_property_id:
                         leadData.metadata?.selectedProperty || null,
-                    stage: leadData.stage, // Asegurar que el stage se incluya
+                    stage: (leadData as any).stage, // Asegurar que el stage se incluya
                     metadata: {
                         ...leadData.metadata,
                         original_lead_id: leadData.id,
@@ -369,7 +369,7 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                         ...leadData,
                         ...result.data, // Incluir todos los datos de la respuesta
                         id: result.data.id || leadData.id,
-                        stage: result.data.stage || leadData.stage || leadDataToSave.stage,
+                        stage: (result.data as any).stage || (leadData as any).stage || (leadDataToSave as any).stage,
                         metadata: {
                             ...leadData.metadata,
                             ...result.data.metadata,
@@ -572,8 +572,8 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                         }
                         
                         // Actualizar leadUpdateStore
-                        if (leadUpdateStore && typeof leadUpdateStore.addUpdate === 'function') {
-                            leadUpdateStore.addUpdate({
+                        if (leadUpdateStore && typeof (leadUpdateStore as any).addUpdate === 'function') {
+                            (leadUpdateStore as any).addUpdate({
                                 type: isEditingExistingLead ? 'update-data' : 'create',
                                 leadId: updatedLeadData.id,
                                 data: {
@@ -762,7 +762,7 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
         if (mode === 'edit' && leadData?.metadata?.propertyType) {
             const propertyType =
                 typeof leadData.metadata.propertyType === 'object'
-                    ? leadData.metadata.propertyType.value || ''
+                    ? (leadData.metadata.propertyType as any)?.value || ''
                     : leadData.metadata.propertyType
 
             // Verificar que el tipo de propiedad no se haya cargado ya
@@ -812,7 +812,7 @@ const LeadContent = ({ onLeadClose }: LeadContentProps) => {
                             storeLeadFormState(leadData.id, { lastEditMode: 'edit' })
                         }
                     }}
-                    updateLead={updateLead}
+                    updateLead={updateLead as any}
                 />
             ) : (
                 <LeadEditFormPersistent

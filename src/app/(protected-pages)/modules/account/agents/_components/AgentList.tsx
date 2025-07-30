@@ -78,7 +78,7 @@ export default function AgentList({ pageIndex, pageSize }: AgentListProps) {
                     const label = status === 'active' ? 'Activo' :
                                  status === 'inactive' ? 'Inactivo' : 'Suspendido'
                     
-                    return <Tag color={color}>{label}</Tag>
+                    return <Tag>{label}</Tag>
                 }
             },
             {
@@ -179,7 +179,7 @@ export default function AgentList({ pageIndex, pageSize }: AgentListProps) {
                     pageIndex: pageIndex - 1, // La tabla usa índice basado en 0
                     pageSize: pageSize,
                 }}
-                onPaginationChange={(pagination) => {
+                onPaginationChange={(pagination: any) => {
                     if (pagination.pageIndex !== undefined) {
                         handlePaginationChange(pagination.pageIndex + 1)
                     }

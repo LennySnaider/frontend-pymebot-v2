@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Input, Select, Notification, toast, InputGroup, Form, FormItem, Checkbox } from '@/components/ui';
 import { AppointmentSettingsConfig } from './types';
 
@@ -57,12 +57,7 @@ const AppointmentSettings = () => {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  useEffect(() => {
-    // Cargar configuración al inicio
-    fetchSettings();
-  }, []);
-  
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -119,7 +114,12 @@ const AppointmentSettings = () => {
       
       setLoading(false);
     }
-  };
+  }, [t]);
+  
+  useEffect(() => {
+    // Cargar configuración al inicio
+    fetchSettings();
+  }, [fetchSettings]);
   
   const handleInputChange = (field: keyof AppointmentSettingsConfig, value: any) => {
     setSettings((prev) => ({
@@ -359,7 +359,7 @@ const AppointmentSettings = () => {
             <div className="col-span-1 md:col-span-2">
               <Checkbox
                 checked={settings.require_approval}
-                onChange={(e) => handleInputChange('require_approval', e.target.checked)}
+                onChange={(checked) => handleInputChange('require_approval', checked)}
               >
                 {t('appointments.settings.appointment_settings.require_approval')}
               </Checkbox>

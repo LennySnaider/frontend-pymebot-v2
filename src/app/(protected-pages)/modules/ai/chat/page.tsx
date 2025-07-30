@@ -12,7 +12,7 @@ export default async function Page() {
             <div className="h-full">
                 <div className="flex flex-auto gap-4 h-full">
                     <ChatView />
-                    <ChatSideNav />
+                    <ChatSideNav className="" bodyClass="" />
                     <ChatHistoryRenameDialog />
                 </div>
             </div>

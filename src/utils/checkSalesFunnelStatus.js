@@ -32,7 +32,7 @@ export async function checkSalesFunnelStatus() {
     
     // 3. Verificar templates con salesStageId
     console.log('\n📋 Templates con etapas configuradas:');
-    const templatesResponse = await fetch('/api/chatbot/templates');
+    const templatesResponse = await fetch('/api/templates');
     const templates = await templatesResponse.json();
     
     let templatesWithStages = 0;

@@ -11,11 +11,12 @@ import { SupabaseClient } from '@/services/supabase/SupabaseClient'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     // Extract the lead ID from the URL params
-    const leadId = String(params?.id || '')
+    const leadId = String(resolvedParams?.id || '')
     
     // Validate the ID
     if (!leadId) {

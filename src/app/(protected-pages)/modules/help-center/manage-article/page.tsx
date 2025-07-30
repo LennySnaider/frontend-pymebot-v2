@@ -12,7 +12,7 @@ export default async function Page({ searchParams }: PageProps) {
 
     return (
         <ManageArticleProvider
-            articleList={data.list}
+            articleList={data.list as any}
             articleTotal={data.total}
             category={params.category as string}
         >

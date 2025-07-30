@@ -15,7 +15,14 @@ import { z } from 'zod'
 import { TbChecks } from 'react-icons/tb'
 import { components } from 'react-select'
 import dayjs from 'dayjs'
-import type { SelectedCell } from '../types'
+interface SelectedCell {
+    id?: string;
+    start: Date;
+    end: Date;
+    type?: string;
+    title?: string;
+    eventColor?: string;
+}
 import type { ControlProps, OptionProps } from 'react-select'
 
 type FormModel = {

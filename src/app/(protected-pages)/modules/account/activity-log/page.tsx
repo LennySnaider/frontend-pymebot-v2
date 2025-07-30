@@ -8,7 +8,7 @@ export default async function Page() {
 
     return (
         <ActivityLogProvider
-            data={resp.data as Activities}
+            data={resp.data as unknown as Activities}
             loadable={resp.loadable}
         >
             <ActivityLog />

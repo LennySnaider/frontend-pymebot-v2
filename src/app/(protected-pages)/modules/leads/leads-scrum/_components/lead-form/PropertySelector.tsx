@@ -209,18 +209,7 @@ const PropertySelector: React.FC<PropertySelectorProps> = ({
     return (
         <FormContainer className="mb-4">
             <FormItem 
-                label={
-                    <div className="flex items-center justify-between w-full">
-                        <span className="font-medium">Propiedades de interés</span>
-                        {propertyStats.total > 0 && (
-                            <Tooltip title={`${propertyStats.total} propiedades disponibles (${propertyStats.mock} simuladas, ${propertyStats.fallback} alternativas)`}>
-                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                                    {propertyStats.total} disponibles
-                                </span>
-                            </Tooltip>
-                        )}
-                    </div>
-                }
+                label="Propiedades de interés"
                 className="w-full"
             >
                 <div className="space-y-2">
@@ -236,7 +225,7 @@ const PropertySelector: React.FC<PropertySelectorProps> = ({
                         />
                         {isLoadingProperties && (
                             <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                                <Spinner size={20} />
+                                <Spinner size="sm" />
                             </div>
                         )}
                     </div>
@@ -267,19 +256,13 @@ const PropertySelector: React.FC<PropertySelectorProps> = ({
                                     // Convertir a array si es necesario
                                     const selectedValues = Array.isArray(selectedOptions) 
                                         ? selectedOptions.map(option => option.value) 
-                                        : [selectedOptions.value];
+                                        : selectedOptions && 'value' in selectedOptions ? [(selectedOptions as any).value] : [];
                                     
                                     field.onChange(selectedValues);
                                     
                                     // Notificar la selección con ID resuelto
                                     if (selectedValues.length > 0) {
                                         handlePropertySelectWithResolvedId(selectedValues[0]);
-                                    }
-                                }}
-                                onDropdownOpen={() => {
-                                    // Cargar propiedades si no hay
-                                    if ((availableProperties.length === 0 || propertyStats.mock > 0) && !isLoadingProperties) {
-                                        handleLoadProperties();
                                     }
                                 }}
                                 isMulti
@@ -305,7 +288,7 @@ const PropertySelector: React.FC<PropertySelectorProps> = ({
                     {filteredProperties.length === 0 && !isLoadingProperties && searchTerm && (
                         <div className="text-xs text-gray-500 mt-1 flex items-center">
                             <HiOutlineInformationCircle className="mr-1" />
-                            No se encontraron propiedades que coincidan con "{searchTerm}"
+                            No se encontraron propiedades que coincidan con &quot;{searchTerm}&quot;
                         </div>
                     )}
 

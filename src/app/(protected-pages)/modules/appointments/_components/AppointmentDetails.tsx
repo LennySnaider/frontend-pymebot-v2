@@ -59,7 +59,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
     const [localAppointmentData, setLocalAppointmentData] = useState(null)
     
     const { 
-        appointment, 
+        selectedAppointment: appointment, 
         availableStatuses,
         updateAppointmentStatus,
         deleteAppointment
@@ -115,7 +115,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
         }
         
         try {
-            await updateAppointmentStatus(displayAppointment.id, newStatus, notes)
+            await updateAppointmentStatus(displayAppointment.id, newStatus as any, notes)
             setIsChangingStatus(false)
             setNotes('')
             setNewStatus('')
@@ -157,27 +157,26 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
         <Dialog
             isOpen={isOpen}
             onClose={onClose}
-            title="Detalles de la Cita"
-            width="600px"
+            width={600}
         >
+            <h4 className="text-lg font-semibold mb-4">Detalles de la Cita</h4>
             {isLoadingDetails ? (
                 <div className="flex justify-center p-8">
-                    <Spinner size={40} />
+                    <Spinner />
                     <span className="ml-3">Cargando detalles de la cita...</span>
                 </div>
             ) : (
             <div className="p-4">
                 {/* Encabezado con estado y acciones */}
                 <div className="flex justify-between items-center mb-5">
-                    <Badge color={getStatusColor(displayAppointment.status)}>
+                    <Badge>
                         {availableStatuses.find(s => s.value === displayAppointment.status)?.label || displayAppointment.status}
                     </Badge>
                     
                     <div className="flex space-x-2">
                         <Button
                             size="sm"
-                            variant="twoTone"
-                            color="blue"
+                            variant="solid"
                             icon={<TbPencil />}
                             onClick={onEdit}
                         >
@@ -185,8 +184,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                         </Button>
                         <Button
                             size="sm"
-                            variant="twoTone"
-                            color="red"
+                            variant="solid"
                             icon={<TbTrash />}
                             onClick={() => setIsConfirmingDelete(true)}
                         >
@@ -320,7 +318,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                             <div className="space-y-3">
                                 <Select
                                     placeholder="Seleccionar nuevo estado"
-                                    options={availableStatuses}
+                                    options={availableStatuses as any}
                                     value={newStatus}
                                     onChange={(value) => setNewStatus(value as string)}
                                 />
@@ -345,7 +343,6 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                                     <Button
                                         size="sm"
                                         variant="solid"
-                                        color="primary"
                                         onClick={handleStatusChange}
                                     >
                                         Guardar
@@ -358,8 +355,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
                     <div className="mb-4">
                         <Button
                             block
-                            variant="twoTone"
-                            color="blue"
+                            variant="solid"
                             onClick={() => setIsChangingStatus(true)}
                         >
                             Cambiar estado

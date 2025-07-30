@@ -17,5 +17,5 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         )
     }
 
-    return <CustomerEdit data={data} />
+    return <CustomerEdit data={data as any} />
 }

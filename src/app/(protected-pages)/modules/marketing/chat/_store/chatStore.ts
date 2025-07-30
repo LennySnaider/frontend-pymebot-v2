@@ -889,7 +889,7 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
             // Intentar cargar desde la API principal
             try {
                 // Primero intentar con la API principal del backend
-                const mainApiUrl = '/api/chatbot/templates';
+                const mainApiUrl = '/api/templates';
                 console.log(`ChatStore: Intentando cargar desde API principal: ${mainApiUrl}`);
                 
                 // Agregar timeout de 15 segundos
@@ -928,9 +928,25 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                     throw new Error(errorMessage);
                 }
                 
-                const mainData = await mainResponse.json();
-                if (!Array.isArray(mainData)) {
+                const responseData = await mainResponse.json();
+                
+                // Manejar diferentes formatos de respuesta del backend
+                let mainData;
+                if (responseData && typeof responseData === 'object' && 'templates' in responseData) {
+                    // Si la respuesta es {success: true, templates: [...]}
+                    mainData = responseData.templates;
+                } else if (Array.isArray(responseData)) {
+                    // Si la respuesta es directamente un array
+                    mainData = responseData;
+                } else {
                     const errorMessage = 'Formato de respuesta incorrecto. Se esperaba un array de plantillas.';
+                    console.error(errorMessage, responseData);
+                    set(() => ({ templatesError: errorMessage }));
+                    throw new Error(errorMessage);
+                }
+                
+                if (!Array.isArray(mainData)) {
+                    const errorMessage = 'Las plantillas no son un array válido.';
                     console.error(errorMessage, mainData);
                     set(() => ({ templatesError: errorMessage }));
                     throw new Error(errorMessage);

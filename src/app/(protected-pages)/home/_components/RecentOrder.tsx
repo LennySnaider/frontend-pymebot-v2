@@ -120,7 +120,7 @@ const RecentOrder = ({ data = [] }: RecentOrderProps) => {
                 },
             },
         ],
-        [],
+        [t],
     )
 
     const table = useReactTable({

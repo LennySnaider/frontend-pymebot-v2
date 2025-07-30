@@ -50,7 +50,7 @@ export default function EditAgentDialog({ user, onClose, onSuccess }: EditAgentD
         defaultValues: {
             email: user.email,
             fullName: user.full_name || user.name || '',
-            phone: user.phone || '',
+            phone: (user as any).phone || '',
         }
     })
     
@@ -152,7 +152,6 @@ export default function EditAgentDialog({ user, onClose, onSuccess }: EditAgentD
                             })}
                             type="email"
                             placeholder="agent@example.com"
-                            error={errors.email?.message || undefined}
                         />
                     </div>
                     
@@ -165,7 +164,6 @@ export default function EditAgentDialog({ user, onClose, onSuccess }: EditAgentD
                                 required: tCommon('required')
                             })}
                             placeholder="Juan Pérez"
-                            error={errors.fullName?.message || undefined}
                         />
                     </div>
                     
@@ -220,8 +218,6 @@ export default function EditAgentDialog({ user, onClose, onSuccess }: EditAgentD
                         </label>
                         <Input
                             {...register('bio')}
-                            as="textarea"
-                            rows={3}
                             placeholder={t('placeholders.bioPlaceholder')}
                         />
                     </div>

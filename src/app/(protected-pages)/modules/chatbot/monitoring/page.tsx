@@ -9,10 +9,10 @@
 
 import ChatbotMonitoring from '@/components/view/ChatbotBuilder/ChatbotMonitoring'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
-import { useTranslation } from '@/utils/hooks/useTranslation'
+import { useTranslations } from 'next-intl'
 
 const ChatbotMonitoringPage = () => {
-    const { t } = useTranslation()
+    const t = useTranslations()
 
     return (
         <AdaptiveCard
@@ -25,7 +25,7 @@ const ChatbotMonitoringPage = () => {
         >
             <div className="lg:flex h-full">
                 <div className="w-full">
-                    <ChatbotMonitoring />
+                    <ChatbotMonitoring tenantId="test-tenant" />
                 </div>
             </div>
         </AdaptiveCard>

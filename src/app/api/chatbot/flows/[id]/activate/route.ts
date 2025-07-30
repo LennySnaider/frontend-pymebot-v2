@@ -16,11 +16,12 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     // Obtener ID del flujo desde la URL
-    const flowId = String(params?.id || '')
+    const flowId = String(resolvedParams?.id || '')
     
     // Verificar autenticación
     const session = await auth()

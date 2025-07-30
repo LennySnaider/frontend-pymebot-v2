@@ -39,10 +39,10 @@ const AppointmentFilters = () => {
     useEffect(() => {
         const loadAgents = async () => {
             try {
-                const agentsList = await getAgents()
-                const agentOptions = agentsList.map(agent => ({
+                const agentResponse = await getAgents({})
+                const agentOptions = agentResponse.list.map(agent => ({
                     value: agent.id,
-                    label: agent.name
+                    label: agent.full_name || agent.email
                 }))
                 setAgents(agentOptions)
             } catch (error) {
@@ -139,8 +139,7 @@ const AppointmentFilters = () => {
                         <label className="block text-sm font-medium mb-1">Agente</label>
                         <Select
                             size="sm"
-                            options={agentOptions}
-                            prefix={<TbUser className="text-lg" />}
+                            options={agentOptions as any}
                             value={selectedFilters.agent_id}
                             onChange={(value) => handleFilterChange('agent_id', value)}
                         />
@@ -151,7 +150,7 @@ const AppointmentFilters = () => {
                         <label className="block text-sm font-medium mb-1">Estado</label>
                         <Select
                             size="sm" 
-                            options={statusOptions}
+                            options={statusOptions as any}
                             value={selectedFilters.status}
                             onChange={(value) => handleFilterChange('status', value)}
                         />
@@ -162,8 +161,7 @@ const AppointmentFilters = () => {
                         <label className="block text-sm font-medium mb-1">Tipo de propiedad</label>
                         <Select
                             size="sm"
-                            options={propertyTypeOptions}
-                            prefix={<TbHome className="text-lg" />}
+                            options={propertyTypeOptions as any}
                             value={selectedFilters.property_type}
                             onChange={(value) => handleFilterChange('property_type', value)}
                         />

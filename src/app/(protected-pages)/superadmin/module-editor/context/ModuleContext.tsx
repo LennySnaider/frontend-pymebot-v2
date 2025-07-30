@@ -131,7 +131,7 @@ export function ModuleProvider({
     setModules(prev => [...prev, module]);
     toast.push(
       <Notification title="Módulo Creado" type="success">
-        Módulo "{module.name}" creado correctamente
+        Módulo &quot;{module.name}&quot; creado correctamente
       </Notification>
     );
   }, []);

@@ -328,7 +328,7 @@ const AppointmentTypesSettings = () => {
         if (response.status === 409 && errorData.count) {
           toast.push(
             <Notification title={t('common.error')} type="danger">
-              {t('appointments.types.delete_conflict', { count: errorData.count })}
+              {t('appointments.types.delete_conflict')}
             </Notification>
           );
           return;
@@ -413,7 +413,7 @@ const AppointmentTypesSettings = () => {
         cell: ({ row }) => {
           const type = row.original;
           return (
-            <Badge color={type.is_active ? 'green' : 'gray'}>
+            <Badge>
               {type.is_active ? t('appointments.types.active') : t('appointments.types.inactive')}
             </Badge>
           );
@@ -428,16 +428,14 @@ const AppointmentTypesSettings = () => {
             <div className="flex space-x-2">
               <Button
                 size="sm"
-                variant="twoTone"
-                color="blue"
+                variant="solid"
                 onClick={() => handleOpenModal(type)}
               >
                 {t('common.edit')}
               </Button>
               <Button
                 size="sm"
-                variant="twoTone"
-                color="red"
+                variant="solid"
                 onClick={() => handleDeleteType(type.id || '')}
                 disabled={!type.id}
               >
@@ -462,7 +460,7 @@ const AppointmentTypesSettings = () => {
             {t('appointments.types.description')}
           </p>
         </div>
-        <Button variant="solid" color="primary" onClick={() => handleOpenModal()}>
+        <Button variant="solid" onClick={() => handleOpenModal()}>
           {t('appointments.types.add')}
         </Button>
       </div>
@@ -660,7 +658,7 @@ const AppointmentTypesSettings = () => {
             <Button 
               type="button" 
               variant="solid" 
-              color="primary" 
+              
               onClick={() => {
                 console.log('Save button clicked');
                 handleSaveType();

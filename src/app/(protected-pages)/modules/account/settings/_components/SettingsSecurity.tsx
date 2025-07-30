@@ -41,7 +41,7 @@ const authenticatorList = [
     },
 ]
 
-const validationSchema: ZodType<PasswordSchema> = z
+const validationSchema = z
     .object({
         currentPassword: z
             .string()

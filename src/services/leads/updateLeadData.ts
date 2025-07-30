@@ -109,7 +109,7 @@ export async function updateLeadMessageCount(
         // Añadir campos opcionales solo si es posible
         try {
             updateData.message_count = messageCount
-            updateData.last_contact = new Date().toISOString()
+            updateData.last_contact_date = new Date().toISOString()
             
             if (lastMessage) {
                 updateData.last_message = lastMessage.substring(0, 500)

@@ -2,8 +2,6 @@
 
 import React from 'react'
 import dynamic from 'next/dynamic'
-import type { CalendarEvents } from '../calendar-view/types'
-
 // Importamos dinámicamente AppointmentPage
 const AppointmentPage = dynamic(
     () => import('./AppointmentPage'),
@@ -11,7 +9,7 @@ const AppointmentPage = dynamic(
 )
 
 interface AppointmentPageWrapperProps {
-    initialEvents: CalendarEvents
+    initialEvents: any[]
 }
 
 const AppointmentPageWrapper: React.FC<AppointmentPageWrapperProps> = ({ initialEvents }) => {

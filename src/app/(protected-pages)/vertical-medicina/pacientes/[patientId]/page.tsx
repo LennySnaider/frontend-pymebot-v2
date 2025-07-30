@@ -9,15 +9,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { 
   PatientCard, 
   MedicalRecords, 
   MedicalAttachments 
 } from '@/components/verticals/medicina';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs-components';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/cards';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
 
 // Tipos para los datos
 type PatientStatus = 'active' | 'inactive' | 'pending';
@@ -46,11 +48,12 @@ interface Patient {
 }
 
 // Componente principal
-export default function PatientDetailPage({ params }: { params: { patientId: string } }) {
+export default function PatientDetailPage() {
+  const params = useParams();
+  const patientId = params.patientId as string;
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { patientId } = params;
 
   useEffect(() => {
     // Simulación de carga de datos del paciente
@@ -149,14 +152,14 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center">
-          <a 
+          <Link 
             href="/vertical-medicina/pacientes" 
             className="text-blue-600 hover:text-blue-800 mr-3"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-          </a>
+          </Link>
           <h1 className="text-2xl font-bold tracking-tight">Expediente: {patient.recordNumber}</h1>
           <div className="ml-3">
             {renderStatus(patient.status)}

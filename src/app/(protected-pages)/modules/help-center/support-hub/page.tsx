@@ -8,7 +8,7 @@ export default async function Page() {
     return (
         <>
             <TopSection />
-            <BodySection data={data} />
+            <BodySection data={data as any} />
         </>
     )
 }

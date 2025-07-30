@@ -56,6 +56,42 @@ const nextConfig = {
         minimumCacheTTL: 60,
         formats: ['image/webp'],
     },
+    
+    // Proxy para redirigir las peticiones de API al backend
+    async rewrites() {
+        return [
+            // Excluir rutas de autenticación del proxy
+            {
+                source: '/api/auth/:path*',
+                destination: '/api/auth/:path*',
+            },
+            // Excluir rutas de templates (manejadas por el frontend)
+            {
+                source: '/api/templates/:path*',
+                destination: '/api/templates/:path*',
+            },
+            // Excluir rutas de tenants (manejadas por el frontend)
+            {
+                source: '/api/tenants/:path*',
+                destination: '/api/tenants/:path*',
+            },
+            // Excluir rutas de chat que se manejan en el frontend
+            {
+                source: '/api/chat/conversation/:path*',
+                destination: '/api/chat/conversation/:path*',
+            },
+            // Excluir rutas de conversaciones
+            {
+                source: '/api/conversations/:path*',
+                destination: '/api/conversations/:path*',
+            },
+            // Redirigir todas las demás rutas API al backend
+            {
+                source: '/api/:path*',
+                destination: 'http://localhost:3090/api/:path*',
+            },
+        ];
+    },
 }
 
 export default withNextIntl(nextConfig)

@@ -22,10 +22,10 @@ export default async function Page(props: { params: Promise<CommonProps & { id: 
     return (
         <>
             <div className="my-6 max-w-[800px] w-full mx-auto">
-                <ArticleBody data={data} />
+                <ArticleBody data={data as any} />
                 <ArticleAction />
             </div>
-            <ArticleTableOfContent content={data.tableOfContent} />
+            <ArticleTableOfContent content={(data as any).tableOfContent} />
         </>
     )
 }

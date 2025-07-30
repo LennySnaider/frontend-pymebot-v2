@@ -76,7 +76,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
           {prompt && (
             <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center">
               <AlignLeft size={12} className="mr-1" />
-              Prompt: "{prompt}"
+              Prompt: &quot;{prompt}&quot;
             </div>
           )}
           <div 

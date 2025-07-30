@@ -77,7 +77,7 @@ const SettingsNotification = () => {
         '/api/settings/notification/',
         () =>
             apiGetSettingsNotification<GetSettingsNotificationResponse>().then(
-                (res) => res.data,
+                (res) => res,
             ),
         {
             revalidateOnFocus: false,

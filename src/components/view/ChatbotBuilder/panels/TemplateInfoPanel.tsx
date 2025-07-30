@@ -258,7 +258,7 @@ const TemplateInfoPanel: React.FC<TemplateInfoPanelProps> = ({
                         <p className="mt-1 text-xs">
                             Los campos críticos como el nombre se guardan al
                             escribir. Para cambiar el estado de la plantilla de borrador a publicado, 
-                            utilice los botones en la sección "Estado".
+                            utilice los botones en la sección &quot;Estado&quot;.
                         </p>
                     </div>
                 </div>

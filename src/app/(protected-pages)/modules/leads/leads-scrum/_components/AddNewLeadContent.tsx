@@ -98,7 +98,7 @@ const createLeadFromFormData = (
                 ? parseFloat(formData.bathroomsNeeded)
                 : undefined,
             leadStatus: stage,
-            lastContactDate: new Date().toISOString(), // Usar formato ISO en lugar de timestamp
+            lastContactDate: Date.now(), // Usar timestamp
             nextContactDate: nextContactDateIso, // Usar la versión ISO convertida
             agentNotes: formData.notes,
         },
@@ -106,9 +106,7 @@ const createLeadFromFormData = (
         createdAt: Date.now(), // Esto es para UI, no va directamente a DB
         email: formData.email,
         phone: formData.phone,
-        budget: formData.budget ? parseFloat(formData.budget) : undefined,
-        // Añadir el next_contact_date en formato ISO para enviarlo a la API
-        next_contact_date: nextContactDateIso
+        budget: formData.budget ? parseFloat(formData.budget) : undefined
     }
 }
 
@@ -284,7 +282,6 @@ const AddNewLeadContent = () => {
             const apiData = {
                 ...newLead,
                 // Asegurar que next_contact_date está en formato ISO
-                next_contact_date: newLead.next_contact_date,
                 // Asegurar que las fechas en metadata también estén en formato ISO
                 metadata: {
                     ...newLead.metadata,
@@ -388,7 +385,7 @@ const AddNewLeadContent = () => {
                     })}
                 </label>
                 <Select
-                    options={leadFormOptions.interestLevels}
+                    options={leadFormOptions.interestLevels as any}
                     value={formData.interest}
                     onChange={(value) => handleSelectChange('interest', value)}
                     placeholder={t('interestPlaceholder', {
@@ -469,7 +466,7 @@ const AddNewLeadContent = () => {
                     })}
                 </label>
                 <Select
-                    options={leadFormOptions.propertyTypes}
+                    options={leadFormOptions.propertyTypes as any}
                     value={formData.propertyType}
                     onChange={(value) =>
                         handleSelectChange('propertyType', value)
@@ -498,7 +495,7 @@ const AddNewLeadContent = () => {
                     {t('source', { defaultValue: 'Fuente del lead' })}
                 </label>
                 <Select
-                    options={leadFormOptions.leadSources}
+                    options={leadFormOptions.leadSources as any}
                     value={formData.source}
                     onChange={(value) =>
                         handleSelectChange('source', value)

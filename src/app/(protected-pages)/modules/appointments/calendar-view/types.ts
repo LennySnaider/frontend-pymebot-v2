@@ -9,6 +9,9 @@
 import type { CalendarEvent } from '@/app/(protected-pages)/modules/calendar/types'
 import type { PropertyType } from '@/app/(protected-pages)/modules/leads/leads-scrum/types'
 
+// Re-exportar CalendarEvent para usar en otros módulos
+export type { CalendarEvent }
+
 // Metadatos específicos para citas inmobiliarias
 export interface AppointmentMeta {
   type: 'real-estate-appointment'

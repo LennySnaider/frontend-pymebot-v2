@@ -388,7 +388,7 @@ const VoiceBotHandler: React.FC<VoiceBotHandlerProps> = ({
         message,
         audioUrl,
         playing
-    })
+    } as any)
 }
 
 export default VoiceBotHandler

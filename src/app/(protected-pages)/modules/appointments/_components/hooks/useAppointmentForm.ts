@@ -474,9 +474,7 @@ export const useAppointmentForm = (props: AppointmentSchedulerProps) => {
         selectedPropertyIds, 
         currentAppointment, 
         onSchedule, 
-        onClose,
-        showSuccess,
-        showError
+        onClose
     ]);
 
     // --- Retorno del Hook ---

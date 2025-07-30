@@ -63,17 +63,17 @@ interface BusinessInfo {
 // Esquema de validación para el formulario
 type BusinessSchema = {
     name: string
-    description: string
-    business_type: string
-    timezone: string
-    website: string
-    primary_color: string
-    contact_email: string
-    phone_number: string
-    address: string
-    city: string
-    postal_code: string
-    logo_url: string
+    description?: string
+    business_type?: string
+    timezone?: string
+    website?: string
+    primary_color?: string
+    contact_email?: string
+    phone_number?: string
+    address?: string
+    city?: string
+    postal_code?: string
+    logo_url?: string
 }
 
 // Opciones para tipos de negocio (deberían venir de traducciones o constantes)
@@ -103,7 +103,7 @@ const timezoneOptions = [
 ]
 
 // Esquema de validación
-const validationSchema: ZodType<BusinessSchema> = z.object({
+const validationSchema = z.object({
     name: z.string().min(1, { message: 'El nombre es requerido' }),
     description: z.string().optional(),
     business_type: z.string().optional(),

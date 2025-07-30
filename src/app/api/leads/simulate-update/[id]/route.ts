@@ -15,11 +15,12 @@ import { SupabaseClient } from '@/services/supabase/SupabaseClient'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     // Extraer el ID del lead de los parámetros de la URL
-    const leadId = String(params?.id || '')
+    const leadId = String(resolvedParams?.id || '')
     
     // Extraer los datos del lead del cuerpo de la petición
     const leadData = await request.json()

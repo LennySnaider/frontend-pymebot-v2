@@ -24,4 +24,6 @@ export const productData: ProductData[] = [
   }
 ]
 
+export const productsData = productData
+
 export default productData

@@ -13,14 +13,14 @@ import { notFound } from 'next/navigation'
 import type { Property } from '@/app/(protected-pages)/modules/properties/property-list/types'
 
 type PageProps = {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 const PropertyEditPage = async ({ params }: PageProps) => {
     // Asegurar que params esté completamente resuelto
-    const resolvedParams = await Promise.resolve(params)
+    const resolvedParams = await params
 
     // Obtener la propiedad usando el server action (ya mapeada al formato del frontend)
     const property = await getProperty({ id: resolvedParams.id })

@@ -65,6 +65,8 @@ async function getUserDataWithCache(userId: string) {
 }
 
 export default {
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    debug: process.env.NODE_ENV === 'development',
     providers: [
         Github({
             clientId: process.env.GITHUB_AUTH_CLIENT_ID,
@@ -94,10 +96,10 @@ export default {
         }),
     ],
     callbacks: {
-        async session(payload) {
+        async session({ session, token }) {
             try {
                 // Obtenemos información adicional del usuario desde el cache
-                const userData = await getUserDataWithCache(payload.token.sub);
+                const userData = await getUserDataWithCache(token.sub);
                 
                 // Verificamos y asignamos el rol correcto
                 // Si no existe userData o el rol es null, asignamos 'tenant_admin' como valor por defecto
@@ -126,15 +128,15 @@ export default {
                 
                 // Solo registrar cambios en modo desarrollo y cuando haya cambios reales
                 if (process.env.NODE_ENV === 'development' && userData && userData.role !== userRole) {
-                    console.log('Rol de usuario actualizado:', { id: payload.token.sub, role: userRole });
+                    console.log('Rol de usuario actualizado:', { id: token.sub, role: userRole });
                 }
                 
                 /** Aplicamos atributos adicionales a la sesión del usuario */
                 return {
-                    ...payload.session,
+                    ...session,
                     user: {
-                        ...payload.session.user,
-                        id: payload.token.sub,
+                        ...session.user,
+                        id: token.sub,
                         role: userRole,
                         tenant_id: userData?.tenant_id || null,
                         tenantId: userData?.tenant_id || null, // Agregar también como tenantId para compatibilidad
@@ -146,10 +148,10 @@ export default {
                 
                 // En caso de error, devolvemos los datos básicos con tenant_admin como valor por defecto
                 return {
-                    ...payload.session,
+                    ...session,
                     user: {
-                        ...payload.session.user,
-                        id: payload.token.sub,
+                        ...session.user,
+                        id: token.sub,
                         role: 'tenant_admin',
                         authority: ['tenant_admin', 'agent'],
                     },

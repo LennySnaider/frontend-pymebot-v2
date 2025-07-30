@@ -401,4 +401,6 @@ const ChatbotFlowBuilder = (props: ChatbotFlowBuilderProps) => {
     );
 };
 
+ReactFlowBuilder.displayName = 'ReactFlowBuilder';
+
 export default ChatbotFlowBuilder;

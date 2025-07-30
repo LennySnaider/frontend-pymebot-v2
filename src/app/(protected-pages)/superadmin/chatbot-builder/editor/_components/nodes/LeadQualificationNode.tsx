@@ -259,7 +259,7 @@ const LeadQualificationNode: React.FC<LeadQualificationNodeProps> = ({ id, data,
                 
                 {questions.length === 0 && (
                   <div className="text-center p-2 text-gray-500 text-sm">
-                    No hay preguntas definidas. Haz clic en "+" para añadir.
+                    No hay preguntas definidas. Haz clic en &quot;+&quot; para añadir.
                   </div>
                 )}
               </div>

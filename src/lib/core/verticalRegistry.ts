@@ -173,4 +173,12 @@ export function initializeDefaultRegistry() {
   console.log('Registro de verticales inicializado con valores por defecto');
 }
 
+/**
+ * Función helper para registrar una vertical directamente
+ * @param vertical Vertical a registrar
+ */
+export function registerVertical(vertical: VerticalModule) {
+  return useVerticalRegistry.getState().register(vertical);
+}
+
 export default useVerticalRegistry;

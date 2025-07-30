@@ -96,7 +96,7 @@ const DateTimeSelectionStep: React.FC<DateTimeSelectionStepProps> = ({
                     {/* Overlay de carga */}
                     {isLoadingAvailability && (
                         <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 flex justify-center items-center z-20 rounded-md">
-                            <Spinner size={40} />
+                            <Spinner size="lg" />
                         </div>
                     )}
 

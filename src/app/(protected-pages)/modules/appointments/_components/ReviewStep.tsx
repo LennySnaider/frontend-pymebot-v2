@@ -12,7 +12,26 @@ import Badge from '@/components/ui/Badge';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { TbHome, TbBed, TbBath, TbRuler } from 'react-icons/tb';
-import type { Property, EntityData } from './AppointmentScheduler';
+interface Property {
+    id: string;
+    title: string;
+    name?: string;
+    price: number;
+    currency?: string;
+    location: any;
+    bedrooms?: number;
+    bathrooms?: number;
+    area?: number;
+    property_type?: string;
+    features?: any;
+}
+
+interface EntityData {
+    selectedLeadId?: string;
+    selectedAgentId?: string;
+    name?: string;
+    budget?: number;
+}
 
 interface ReviewStepProps {
     selectedDate: string;
@@ -120,7 +139,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                         <div className="bg-gray-100 dark:bg-gray-800 p-3 border-b">
                             <div className="flex justify-between items-center">
                                 <span className="font-medium">Propiedades para mostrar</span>
-                                <Badge color="blue">{selectedProperties.length}</Badge>
+                                <Badge>{selectedProperties.length}</Badge>
                             </div>
                         </div>
                         <div className="p-3 bg-white dark:bg-gray-900">
@@ -136,7 +155,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                                             </div>
                                             <div className="flex-grow">
                                                 <h4 className="font-medium">
-                                                    {property.name}
+                                                    {property.name || property.title}
                                                 </h4>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">
                                                     {property.location?.address || ''}

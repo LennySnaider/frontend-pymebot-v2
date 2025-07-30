@@ -124,7 +124,7 @@ const TextNodeConfig: React.FC<TextNodeConfigProps> = ({ data, onChange }) => {
                             <p className="text-sm font-medium text-amber-800">Modo espera activado</p>
                         </div>
                         <p className="text-xs text-amber-700 mt-1">
-                            Este mensaje mostrará un indicador de "escribiendo..." y luego esperará a que el usuario responda antes de continuar.
+                            Este mensaje mostrará un indicador de &quot;escribiendo...&quot; y luego esperará a que el usuario responda antes de continuar.
                             No necesitas conectar este nodo a un nodo de Entrada.
                         </p>
                     </div>

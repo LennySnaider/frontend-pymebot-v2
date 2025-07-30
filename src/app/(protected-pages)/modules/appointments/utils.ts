@@ -39,7 +39,7 @@ export const appointmentToCalendarEvent = (appointment: Appointment): CalendarEv
             propertyType: appointment.propertyType,
             appointmentStatus: appointment.status
         } as AppointmentMeta
-    }
+    } as any
 }
 
 /**
@@ -47,11 +47,11 @@ export const appointmentToCalendarEvent = (appointment: Appointment): CalendarEv
  */
 export const calendarEventToAppointment = (event: CalendarEvent): Appointment | null => {
     // Verificar que sea un evento de tipo cita inmobiliaria
-    if (!event.meta || (event.meta as AppointmentMeta).type !== 'real-estate-appointment') {
+    if (!(event as any).meta || ((event as any).meta as AppointmentMeta).type !== 'real-estate-appointment') {
         return null
     }
     
-    const meta = event.meta as AppointmentMeta
+    const meta = (event as any).meta as AppointmentMeta
     
     // Extraer fecha y hora del evento
     const startDate = new Date(event.start)
@@ -63,14 +63,14 @@ export const calendarEventToAppointment = (event: CalendarEvent): Appointment | 
         leadId: meta.leadId,
         date: formattedDate,
         time: formattedTime,
-        location: event.location || '',
+        location: (event as any).location || '',
         propertyType: meta.propertyType,
         agentId: meta.agentId,
         propertyIds: meta.propertyIds,
         status: meta.appointmentStatus,
-        notes: event.description,
-        createdAt: event.createdAt || new Date().toISOString(),
-        updatedAt: event.updatedAt || new Date().toISOString()
+        notes: (event as any).description,
+        createdAt: (event as any).createdAt || new Date().toISOString(),
+        updatedAt: (event as any).updatedAt || new Date().toISOString()
     }
 }
 

@@ -136,7 +136,7 @@ const CustomControl = ({ children, ...props }: ControlProps<EventOption>) => {
     )
 }
 
-const validationSchema: ZodType<FormSchema> = z.object({
+const validationSchema = z.object({
     type: z.union([
         z.literal('meeting'),
         z.literal('task'),

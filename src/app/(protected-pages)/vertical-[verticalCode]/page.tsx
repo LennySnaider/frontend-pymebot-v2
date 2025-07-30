@@ -26,10 +26,6 @@ import useVerticalRoutes from '@/hooks/core/useVerticalRoutes'
 import { VerticalModule } from '@/services/core/verticalsService'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/cards'
 
-interface VerticalDashboardPageProps {
-  params: { verticalCode: string };
-}
-
 /**
  * Página principal de una vertical - Dashboard
  * Muestra:
@@ -38,10 +34,9 @@ interface VerticalDashboardPageProps {
  * - Accesos rápidos a funciones principales
  * - Estadísticas resumen (si están disponibles)
  */
-export default function VerticalDashboardPage({ 
-  params 
-}: VerticalDashboardPageProps) {
-  const { verticalCode } = params
+export default function VerticalDashboardPage() {
+  const params = useParams()
+  const verticalCode = params.verticalCode as string
   const { verticalsService, modules, loadModules } = useVerticalRoutes()
   
   const [vertical, setVertical] = useState<any>(null)

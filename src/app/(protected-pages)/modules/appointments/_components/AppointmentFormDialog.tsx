@@ -266,9 +266,9 @@ const AppointmentFormDialog: React.FC<AppointmentFormDialogProps> = ({
             try {
                 const agentsList = await fetchFormData('agents')
                 const agentOptions = agentsList.map(
-                    (agent: { id: string; name: string }) => ({
+                    (agent: any) => ({
                         value: agent.id,
-                        label: agent.name,
+                        label: agent.full_name || agent.name || agent.email,
                     }),
                 )
                 console.log('[DEBUG] loadAgents: Setting agents state')
@@ -294,9 +294,9 @@ const AppointmentFormDialog: React.FC<AppointmentFormDialogProps> = ({
             try {
                 const leadsList = await fetchFormData('leads')
                 const leadOptions = leadsList.map(
-                    (lead: { id: string; full_name: string }) => ({
+                    (lead: any) => ({
                         value: lead.id,
-                        label: lead.full_name,
+                        label: lead.full_name || lead.name || lead.email,
                     }),
                 )
                 console.log('[DEBUG] loadLeads: Setting leads state')
@@ -340,16 +340,16 @@ const AppointmentFormDialog: React.FC<AppointmentFormDialogProps> = ({
                         '[DEBUG] loadLeadDetails: Lead data fetched:',
                         JSON.stringify(leadData),
                     )
-                    if (leadData.agent_id) {
+                    if ((leadData as any).agent_id) {
                         console.log(
                             '[DEBUG] loadLeadDetails: Setting agent_id:',
-                            leadData.agent_id,
+                            (leadData as any).agent_id,
                         )
-                        setValue('agent_id', leadData.agent_id, {
+                        setValue('agent_id', (leadData as any).agent_id, {
                             shouldDirty: true,
                             shouldTouch: true,
                         })
-                        agentToLoadPropsFor = leadData.agent_id // Marcar para cargar props con este agente
+                        agentToLoadPropsFor = (leadData as any).agent_id // Marcar para cargar props con este agente
                     } else {
                         console.log(
                             '[DEBUG] loadLeadDetails: No predefined agent.',
@@ -358,8 +358,8 @@ const AppointmentFormDialog: React.FC<AppointmentFormDialogProps> = ({
 
                     // Establecer property_ids (si existen)
                     const viewedPropertyIds: string[] = []
-                    if (leadData.lead_activities?.length > 0) {
-                        leadData.lead_activities.forEach(
+                    if ((leadData as any).lead_activities?.length > 0) {
+                        (leadData as any).lead_activities.forEach(
                             (activity: Record<string, unknown>) => {
                                 const metadata = activity.metadata as
                                     | Record<string, unknown>
@@ -384,12 +384,12 @@ const AppointmentFormDialog: React.FC<AppointmentFormDialogProps> = ({
                             shouldDirty: true,
                             shouldTouch: true,
                         })
-                    } else if (leadData.property_ids?.length > 0) {
+                    } else if ((leadData as any).property_ids?.length > 0) {
                         console.log(
                             '[DEBUG] loadLeadDetails: Setting property_ids from lead data:',
-                            leadData.property_ids,
+                            (leadData as any).property_ids,
                         )
-                        setValue('property_ids', leadData.property_ids, {
+                        setValue('property_ids', (leadData as any).property_ids, {
                             shouldDirty: true,
                             shouldTouch: true,
                         })

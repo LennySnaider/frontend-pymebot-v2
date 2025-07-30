@@ -29,14 +29,14 @@ export interface Member {
 
 // Esquema del formulario con campos para leads
 export interface FormSchema {
-    name: string
-    email: string
-    phone: string
-    interest: string
-    source: string
-    notes: string
-    assignedAgent: string
-    selectedProperties: string[]
+    name?: string
+    email?: string
+    phone?: string
+    interest?: string
+    source?: string
+    notes?: string
+    assignedAgent?: string
+    selectedProperties?: string[]
 }
 
 // Tipo para opciones de Select

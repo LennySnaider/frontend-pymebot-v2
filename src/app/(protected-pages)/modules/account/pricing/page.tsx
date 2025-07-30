@@ -5,10 +5,27 @@ import Faq from './_components/Faq'
 import PaymentDialog from './_components/PaymentDialog'
 import getPricingPlans from '@/server/actions/getPricingPlans'
 import type { PageProps } from '@/@types/common'
+import type { GetPricingPanResponse } from './types'
 
 export default async function Page({ searchParams }: PageProps) {
     const params = await searchParams
-    const data = await getPricingPlans()
+    const pricingPlans = await getPricingPlans()
+
+    // Convert PricingPlan[] to GetPricingPanResponse format
+    const data: GetPricingPanResponse = {
+        featuresModel: [],
+        plans: pricingPlans.map(plan => ({
+            id: plan.id,
+            name: plan.name,
+            description: plan.description,
+            price: {
+                monthly: plan.price.monthly,
+                annually: plan.price.yearly,
+            },
+            features: plan.features.map(f => f.id),
+            recommended: plan.popular || false,
+        }))
+    }
 
     return (
         <>

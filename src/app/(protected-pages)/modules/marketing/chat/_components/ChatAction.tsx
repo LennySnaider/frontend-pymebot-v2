@@ -25,7 +25,18 @@ type ChatActionProps = {
 
 const ChatAction = ({ muted, testAsLead, onToggleTestMode }: ChatActionProps) => {
     const dropdownRef = useRef<DropdownRef>(null)
-    const { isSuperAdmin } = useAuth()
+    
+    // Usar el hook de autenticación principal
+    const { isSuperAdmin, user, role } = useAuth()
+    
+    // Debug temporal
+    console.log('[ChatAction] Debug:', {
+        role,
+        user,
+        isSuperAdmin: isSuperAdmin(),
+        userEmail: user?.email
+    })
+    
     const selectedChat = useChatStore((state) => state.selectedChat)
     const setSelectedChat = useChatStore((state) => state.setSelectedChat)
     const deleteConversationRecord = useChatStore(

@@ -47,6 +47,7 @@ interface LeadCardProps extends CardProps {
     data: Lead
     ref?: Ref<HTMLDivElement>
     isDragging?: boolean
+    className?: string
 }
 
 const LeadCard = (props: LeadCardProps) => {
@@ -174,15 +175,16 @@ const LeadCard = (props: LeadCardProps) => {
         if (
             (!members || members.length === 0) &&
             metadata &&
-            metadata.agentId
+            'agentId' in metadata &&
+            (metadata as any).agentId
         ) {
             console.log(
                 'Detectado metadata.agentId sin miembros, ID:',
-                metadata.agentId,
+                (metadata as any).agentId,
             )
 
             // Hacer una consulta a la API para obtener los detalles del agente
-            fetch(`/api/agents/${metadata.agentId}`)
+            fetch(`/api/agents/${(metadata as any).agentId}`)
                 .then((res) => res.json())
                 .then((data) => {
                     if (data && data.agent) {

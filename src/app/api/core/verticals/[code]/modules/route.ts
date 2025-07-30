@@ -28,12 +28,6 @@ interface VerticalModule {
   updatedAt: string;
 }
 
-// Tipo para los parámetros de ruta
-type RouteParams = {
-  params: {
-    code: string;
-  };
-};
 
 /**
  * GET /api/core/verticals/[code]/modules
@@ -41,11 +35,12 @@ type RouteParams = {
  */
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ code: string }> }
 ) {
+  // Esperamos para acceder a los parámetros de ruta
+  const resolvedParams = await params;
   try {
-    // Esperamos para acceder a los parámetros de ruta
-    const { code } = await Promise.resolve(params);
+    const { code } = resolvedParams;
 
     // Obtener parámetros de consulta
     const searchParams = request.nextUrl.searchParams;
@@ -120,7 +115,7 @@ export async function GET(
       }
     });
   } catch (error) {
-    console.error(`Error obteniendo módulos para vertical ${params.code}:`, error);
+    console.error(`Error obteniendo módulos para vertical ${resolvedParams?.code || 'unknown'}:`, error);
     
     return NextResponse.json({
       error: 'Error interno al obtener módulos',
@@ -135,11 +130,12 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ code: string }> }
 ) {
+  // Esperamos para acceder a los parámetros de ruta
+  const resolvedParams = await params;
   try {
-    // Esperamos para acceder a los parámetros de ruta
-    const { code } = await Promise.resolve(params);
+    const { code } = resolvedParams;
 
     // Verificar permisos (super_admin)
     const headersList = await headers();
@@ -183,7 +179,7 @@ export async function POST(
       }
     }, { status: 201 });
   } catch (error) {
-    console.error(`Error creando módulo para vertical ${params.code}:`, error);
+    console.error(`Error creando módulo para vertical ${resolvedParams?.code || 'unknown'}:`, error);
     
     return NextResponse.json({
       error: 'Error interno al crear módulo',

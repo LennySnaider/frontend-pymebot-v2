@@ -178,7 +178,7 @@ const RolesPermissionsAccessDialog = () => {
             
             return moduleCode && activeModuleCodes.includes(moduleCode)
         })
-    }, [tenantModules, modulesLoading, userRole])
+    }, [tenantModules, modulesLoading, userRole, moduleCodeToPermissionId])
 
     return (
         <>

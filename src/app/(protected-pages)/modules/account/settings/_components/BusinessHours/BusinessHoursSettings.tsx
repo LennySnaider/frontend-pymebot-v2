@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, Button, Switcher, Input, Notification, toast } from '@/components/ui';
 import { DaySchedule } from './types';
 
@@ -32,7 +32,7 @@ const BusinessHoursSettings = () => {
   const [schedules, setSchedules] = useState<DaySchedule[]>([]);
   
   // Día por defecto (nombres en español)
-  const dayNames = [
+  const dayNames = useMemo(() => [
     'Domingo',
     'Lunes',
     'Martes',
@@ -40,14 +40,9 @@ const BusinessHoursSettings = () => {
     'Jueves',
     'Viernes',
     'Sábado',
-  ];
+  ], []);
   
-  useEffect(() => {
-    // Cargar horarios al inicio
-    fetchBusinessHours();
-  }, []);
-  
-  const fetchBusinessHours = async () => {
+  const fetchBusinessHours = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/business/hours');
@@ -93,7 +88,12 @@ const BusinessHoursSettings = () => {
       console.error('Error al cargar horarios:', error);
       setLoading(false);
     }
-  };
+  }, [t, dayNames]);
+  
+  useEffect(() => {
+    // Cargar horarios al inicio
+    fetchBusinessHours();
+  }, [fetchBusinessHours]);
   
   const handleToggleClosed = (index: number) => {
     setSchedules((prevSchedules) => {
@@ -153,7 +153,7 @@ const BusinessHoursSettings = () => {
       );
       
       // Recargar datos
-      fetchBusinessHours();
+      await fetchBusinessHours();
     } catch (error: any) {
       console.error('Error al guardar horarios:', error);
       toast.push(

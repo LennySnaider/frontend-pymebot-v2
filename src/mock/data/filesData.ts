@@ -32,4 +32,6 @@ export const filesData: FileData[] = [
   }
 ]
 
+export const fileListData = filesData
+
 export default filesData

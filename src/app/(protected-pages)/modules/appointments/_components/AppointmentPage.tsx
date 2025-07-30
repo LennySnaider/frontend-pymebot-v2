@@ -3,15 +3,13 @@
 import React from 'react'
 import CalendarProvider from '../calendar-view/_components/CalendarProvider'
 import AppointmentCalendarView from './AppointmentCalendarView'
-import type { CalendarEvents } from '../calendar-view/types'
-
 interface AppointmentPageProps {
-    initialEvents: CalendarEvents
+    initialEvents: any[]
 }
 
 const AppointmentPage: React.FC<AppointmentPageProps> = ({ initialEvents }) => {
     return (
-        <CalendarProvider events={initialEvents}>
+        <CalendarProvider>
             <div className="h-full">
                 <AppointmentCalendarView />
             </div>

@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
 /**
  * GET - Ruta anidada para análisis de conversación
  */
-export async function analysis(req: NextRequest) {
+async function analysis(req: NextRequest) {
     try {
         // Verificar la API key
         const apiKey = req.headers.get('x-api-key') || req.nextUrl.searchParams.get('api_key')

@@ -22,7 +22,7 @@ import {
     TbPlus,
 } from 'react-icons/tb'
 import { useRouter } from 'next/navigation'
-import { useScrumBoardStore } from '../_store/scrumBoardStore'
+import { useSalesFunnelStore } from '../_store/salesFunnelStore'
 import type { Member } from '../types'
 
 interface BoardViewSwitcherProps {
@@ -38,7 +38,7 @@ const BoardViewSwitcher = ({
 }: BoardViewSwitcherProps) => {
     const t = useTranslations('scrumboard')
     const router = useRouter()
-    const { updateDialogView, openDialog } = useScrumBoardStore()
+    const { updateDialogView, openDialog } = useSalesFunnelStore()
 
     // Manejadores de eventos
     const onAddMember = () => {

@@ -31,7 +31,7 @@ export default function PermissionsGuidePage() {
 
       {/* Solo mostrar la guía a super_admin */}
       <RoleGate 
-        allowedRoles={['super_admin']}
+        role="super_admin"
         fallback={
           <div className="bg-yellow-100 dark:bg-yellow-900/30 p-6 rounded-lg border border-yellow-200 dark:border-yellow-800">
             <h4 className="text-yellow-800 dark:text-yellow-400 font-medium text-lg mb-2">

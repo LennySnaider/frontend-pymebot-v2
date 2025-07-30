@@ -38,7 +38,7 @@ const PermissionGuideExample = () => {
           
           <div className="space-y-2">
             <RoleGate 
-              allowedRoles="super_admin"
+              role="super_admin"
               fallback={<p className="text-gray-500">Este contenido solo es visible para super_admin</p>}
             >
               <p className="text-green-600 dark:text-green-400">
@@ -47,7 +47,7 @@ const PermissionGuideExample = () => {
             </RoleGate>
             
             <RoleGate 
-              allowedRoles={['super_admin', 'tenant_admin']}
+              role="tenant_admin"
               fallback={<p className="text-gray-500">Este contenido es visible para super_admin o tenant_admin</p>}
             >
               <p className="text-green-600 dark:text-green-400">
@@ -60,11 +60,11 @@ const PermissionGuideExample = () => {
         <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
           <h4 className="font-semibold mb-2">Ejemplo de código:</h4>
           <pre className="bg-gray-800 text-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`<RoleGate allowedRoles="super_admin">
+{`<RoleGate role="super_admin">
   <AdminPanel />
 </RoleGate>
 
-<RoleGate allowedRoles={['super_admin', 'tenant_admin']}>
+<RoleGate role="tenant_admin">
   <TenantSettings />
 </RoleGate>`}
           </pre>
@@ -90,7 +90,7 @@ const PermissionGuideExample = () => {
             </PermissionGate>
             
             <PermissionGate 
-              permissionType={['edit', 'create']}
+              permissionType="edit"
               scope={{ vertical: 'salon', module: 'clients' }}
               fallback={<p className="text-gray-500">No tienes permisos para editar o crear clientes</p>}
             >
@@ -183,7 +183,7 @@ const PermissionGuideExample = () => {
               fallback={
                 <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 p-3 rounded-md">
                   ⚠️ Esta característica requiere un plan Premium. 
-                  <Button size="sm" className="ml-2" variant="outline">Actualizar Plan</Button>
+                  <Button size="sm" className="ml-2" variant="plain">Actualizar Plan</Button>
                 </div>
               }
             >
@@ -244,7 +244,7 @@ const PermissionGuideExample = () => {
                   permissionType="manage"
                   scope={{ module: 'billing' }}
                   hideOnNoPermission
-                  variant="outline"
+                  variant="plain"
                 >
                   Gestionar Facturación
                 </PermissionButton>
@@ -253,7 +253,7 @@ const PermissionGuideExample = () => {
                   permissionType="approve"
                   scope={{ vertical: 'medical', module: 'prescriptions' }}
                   hideOnNoPermission
-                  variant="outline"
+                  variant="plain"
                   color="green"
                 >
                   Aprobar Receta

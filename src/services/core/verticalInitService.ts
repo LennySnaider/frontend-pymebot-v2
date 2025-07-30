@@ -170,11 +170,39 @@ class VerticalInitService {
     tenantId: string, 
     options: { forceRefresh?: boolean } = {}
   ): Promise<Record<string, boolean>> {
+    // TEMPORAL: Retornar inmediatamente para evitar bucles
+    console.log(`initializeAllTenantVerticals - TEMPORALMENTE DESACTIVADO para tenant ${tenantId}`);
+    return {
+      bienes_raices: true,
+      dashboard: true
+    };
+    
+    /* Código original comentado temporalmente para detener el bucle
     try {
       console.log(`Inicializando verticales para tenant ${tenantId}...`);
       
       // Obtener permisos del tenant para determinar verticales disponibles
       const permissions = await permissionsService.getTenantPermissions(tenantId);
+      
+      console.log('Permisos obtenidos:', permissions);
+      
+      // Verificar que permissions tenga la estructura esperada
+      if (!permissions || typeof permissions !== 'object') {
+        console.error('Permisos no válidos:', permissions);
+        return {};
+      }
+      
+      // Verificar específicamente la propiedad verticals
+      if (!permissions.verticals || !Array.isArray(permissions.verticals)) {
+        console.error('Estructura de permisos inválida - falta verticals:', permissions);
+        // Usar verticales por defecto
+        const defaultVerticals = ['dashboard'];
+        console.log(`Usando verticales por defecto: ${defaultVerticals.join(', ')}`);
+        return await this.initializeVerticals(defaultVerticals, {
+          tenantId,
+          forceRefresh: options.forceRefresh
+        });
+      }
       
       // Filtrar verticales habilitadas
       const activeVerticals = permissions.verticals
@@ -197,6 +225,7 @@ class VerticalInitService {
       console.error(`Error inicializando verticales para tenant ${tenantId}:`, error);
       return {};
     }
+    */
   }
   
   /**

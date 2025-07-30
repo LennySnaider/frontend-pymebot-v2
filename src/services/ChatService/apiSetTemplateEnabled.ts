@@ -19,7 +19,7 @@ const apiSetTemplateEnabled = async (
 ): Promise<{success: boolean, errorMessage?: string}> => {
     try {
         // Agregar timeout a axios
-        const response = await axios.post('/api/chatbot/templates/set-enabled', {
+        const response = await axios.post('/api/templates/set-enabled', {
             templateId,
             isEnabled,
         }, {

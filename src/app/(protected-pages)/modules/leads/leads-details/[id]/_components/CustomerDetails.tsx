@@ -5,10 +5,8 @@ import Tabs from '@/components/ui/tabs'
 import ProfileSection from './ProfileSection'
 import BillingSection from './BillingSection'
 import ActivitySection from './ActivitySection'
-import type { Customer } from '../types'
-
 type CustomerDetailsProps = {
-    data: Customer
+    data: any
 }
 
 const { TabNav, TabList, TabContent } = Tabs
@@ -31,7 +29,7 @@ const CustomerDetails = ({ data }: CustomerDetailsProps) => {
                         </TabContent>
                         <TabContent value="activity">
                             <ActivitySection
-                                customerName={data.name}
+                                leadName={data.name}
                                 id={data.id}
                             />
                         </TabContent>

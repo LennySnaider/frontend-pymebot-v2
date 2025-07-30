@@ -8,8 +8,9 @@ import { generateAvailability } from '../availability-generator';
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { date: string } }
+  { params }: { params: Promise<{ date: string }> }
 ) {
+  const resolvedParams = await params
   try {
     // Verificar tenant
     const tenantResult = await getTenantFromRequest(req);
@@ -21,7 +22,7 @@ export async function GET(
     const { tenant_id } = tenantResult;
     
     // Obtener parámetros
-    const { date } = params;
+    const { date } = resolvedParams;
     
     // Obtener parámetros de consulta
     const searchParams = req.nextUrl.searchParams;

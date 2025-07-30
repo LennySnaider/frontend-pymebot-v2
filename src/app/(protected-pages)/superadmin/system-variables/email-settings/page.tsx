@@ -237,7 +237,7 @@ const EmailSettingsPage: React.FC = () => {
         
         <h3 className="font-medium mb-1">Notas importantes:</h3>
         <ul className="list-disc list-inside text-gray-600 space-y-1">
-          <li>El "Email Remitente" debe estar verificado en tu cuenta de Resend</li>
+          <li>El &quot;Email Remitente&quot; debe estar verificado en tu cuenta de Resend</li>
           <li>Para envíos masivos, asegúrate de configurar correctamente tu dominio en Resend</li>
           <li>El plan gratuito de Resend tiene limitaciones en el número de emails</li>
         </ul>

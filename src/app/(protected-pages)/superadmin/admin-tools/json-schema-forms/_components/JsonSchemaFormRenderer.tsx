@@ -977,7 +977,7 @@ const schema = ${JSON.stringify(createZodSchemaFromJsonSchema(currentSchema).sha
                         <div>
                             <h6 className="font-medium mb-1">Paso 1: Seleccione un esquema</h6>
                             <p className="text-gray-600 dark:text-gray-400">
-                                Elija uno de los esquemas predefinidos o cargue un esquema JSON personalizado en la pestaña "Esquema JSON".
+                                Elija uno de los esquemas predefinidos o cargue un esquema JSON personalizado en la pestaña &quot;Esquema JSON&quot;.
                             </p>
                         </div>
                         
@@ -991,14 +991,14 @@ const schema = ${JSON.stringify(createZodSchemaFromJsonSchema(currentSchema).sha
                         <div>
                             <h6 className="font-medium mb-1">Paso 3: Valide y visualice</h6>
                             <p className="text-gray-600 dark:text-gray-400">
-                                Haga clic en "Validar Formulario" para ver los datos en formato JSON en la pestaña "Vista de Datos".
+                                Haga clic en &quot;Validar Formulario&quot; para ver los datos en formato JSON en la pestaña &quot;Vista de Datos&quot;.
                             </p>
                         </div>
                         
                         <div>
                             <h6 className="font-medium mb-1">Paso 4: Genere código</h6>
                             <p className="text-gray-600 dark:text-gray-400">
-                                Use las pestañas "Código" y "Validación" para obtener el código del formulario y su esquema de validación.
+                                Use las pestañas &quot;Código&quot; y &quot;Validación&quot; para obtener el código del formulario y su esquema de validación.
                             </p>
                         </div>
 

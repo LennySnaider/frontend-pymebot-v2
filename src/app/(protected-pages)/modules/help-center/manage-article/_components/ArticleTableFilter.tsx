@@ -18,9 +18,9 @@ type FormSchema = {
     category: Array<string>
 }
 
-const validationSchema: ZodType<FormSchema> = z.object({
+const validationSchema = z.object({
     category: z.array(z.string()),
-})
+}) as ZodType<FormSchema>
 
 const ArticleTableFilter = () => {
     const [filterIsOpen, setFilterIsOpen] = useState(false)

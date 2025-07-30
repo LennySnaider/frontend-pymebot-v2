@@ -7,8 +7,8 @@
 
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect, useCallback } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { toastHelpers } from '@/utils/toast-helpers'
 import HeaderBreadcrumbs from '@/components/shared/HeaderBreadcrumbs'
@@ -33,16 +33,11 @@ interface ActivationData {
     config_data: any
 }
 
-interface PageProps {
-    params: {
-        id: string
-    }
-}
-
-const ConfigureActivationPage = ({ params }: PageProps) => {
+const ConfigureActivationPage = () => {
     const router = useRouter()
-    const { id: activationId } = params
     const { user } = useAuth()
+    const params = useParams()
+    const activationId = params.id as string
     
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -50,15 +45,8 @@ const ConfigureActivationPage = ({ params }: PageProps) => {
     const [configFields, setConfigFields] = useState<any[]>([])
     const [flowPreview, setFlowPreview] = useState<any>(null)
     
-    // Cargar datos de la activación
-    useEffect(() => {
-        if (activationId) {
-            fetchActivationData(activationId)
-        }
-    }, [activationId])
-    
     // Cargar datos de la activación, su configuración y la estructura del flujo
-    const fetchActivationData = async (id: string) => {
+    const fetchActivationData = useCallback(async (id: string) => {
         try {
             setLoading(true)
             
@@ -116,7 +104,14 @@ const ConfigureActivationPage = ({ params }: PageProps) => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [router])
+    
+    // Cargar datos de la activación
+    useEffect(() => {
+        if (activationId) {
+            fetchActivationData(activationId)
+        }
+    }, [activationId, fetchActivationData])
     
     // Analizar la estructura del flujo para extraer campos configurables
     const extractConfigurableFields = (flowJson: any) => {

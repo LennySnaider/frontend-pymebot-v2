@@ -35,6 +35,16 @@ export default auth(async (req) => {
     const { nextUrl } = req
     const isSignedIn = !!req.auth
     
+    // Debug temporal para rutas de API
+    if (nextUrl.pathname.startsWith('/api/tenants')) {
+        console.log('=== Middleware Debug - API Tenants ===');
+        console.log('URL completa:', req.url);
+        console.log('Pathname:', nextUrl.pathname);
+        console.log('Method:', req.method);
+        console.log('Auth:', req.auth);
+        console.log('====================================');
+    }
+    
     // Obtener token JWT para información adicional
     const token = await getToken({ req })
     

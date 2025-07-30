@@ -1,6 +1,6 @@
 'use client'
 
-import BoardCard from './BoardCard'
+// import BoardCard from './BoardCard' // Temporalmente comentado para build
 import {
     Draggable,
     Droppable,
@@ -45,13 +45,16 @@ function InnerList(props: InnerListProps) {
                         index={index}
                     >
                         {(dragProvided) => (
-                            <BoardCard
-                                ref={dragProvided.innerRef}
-                                data={item}
-                                {...rest}
-                                {...dragProvided.draggableProps}
-                                {...dragProvided.dragHandleProps}
-                            />
+                            <div>
+                                {/* <BoardCard
+                                    ref={dragProvided.innerRef}
+                                    data={item}
+                                    {...rest}
+                                    {...dragProvided.draggableProps}
+                                    {...dragProvided.dragHandleProps}
+                                /> */}
+                                Temporalmente deshabilitado
+                            </div>
                         )}
                     </Draggable>
                 ))}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Dialog, Input, DatePicker, TimeInput, Notification, toast } from '@/components/ui';
 import Table from '@/components/ui/Table';
 import { Tr, Th, Td, THead, TBody } from '@/components/ui/Table';
@@ -56,12 +56,7 @@ const ExceptionsSettings = () => {
     reason: '',
   });
   
-  useEffect(() => {
-    // Cargar excepciones al inicio
-    fetchExceptions();
-  }, []);
-  
-  const fetchExceptions = async () => {
+  const fetchExceptions = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/business/hours/exceptions');
@@ -110,7 +105,12 @@ const ExceptionsSettings = () => {
       console.error('Error al cargar excepciones:', error);
       setLoading(false);
     }
-  };
+  }, [t]);
+  
+  useEffect(() => {
+    // Cargar excepciones al inicio
+    fetchExceptions();
+  }, [fetchExceptions]);
   
   const handleInputChange = (field: keyof DateException, value: any) => {
     setNewException((prev) => ({
@@ -190,7 +190,7 @@ const ExceptionsSettings = () => {
       
       // Cerrar modal y recargar datos
       handleCloseModal();
-      fetchExceptions();
+      await fetchExceptions();
     } catch (error: any) {
       console.error('Error al guardar excepción:', error);
       toast.push(
@@ -218,7 +218,7 @@ const ExceptionsSettings = () => {
       );
       
       // Recargar datos
-      fetchExceptions();
+      await fetchExceptions();
     } catch (error) {
       console.error('Error al eliminar excepción:', error);
       toast.push(
@@ -255,7 +255,7 @@ const ExceptionsSettings = () => {
       key: 'status',
       title: t('appointments.settings.exceptions.status'),
       render: (_, row: DateException) => {
-        const isClosed = row.is_closed === true || row.is_closed === 'true';
+        const isClosed = Boolean(row.is_closed);
         return isClosed ? (
           <Tag className="text-red-600 bg-red-100 dark:text-red-100 dark:bg-red-500/20 border-0">
             {t('appointments.settings.exceptions.closed')}
@@ -272,7 +272,7 @@ const ExceptionsSettings = () => {
       title: t('appointments.settings.exceptions.hours'),
       render: (_, row: DateException) => {
         // Asegurar que is_closed se trate tanto como boolean como string
-        const isClosed = row.is_closed === true || row.is_closed === 'true';
+        const isClosed = Boolean(row.is_closed);
         
         // Si está cerrado, mostrar un guion
         if (isClosed) {
@@ -297,7 +297,7 @@ const ExceptionsSettings = () => {
       render: (_, row: DateException) => (
         <Button
           size="sm"
-          variant="twoTone"
+          variant="solid"
           color="red"
           onClick={() => handleDeleteException(row.id || '')}
           disabled={!row.id}
@@ -426,7 +426,7 @@ const ExceptionsSettings = () => {
                 {t('appointments.settings.exceptions.open_time')}
               </label>
               <TimeInput
-                value={newException.open_time || ''}
+                value={newException.open_time ? new Date(`1970-01-01T${newException.open_time}:00`) : undefined}
                 onChange={(value) => {
                   // Cuando recibimos un valor desde TimeInput, es un objeto Date
                   // pero necesitamos convertirlo a string en formato HH:MM
@@ -442,7 +442,7 @@ const ExceptionsSettings = () => {
                 {t('appointments.settings.exceptions.close_time')}
               </label>
               <TimeInput
-                value={newException.close_time || ''}
+                value={newException.close_time ? new Date(`1970-01-01T${newException.close_time}:00`) : undefined}
                 onChange={(value) => {
                   // Cuando recibimos un valor desde TimeInput, es un objeto Date
                   // pero necesitamos convertirlo a string en formato HH:MM

@@ -27,10 +27,10 @@ const channelList = [
     'Direct Sales',
 ]
 
-const validationSchema: ZodType<FormSchema> = z.object({
+const validationSchema = z.object({
     purchasedProducts: z.string(),
     purchaseChannel: z.array(z.string()),
-})
+}) as ZodType<FormSchema>
 
 const CustomerListTableFilter = () => {
     const [dialogIsOpen, setIsOpen] = useState(false)

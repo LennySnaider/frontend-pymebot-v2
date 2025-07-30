@@ -4,8 +4,9 @@ import { auth } from '@/auth'
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const resolvedParams = await params
     try {
         const body = await request.json()
         
@@ -20,7 +21,7 @@ export async function PUT(
         }
         
         // Verificar que el usuario esté actualizando su propio perfil
-        if (session.user.id !== String(params?.id || '')) {
+        if (session.user.id !== String(resolvedParams?.id || '')) {
             return NextResponse.json(
                 { error: 'No autorizado para actualizar este perfil' },
                 { status: 403 }
@@ -43,7 +44,7 @@ export async function PUT(
         const { data: userRole } = await serviceSupabase
             .from('users')
             .select('role')
-            .eq('id', String(params?.id || ''))
+            .eq('id', String(resolvedParams?.id || ''))
             .single()
         
         if (!userRole || userRole.role !== 'agent') {
@@ -61,7 +62,7 @@ export async function PUT(
                 phone: body.phone,
                 updated_at: new Date().toISOString()
             })
-            .eq('id', String(params?.id || ''))
+            .eq('id', String(resolvedParams?.id || ''))
         
         if (userError) {
             return NextResponse.json(
@@ -81,7 +82,7 @@ export async function PUT(
                 languages: body.languages,
                 updated_at: new Date().toISOString()
             })
-            .eq('user_id', String(params?.id || ''))
+            .eq('user_id', String(resolvedParams?.id || ''))
         
         if (agentError) {
             return NextResponse.json(

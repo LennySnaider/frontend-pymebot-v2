@@ -16,7 +16,7 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3090';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -28,7 +28,8 @@ export async function GET(
       );
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/product-categories/${params.id}`, {
+    const resolvedParams = await params;
+    const response = await fetch(`${BACKEND_URL}/api/product-categories/${resolvedParams.id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -49,7 +50,7 @@ export async function GET(
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error(`Error in GET /api/product-categories/${params.id}:`, error);
+    console.error(`Error in GET /api/product-categories/${resolvedParams?.id || 'unknown'}:`, error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -63,7 +64,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -75,9 +76,10 @@ export async function PUT(
       );
     }
 
+    const resolvedParams = await params;
     const body = await request.json();
 
-    const response = await fetch(`${BACKEND_URL}/api/product-categories/${params.id}`, {
+    const response = await fetch(`${BACKEND_URL}/api/product-categories/${resolvedParams.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -99,7 +101,7 @@ export async function PUT(
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error(`Error in PUT /api/product-categories/${params.id}:`, error);
+    console.error(`Error in PUT /api/product-categories/${resolvedParams?.id || 'unknown'}:`, error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -113,7 +115,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -125,7 +127,8 @@ export async function DELETE(
       );
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/product-categories/${params.id}`, {
+    const resolvedParams = await params;
+    const response = await fetch(`${BACKEND_URL}/api/product-categories/${resolvedParams.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -146,7 +149,7 @@ export async function DELETE(
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error(`Error in DELETE /api/product-categories/${params.id}:`, error);
+    console.error(`Error in DELETE /api/product-categories/${resolvedParams?.id || 'unknown'}:`, error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

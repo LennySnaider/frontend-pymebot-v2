@@ -21,7 +21,7 @@ interface AppointmentData {
 
 const AppointmentValidationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const t = useTranslation();
   
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,7 @@ const AppointmentValidationPage: React.FC = () => {
     return (
       <div className="h-screen flex flex-col items-center justify-center p-4">
         <Card className="w-full max-w-md p-6 text-center">
-          <Spinner size={50} className="mx-auto mb-4" />
+          <Spinner size="lg" className="mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">{t('Validando cita')}</h1>
           <p className="text-gray-500">{t('Por favor espera mientras verificamos tu cita...')}</p>
         </Card>

@@ -135,7 +135,6 @@ const RolesPermissionsUserAction = () => {
                             handleStatusChange(option?.value || '')
                         }
                         // Para prevenir error de hidratación
-                        aria={{ activedescendant: undefined }}
                     />
                 </SafeHydration>
                 <SafeHydration fallback={<div className="min-w-[150px] h-9 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>}>
@@ -154,7 +153,6 @@ const RolesPermissionsUserAction = () => {
                         )}
                         onChange={(option) => handleRoleChange(option?.value || '')}
                         // Para prevenir error de hidratación
-                        aria={{ activedescendant: undefined }}
                     />
                 </SafeHydration>
             </div>

@@ -8,7 +8,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import HeaderBreadcrumbs from '@/components/shared/HeaderBreadcrumbs'
 import { HiArrowDown, HiOutlineArrowLeft } from 'react-icons/hi'
 // Importar el hook useTranslations para internacionalización si es necesario
@@ -17,15 +17,10 @@ import { HiArrowDown, HiOutlineArrowLeft } from 'react-icons/hi'
 // Importar el nuevo componente para reemplazar ChatbotFlowBuilder
 import FixedChatbotEditor from '@/components/view/ChatbotBuilder/FixedChatbotEditor'
 
-interface PageProps {
-    params: {
-        id: string
-    }
-}
-
-const ChatbotTemplatePage = ({ params }: PageProps) => {
+const ChatbotTemplatePage = () => {
     const router = useRouter()
-    const { id } = params
+    const params = useParams()
+    const id = params.id as string
     // const t = useTranslations('ChatbotBuilder'); // Descomentar si se usa i18n
 
     // Estado para el nombre de la plantilla y carga

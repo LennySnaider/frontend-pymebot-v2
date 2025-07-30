@@ -23,13 +23,13 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
             <div className="max-w-[1200px] mx-auto w-full">
                 <div className="flex flex-col gap-2">
                     <EditArticleHeader
-                        {...data}
-                        tags={data.tags.map((tag) => ({
+                        {...(data as any)}
+                        tags={(data as any).tags.map((tag: any) => ({
                             ...tag,
                             id: tag.id.toString(),
                         }))}
                     />
-                    <EditArticleBody content={data.content} />
+                    <EditArticleBody content={(data as any).content} />
                 </div>
             </div>
             <EditArticleFooter />

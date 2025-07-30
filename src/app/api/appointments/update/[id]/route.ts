@@ -12,10 +12,11 @@ import { updateAppointment } from '@/server/actions/appointments/updateAppointme
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = String(params?.id || '')
+    const resolvedParams = await params;
+    const id = String(resolvedParams?.id || '')
     
     // Validar que el ID existe
     if (!id) {

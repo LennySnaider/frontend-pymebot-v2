@@ -133,7 +133,7 @@ const PropertySelectionStep: React.FC<PropertySelectionStepProps> = ({
                 {/* Overlay de Carga */}
                 {isLoadingProperties && (
                     <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 flex justify-center items-center z-20 rounded-md">
-                        <Spinner size={40} />
+                        <Spinner size="lg" />
                     </div>
                 )}
                 {/* Contenido (Propiedades o Mensaje Vacío) */}
@@ -187,12 +187,12 @@ const PropertySelectionStep: React.FC<PropertySelectionStepProps> = ({
                                 </div>
                                 <div className="p-3">
                                     <h4 className="font-semibold text-gray-800 dark:text-gray-100 truncate mb-1">
-                                        {property.name}
+                                        {(property as any).name || (property as any).title}
                                     </h4>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 truncate">
-                                        {property.location?.address || ''}{' '}
-                                        {property.location?.city
-                                            ? `, ${property.location.city}`
+                                        {(property as any).location?.address || ''}{' '}
+                                        {(property as any).location?.city
+                                            ? `, ${(property as any).location.city}`
                                             : ''}
                                     </p>
                                     <div className="flex justify-between items-center mb-2">

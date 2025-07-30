@@ -27,9 +27,9 @@ const AddNewColumnContent = () => {
     const t = useTranslations('scrumboard')
     const tCommon = useTranslations('common')
 
-    const validationSchema: ZodType<FormSchema> = z.object({
+    const validationSchema = z.object({
         title: z.string().min(1, t('columns.validation.titleRequired')),
-    })
+    }) as ZodType<FormSchema>
 
     const {
         columns,

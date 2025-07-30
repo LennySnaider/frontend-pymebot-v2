@@ -26,11 +26,11 @@ import type { Filter } from '../types'
 
 type FormSchema = Filter
 
-const validationSchema: ZodType<FormSchema> = z.object({
-    status: z.array(z.string()),
-    propertyType: z.array(z.string()),
-    agentId: z.string(),
-    dateRange: z.tuple([z.string().nullable(), z.string().nullable()])
+const validationSchema = z.object({
+    status: z.array(z.string()).default([]),
+    propertyType: z.array(z.string()).default([]),
+    agentId: z.string().default(''),
+    dateRange: z.tuple([z.string().nullable(), z.string().nullable()]).default([null, null])
 })
 
 const AppointmentListTableFilter = () => {
@@ -152,7 +152,7 @@ const AppointmentListTableFilter = () => {
                             control={control}
                             render={({ field }) => (
                                 <DatePicker.DatePickerRange 
-                                    value={field.value}
+                                    value={field.value as any}
                                     onChange={field.onChange}
                                 />
                             )}

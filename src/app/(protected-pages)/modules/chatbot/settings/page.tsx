@@ -19,11 +19,11 @@ import { Smartphone, MessageSquare, Settings, Bell } from 'lucide-react'
  * Página de configuraciones del chatbot
  */
 export default function ChatbotSettings() {
-  const { session } = useAuth()
+  const { user, tenantId: authTenantId } = useAuth()
   const [activeTab, setActiveTab] = useState('whatsapp')
   
   // Obtener tenant_id del usuario actual
-  const tenantId = session?.user?.app_metadata?.tenant_id || ''
+  const tenantId = authTenantId || ''
   
   if (!tenantId) {
     return (
@@ -61,7 +61,7 @@ export default function ChatbotSettings() {
     <div className="container mx-auto px-4 py-6">
       <PageHeader
         title="Configuración del Chatbot"
-        desc="Personaliza y configura los canales de comunicación y comportamiento del chatbot"
+        description="Personaliza y configura los canales de comunicación y comportamiento del chatbot"
       />
       
       <div className="mt-6">

@@ -38,10 +38,10 @@ const AgentColorLegend = () => {
     
     // Rellenar el mapa de agentes desde las citas
     appointments.forEach(appointment => {
-      if (appointment.agent_id && appointment.agentName) {
+      if (appointment.agent_id && (appointment as any).agentName) {
         agentMap[appointment.agent_id] = {
           id: appointment.agent_id,
-          name: appointment.agentName
+          name: (appointment as any).agentName
         }
       }
     })

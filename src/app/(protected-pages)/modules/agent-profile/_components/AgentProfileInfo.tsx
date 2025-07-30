@@ -110,7 +110,6 @@ export default function AgentProfileInfo({ agent, user }: AgentProfileInfoProps)
                                 required: tCommon('required')
                             })}
                             placeholder="Juan Pérez"
-                            error={errors.fullName?.message || undefined}
                         />
                     </div>
                     
@@ -128,10 +127,10 @@ export default function AgentProfileInfo({ agent, user }: AgentProfileInfoProps)
                         <label className="mb-1 block">
                             {t('fields.bio')}
                         </label>
-                        <Input
+                        <textarea
                             {...register('bio')}
-                            as="textarea"
                             rows={3}
+                            className="input input-md h-auto"
                             placeholder={t('placeholders.bioPlaceholder')}
                         />
                     </div>

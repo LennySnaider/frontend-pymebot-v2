@@ -7,7 +7,7 @@ import { createServiceClient } from '@/services/supabase/server';
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Obtener la sesión usando NextAuth
@@ -38,7 +38,8 @@ export async function PUT(
       );
     }
     
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     
     // Obtener los datos del body
     let appointmentType;
@@ -116,7 +117,7 @@ export async function PUT(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Obtener la sesión usando NextAuth
@@ -147,7 +148,8 @@ export async function DELETE(
       );
     }
     
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     
     // Crear cliente de Supabase con permisos de servicio
     const supabase = createServiceClient();

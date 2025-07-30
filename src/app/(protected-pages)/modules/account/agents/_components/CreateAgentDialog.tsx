@@ -12,7 +12,7 @@ import { FormItem, Form } from '@/components/ui/Form'
 import Select from '@/components/ui/Select'
 import { useAgentContext } from './AgentProvider'
 import { useForm, Controller } from 'react-hook-form'
-import { toast } from '@/components/ui/toast'
+import { toast } from '@/components/ui'
 import type { CreateAgentData } from '../types'
 
 const specializationOptions = [
@@ -58,17 +58,13 @@ export default function CreateAgentDialog() {
                 throw new Error('Error al crear agente')
             }
             
-            toast.push('Agente creado exitosamente', {
-                type: 'success'
-            })
+            toast.push('Agente creado exitosamente')
             
             reset()
             closeCreateDialog()
             await refreshAgents()
         } catch (error) {
-            toast.push('Error al crear el agente', {
-                type: 'danger'
-            })
+            toast.push('Error al crear el agente')
         } finally {
             setIsSubmitting(false)
         }

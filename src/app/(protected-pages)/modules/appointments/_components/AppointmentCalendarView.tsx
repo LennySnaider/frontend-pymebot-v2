@@ -8,7 +8,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Calendar from '@/components/shared/CalendarView'
 import { useAppointmentStore } from '../_store/appointmentStore'
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns'
@@ -36,7 +36,7 @@ const AppointmentCalendarView = () => {
     } = useAppointmentStore()
     
     // Función para cargar las citas del mes actual
-    const loadAppointmentsForCurrentMonth = async () => {
+    const loadAppointmentsForCurrentMonth = useCallback(async () => {
         try {
             const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd')
             const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd')
@@ -51,12 +51,12 @@ const AppointmentCalendarView = () => {
                 { placement: 'top-center' }
             )
         }
-    }
+    }, [currentDate, fetchCalendarAppointments])
     
     // Cargar citas cuando cambia el mes
     useEffect(() => {
         loadAppointmentsForCurrentMonth()
-    }, [currentDate])
+    }, [loadAppointmentsForCurrentMonth])
     
     // Manejar cambio de mes
     const handleChangeMonth = (direction: 'prev' | 'next') => {
@@ -115,7 +115,7 @@ const AppointmentCalendarView = () => {
         <div className="h-full flex flex-col">
             {isLoading && (
                 <div className="flex justify-center p-4">
-                    <Spinner size={40} />
+                    <Spinner />
                 </div>
             )}
             
@@ -132,8 +132,6 @@ const AppointmentCalendarView = () => {
                     dateClick={handleDateClick}
                     eventClassNames={handleEventClassNames}
                     initialDate={currentDate}
-                    onPrevMonth={() => handleChangeMonth('prev')}
-                    onNextMonth={() => handleChangeMonth('next')}
                     editable={false}
                     selectable={true}
                     headerToolbar={{
@@ -148,7 +146,7 @@ const AppointmentCalendarView = () => {
             <AppointmentFormDialog 
                 isOpen={isFormDialogOpen}
                 onClose={() => setIsFormDialogOpen(false)}
-                appointment={isEditMode ? selectedAppointment || undefined : undefined}
+                appointmentId={isEditMode ? selectedAppointment?.id || undefined : undefined}
                 isEditMode={isEditMode}
             />
             

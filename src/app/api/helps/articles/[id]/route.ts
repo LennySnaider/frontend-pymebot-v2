@@ -4,7 +4,7 @@ import { auth } from '@/auth';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -18,7 +18,8 @@ export async function GET(
       );
     }
 
-    const id = String(params?.id || '');
+    const resolvedParams = await params;
+    const id = String(resolvedParams?.id || '');
     const article = mockArticleData.find((item) => item.id === id);
 
     if (!article) {
@@ -45,7 +46,7 @@ export async function GET(
 // API para marcar un artículo como favorito
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -59,7 +60,8 @@ export async function PUT(
       );
     }
 
-    const id = String(params?.id || '');
+    const resolvedParams = await params;
+    const id = String(resolvedParams?.id || '');
     const body = await req.json();
     
     // En un entorno real, aquí actualizaríamos la base de datos

@@ -320,7 +320,7 @@ const AINodeConfig: React.FC<AINodeConfigProps> = ({ data, onChange }) => {
                     </h4>
                     <p className="text-xs text-indigo-700">
                         Este nodo usa el contenido estático predefinido como respuesta.
-                        Para generar respuestas dinámicas con IA en tiempo real, cambia a modo "Auto".
+                        Para generar respuestas dinámicas con IA en tiempo real, cambia a modo &quot;Auto&quot;.
                         {data.waitForResponse !== false ? ' El flujo esperará respuesta del usuario.' : ' El flujo continuará automáticamente.'}
                     </p>
                 </div>

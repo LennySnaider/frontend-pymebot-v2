@@ -25,7 +25,7 @@ const templateCacheVersions: Record<string, number> = {};
  * @param templateId ID de la plantilla
  * @returns Objeto con el estado de la caché y su versión
  */
-export function checkTemplateCache(templateId: string): { isCached: boolean, version: number } {
+function checkTemplateCache(templateId: string): { isCached: boolean, version: number } {
     const version = templateCacheVersions[templateId] || 0;
     return {
         isCached: version > 0,
@@ -37,7 +37,7 @@ export function checkTemplateCache(templateId: string): { isCached: boolean, ver
  * Invalida la caché de una plantilla específica
  * @param templateId ID de la plantilla
  */
-export function invalidateTemplateCache(templateId: string): void {
+function invalidateTemplateCache(templateId: string): void {
     // Incrementar versión de la caché
     CACHE_VERSION++;
     templateCacheVersions[templateId] = CACHE_VERSION;
@@ -47,7 +47,7 @@ export function invalidateTemplateCache(templateId: string): void {
 /**
  * Invalida toda la caché de plantillas
  */
-export function invalidateAllTemplatesCache(): void {
+function invalidateAllTemplatesCache(): void {
     CACHE_VERSION++;
     // Actualizar todas las plantillas en caché con la nueva versión
     Object.keys(templateCacheVersions).forEach(id => {

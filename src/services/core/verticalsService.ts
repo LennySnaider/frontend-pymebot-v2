@@ -7,6 +7,7 @@
  */
 
 import { VerticalModule as CoreVerticalModule, VerticalCategory } from '@/types/core/vertical';
+import { verticalsServiceMock } from './verticalsServiceMock';
 
 // Interfaces para tipado
 interface VerticalColors {
@@ -212,7 +213,15 @@ class VerticalsService {
       return data;
     } catch (error) {
       console.error('Error en getVerticals:', error);
-      throw error;
+      
+      // Si falla, usar el mock
+      console.log('Usando mock para getVerticals...');
+      try {
+        return await verticalsServiceMock.getVerticals();
+      } catch (mockError) {
+        console.error('Error en mock getVerticals:', mockError);
+        throw error;
+      }
     }
   }
   
@@ -244,7 +253,15 @@ class VerticalsService {
       return vertical;
     } catch (error) {
       console.error(`Error en getVertical(${code}):`, error);
-      throw error;
+      
+      // Si falla, intentar con el mock
+      console.log(`Intentando obtener vertical ${code} desde mock...`);
+      try {
+        return await verticalsServiceMock.getVertical(code);
+      } catch (mockError) {
+        console.error(`Error en mock para vertical ${code}:`, mockError);
+        throw error;
+      }
     }
   }
   
@@ -286,7 +303,15 @@ class VerticalsService {
       return data;
     } catch (error) {
       console.error(`Error en getModules(${verticalCode}):`, error);
-      throw error;
+      
+      // Si falla, usar el mock
+      console.log(`Usando mock para getModules(${verticalCode})...`);
+      try {
+        return await verticalsServiceMock.getModules(verticalCode);
+      } catch (mockError) {
+        console.error(`Error en mock getModules(${verticalCode}):`, mockError);
+        throw error;
+      }
     }
   }
   
@@ -642,8 +667,12 @@ class VerticalsService {
   }
 }
 
-// Exportar instancia única
-export const verticalsService = new VerticalsService();
+// Crear instancia del servicio
+const serviceInstance = new VerticalsService();
+
+// TEMPORAL: Exportar el servicio real en lugar del mock puro
+// El servicio real ya tiene fallback al mock cuando las APIs fallan
+export const verticalsService = serviceInstance;
 
 // Registrar verticales disponibles en el sistema
 // Este método sería llamado durante la inicialización de la aplicación

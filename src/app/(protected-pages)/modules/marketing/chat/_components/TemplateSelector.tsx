@@ -103,22 +103,27 @@ const TemplateSelector = memo(({ onTemplateChange }: TemplateSelectorProps) => {
             try {
                 console.log('Inicializando plantilla predeterminada');
 
-                // 1. Verificar si ya hay una plantilla activa en el store
-                if (activeTemplateId) {
-                    const templateExists = visibleTemplates.some(t => t.id === activeTemplateId);
-                    if (templateExists) {
-                        console.log(`Ya hay una plantilla activa: ${activeTemplateId}`);
-                        return;
-                    }
-                }
-
-                // 2. Verificar localStorage
+                // 1. PRIMERO: Verificar localStorage (tiene prioridad)
                 const savedTemplateId = localStorage.getItem('selectedTemplateId');
                 if (savedTemplateId) {
                     const savedTemplateExists = visibleTemplates.some(t => t.id === savedTemplateId);
                     if (savedTemplateExists) {
-                        console.log(`Usando plantilla guardada: ${savedTemplateId}`);
+                        console.log(`Usando plantilla guardada desde localStorage: ${savedTemplateId}`);
                         setActiveTemplate(savedTemplateId);
+                        return;
+                    } else {
+                        console.log(`Plantilla guardada ${savedTemplateId} ya no existe, limpiando localStorage`);
+                        localStorage.removeItem('selectedTemplateId');
+                    }
+                }
+
+                // 2. DESPUÉS: Verificar si ya hay una plantilla activa en el store
+                if (activeTemplateId) {
+                    const templateExists = visibleTemplates.some(t => t.id === activeTemplateId);
+                    if (templateExists) {
+                        console.log(`Usando plantilla activa del store: ${activeTemplateId}`);
+                        // También guardar en localStorage para mantener persistencia
+                        localStorage.setItem('selectedTemplateId', activeTemplateId);
                         return;
                     }
                 }
@@ -203,7 +208,7 @@ const TemplateSelector = memo(({ onTemplateChange }: TemplateSelectorProps) => {
         : null;
 
     return (
-        <div className="template-selector w-64" data-testid="template-selector">
+        <div className="template-selector w-64 relative z-50" data-testid="template-selector">
             <Select
                 value={selectedOption}
                 options={templateOptions}
@@ -257,7 +262,8 @@ const TemplateSelector = memo(({ onTemplateChange }: TemplateSelectorProps) => {
                     }),
                     menu: (base: any) => ({
                         ...base,
-                        backgroundColor: 'transparent' // Permitir que CSS maneje el color
+                        backgroundColor: 'transparent', // Permitir que CSS maneje el color
+                        zIndex: 9999 // Aumentar z-index para aparecer sobre los mensajes del chat
                     }),
                     option: (base: any, state: any) => ({
                         ...base,
@@ -301,11 +307,13 @@ const TemplateSelector = memo(({ onTemplateChange }: TemplateSelectorProps) => {
                 :global(.template-select .template-select__menu) {
                     background-color: white;
                     border: 1px solid rgb(209 213 219);
+                    z-index: 9999 !important;
                 }
                 
                 :global(.dark .template-select .template-select__menu) {
                     background-color: #404040 !important;
                     border-color: #505050 !important;
+                    z-index: 9999 !important;
                 }
                 
                 :global(.template-select .template-select__option--is-focused:not(.template-select__option--is-selected)) {

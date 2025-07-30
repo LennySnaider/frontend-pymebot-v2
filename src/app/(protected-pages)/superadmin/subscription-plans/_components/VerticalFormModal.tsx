@@ -17,6 +17,7 @@ import {
     toast,
     Notification,
     Tabs,
+    Badge,
 } from '@/components/ui'
 import { Form, FormItem } from '@/components/ui/Form'
 import { useVerticalsStore, Vertical } from '../_store/verticalsStore'
@@ -28,6 +29,9 @@ import {
     PiHeartBold,
     PiGraduationCapBold,
     PiCookingPotBold,
+    PiPlusBold,
+    PiPencilSimpleBold,
+    PiTrashSimpleBold,
 } from 'react-icons/pi'
 
 interface VerticalFormModalProps {

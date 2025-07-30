@@ -3,12 +3,13 @@ import { getAppointmentById } from '@/server/actions/appointments/getAppointment
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('DEBUG API - Obteniendo cita con ID:', String(params?.id || ''));
+    const resolvedParams = await params;
+    console.log('DEBUG API - Obteniendo cita con ID:', String(resolvedParams?.id || ''));
     
-    const appointment = await getAppointmentById(String(params?.id || ''));
+    const appointment = await getAppointmentById(String(resolvedParams?.id || ''));
     
     console.log('DEBUG API - Cita obtenida:', JSON.stringify(appointment, null, 2));
     

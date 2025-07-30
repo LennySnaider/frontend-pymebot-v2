@@ -279,9 +279,8 @@ export function useLeadStageSync() {
                                 toastModule.push(
                                     React.createElement(Notification, {
                                         title: 'Éxito',
-                                        type: 'success',
-                                        children: message
-                                    }),
+                                        type: 'success'
+                                    }, message),
                                     { placement: 'top-center' }
                                 );
                             });

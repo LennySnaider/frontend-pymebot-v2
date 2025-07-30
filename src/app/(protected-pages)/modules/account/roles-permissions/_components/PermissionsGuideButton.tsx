@@ -16,7 +16,7 @@ const PermissionsGuideButton = () => {
   const t = useTranslations();
 
   return (
-    <RoleGate allowedRoles={['super_admin']}>
+    <RoleGate role="super_admin">
       <Link href="/modules/account/roles-permissions/guide">
         <Button variant="plain" size="sm">
           {t('common.view')} {t('common.guidePermissions')}

@@ -5,7 +5,7 @@ import { SupabaseClient } from '@/services/supabase/SupabaseClient';
 // Obtener detalles de la cita
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
     // Verificar autenticación
@@ -17,7 +17,8 @@ export async function GET(
       );
     }
 
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     if (!id) {
       return NextResponse.json(
         { error: 'ID de cita requerido' },
@@ -83,7 +84,7 @@ export async function GET(
 // Validar la cita (marcar como confirmada)
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
     // Verificar autenticación
@@ -95,7 +96,8 @@ export async function POST(
       );
     }
 
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     if (!id) {
       return NextResponse.json(
         { error: 'ID de cita requerido' },
