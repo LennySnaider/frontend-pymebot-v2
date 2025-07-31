@@ -1096,7 +1096,9 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
             ...message,
             nodeId,
             type: message.isMyMessage ? 'bot' : 'user',
-            selectedButton: message.buttons?.find(b => b.id)?.body
+            selectedButton: message.buttons?.find(b => b.id)?.body,
+            // Convertir botones del formato Message al formato ConversationMessage
+            buttons: message.buttons?.map(btn => ({ text: btn.body, value: btn.id || '' }))
         })
         
         // NO agregar al conversationRecord aquí porque ya se agregó en handlePushMessage
