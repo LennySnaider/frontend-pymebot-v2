@@ -571,13 +571,13 @@ const ChatList = () => {
                                     title="Modo polling (fallback)"
                                 />
                             )}
-                            {connectionStatus === 'error' && (
+                            {(connectionStatus as any) === 'error' && (
                                 <div 
                                     className="w-2 h-2 bg-red-500 rounded-full" 
                                     title="Error de conexión"
                                 />
                             )}
-                            {connectionStatus === 'connecting' && (
+                            {(connectionStatus as any) === 'connecting' && (
                                 <div 
                                     className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" 
                                     title="Conectando..."
