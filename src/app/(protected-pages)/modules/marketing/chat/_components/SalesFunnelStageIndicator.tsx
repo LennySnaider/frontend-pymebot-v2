@@ -45,9 +45,9 @@ const SalesFunnelStageIndicator: React.FC<SalesFunnelStageIndicatorProps> = ({
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStageId}
-            initial={animated ? { scale: 0.8, opacity: 0 } : false}
+            initial={animated ? { scale: 0.8, opacity: 0 } : undefined}
             animate={{ scale: 1, opacity: 1 }}
-            exit={animated ? { scale: 0.8, opacity: 0 } : false}
+            exit={animated ? { scale: 0.8, opacity: 0 } : undefined}
             transition={{ duration: 0.3 }}
             className="flex items-center gap-2"
           >
@@ -77,7 +77,7 @@ const SalesFunnelStageIndicator: React.FC<SalesFunnelStageIndicatorProps> = ({
                 backgroundColor: currentStage.color,
                 width: animated ? `${progressPercent}%` : `${progressPercent}%`
               }}
-              initial={animated ? { width: 0 } : false}
+              initial={animated ? { width: 0 } : undefined}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
