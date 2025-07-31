@@ -834,8 +834,8 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                 }
                 
                 // Usar el nuevo leadUpdateStore con API mejorada
-                if (leadUpdateStore && typeof leadUpdateStore.addUpdate === 'function') {
-                    leadUpdateStore.addUpdate({
+                if (leadUpdateStore && typeof leadUpdateStore.getState === 'function') {
+                    leadUpdateStore.getState().addUpdate({
                         type: 'update-stage',
                         leadId: leadId,
                         data: {
@@ -845,7 +845,7 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                         time: Date.now()
                     });
                 } else {
-                    console.warn('leadUpdateStore.addUpdate no es una función o no está disponible');
+                    console.warn('leadUpdateStore.getState no es una función o no está disponible');
                 }
                 
                 // Actualizar el lead en la lista de chats si está en el chat
