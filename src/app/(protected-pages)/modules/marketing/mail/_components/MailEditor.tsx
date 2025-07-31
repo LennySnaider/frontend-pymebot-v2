@@ -13,19 +13,14 @@ import sleep from '@/utils/sleep'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import type { ZodType } from 'zod'
 
-type FormSchema = {
-    to: string
-    content: string
-    title: string
-}
-
-const validationSchema: ZodType<FormSchema> = z.object({
+const validationSchema = z.object({
     to: z.string().min(1, { message: 'Please enter recipient' }),
-    title: z.string(),
+    title: z.string().min(1, 'Title is required'),
     content: z.string().min(1, { message: 'Please enter message' }),
 })
+
+type FormSchema = z.infer<typeof validationSchema>
 
 const MailEditor = () => {
     const { mail, messageDialog, toggleMessageDialog } = useMailStore()
