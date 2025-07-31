@@ -95,7 +95,7 @@ const NewChat = () => {
             >
                 {isMutating && (
                     <div className="flex justify-center items-center h-[200px]">
-                        <Spinner size={40} />
+                        <Spinner size="xl" />
                     </div>
                 )}
                 {contacts && !isMutating && (
