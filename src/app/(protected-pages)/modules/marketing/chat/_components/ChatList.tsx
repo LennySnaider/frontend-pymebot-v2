@@ -108,7 +108,7 @@ const ChatList = () => {
     // NUEVO: Activar sincronización en tiempo real con Supabase (versión robusta)
     // TEMPORALMENTE DESACTIVADO debido a errores de conexión
     // const { forceSync, connectionStatus, isRealtime, isFallback } = useRealtimeLeadSyncRobust();
-    const connectionStatus = 'disabled';
+    const connectionStatus: 'disabled' | 'connected' | 'fallback' | 'error' | 'connecting' = 'disabled';
     const forceSync = () => {};
     const isRealtime = false;
     const isFallback = false;
