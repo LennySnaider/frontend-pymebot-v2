@@ -264,7 +264,7 @@ const ProductCategoriesPage = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <Badge
-                                                    color={parentCategory.is_active ? 'emerald' : 'red'}
+                                                    className={parentCategory.is_active ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}
                                                 >
                                                     {parentCategory.is_active ? 'Activa' : 'Inactiva'}
                                                 </Badge>
