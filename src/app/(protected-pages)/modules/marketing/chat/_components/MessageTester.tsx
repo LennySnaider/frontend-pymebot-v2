@@ -331,7 +331,7 @@ ${isCannotGetError ? `6. Si ves "Cannot GET /api/text/chat", es normal porque es
   return (
     <>
       <Button
-        variant="outline"
+        variant="plain"
         size="sm"
         className="bg-blue-100 hover:bg-blue-200 text-blue-900 border-blue-300 h-8"
         onClick={() => {
