@@ -17,8 +17,8 @@ import type { ZodType } from 'zod'
 
 type FormSchema = {
     to: string
-    content?: string
-    title?: string
+    content: string
+    title: string
 }
 
 const validationSchema: ZodType<FormSchema> = z.object({
