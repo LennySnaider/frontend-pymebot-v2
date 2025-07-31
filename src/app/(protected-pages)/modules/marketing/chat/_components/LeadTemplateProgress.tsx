@@ -89,7 +89,7 @@ export default function LeadTemplateProgress({ leadId, className }: LeadTemplate
                             
                             <div className="space-y-1">
                                 <Progress 
-                                    value={templateProgress?.progress || 0} 
+                                    percent={templateProgress?.progress || 0} 
                                     className="h-2"
                                 />
                                 
