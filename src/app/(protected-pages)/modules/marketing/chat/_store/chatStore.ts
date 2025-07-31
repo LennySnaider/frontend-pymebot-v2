@@ -1037,7 +1037,7 @@ export const useChatStore = create<ChatState & ChatAction>((set, get) => ({
                     timestamp: msg.timestamp,
                     type: 'regular' as const,
                     isMyMessage: msg.type === 'bot',
-                    buttons: msg.buttons
+                    buttons: (msg.buttons || []).map(btn => ({ body: btn.text, id: btn.value }))
                 }))
                 
                 const conversation: Conversation = {
