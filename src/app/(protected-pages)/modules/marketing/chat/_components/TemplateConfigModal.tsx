@@ -577,7 +577,6 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                             <Switcher
                                 checked={template.isEnabled}
                                 onChange={(checked) => handleToggleTemplate(template.id, checked)}
-                                size="sm"
                             />
                         )}
                     </div>
