@@ -15,15 +15,16 @@ import { TbFilter } from 'react-icons/tb'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import type { ZodType } from 'zod'
 import type { ControlProps, OptionProps } from 'react-select'
 import classNames from '@/utils/classNames'
 
-type FormSchema = {
-    date: [Date, Date]
-    status: string
-    paymentMethod: Array<string>
-}
+const validationSchema = z.object({
+    date: z.tuple([z.date(), z.date()]),
+    status: z.string(),
+    paymentMethod: z.array(z.string()),
+})
+
+type FormSchema = z.infer<typeof validationSchema>
 
 type Option = {
     value: string
@@ -74,11 +75,6 @@ const CustomControl = ({ children, ...props }: ControlProps<Option>) => {
     )
 }
 
-const validationSchema: ZodType<FormSchema> = z.object({
-    date: z.tuple([z.date(), z.date()]),
-    status: z.string(),
-    paymentMethod: z.array(z.string()),
-})
 
 const OrderListTableFilter = () => {
     const [filterIsOpen, setFilterIsOpen] = useState(false)
