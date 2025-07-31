@@ -78,7 +78,7 @@ const TemplateDebugger = () => {
   return (
     <>
       <Button
-        variant="outline"
+        variant="plain"
         size="sm"
         className="bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300 h-8"
         onClick={() => setOpen(true)}

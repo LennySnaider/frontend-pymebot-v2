@@ -110,7 +110,7 @@ export default function ModuleNotFound() {
           <div className="flex gap-4 mt-8">
             <Button
               asChild
-              variant="outline"
+              variant="plain"
             >
               <Link href={`/vertical-${verticalCode}`}>
                 <ArrowLeft className="h-4 w-4 mr-2" />

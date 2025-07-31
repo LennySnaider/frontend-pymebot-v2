@@ -189,7 +189,7 @@ const AgentInfo = ({ agentId, property }: AgentInfoProps) => {
             </div>
             <div>
                 <Button
-                    variant="outline"
+                    variant="plain"
                     icon={<TbPrinter />}
                     className="w-full mb-2"
                     onClick={handlePrint}
@@ -197,7 +197,7 @@ const AgentInfo = ({ agentId, property }: AgentInfoProps) => {
                     Imprimir
                 </Button>
                 <Button
-                    variant="outline"
+                    variant="plain"
                     icon={<TbDownload />}
                     className="w-full"
                     onClick={handleDownloadPDF}
