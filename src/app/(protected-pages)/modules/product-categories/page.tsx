@@ -309,7 +309,7 @@ const ProductCategoriesPage = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <Badge
-                                                        color={subCategory.is_active ? 'emerald' : 'red'}
+                                                        className={subCategory.is_active ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}
                                                     >
                                                         {subCategory.is_active ? 'Activa' : 'Inactiva'}
                                                     </Badge>
