@@ -138,12 +138,13 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
             }
             
             // Array de posibles IDs para buscar
+            const metadata = lead.metadata as any
             const possibleIds = [
                 lead.id,
                 selectedLeadId,
-                lead.metadata?.original_lead_id,
-                lead.metadata?.db_id,
-                lead.metadata?.real_id
+                metadata?.original_lead_id,
+                metadata?.db_id,
+                metadata?.real_id
             ].filter(Boolean) // Eliminar valores undefined/null
             
             console.log('updateLead: Buscando lead con posibles IDs:', possibleIds)
@@ -171,7 +172,7 @@ export const useSalesFunnelStore = create<SalesFunnelState & SalesFunnelAction>(
                 console.warn(`Lead no encontrado en ninguna columna. Intentando determinar columna por stage...`)
                 
                 // Intentar determinar la columna basándose en el stage del lead
-                const leadStage = lead.stage || lead.metadata?.stage
+                const leadStage = (lead as any).stage || metadata?.stage
                 
                 if (leadStage && columns[leadStage]) {
                     console.log(`Agregando lead a columna ${leadStage} basado en su stage`)

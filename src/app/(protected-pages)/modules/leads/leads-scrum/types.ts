@@ -7,7 +7,7 @@
  * @updated 2025-05-20
  */
 
-import type { Appointment as SchedulerAppointment } from '@/app/(protected-pages)/modules/appointments/_components/AppointmentScheduler'
+import type { Appointment as SchedulerAppointment } from '@/app/(protected-pages)/modules/appointments/_components/types'
 
 export interface Comment {
     id: string
@@ -75,7 +75,7 @@ export const convertToSchedulerAppointment = (appointment: Appointment): Schedul
         location: appointment.location,
         propertyType: appointment.propertyType,
         agentId: appointment.agentId,
-        status: appointment.status,
+        status: appointment.status === 'confirmed' ? 'scheduled' : appointment.status as "scheduled" | "completed" | "cancelled",
         notes: appointment.notes || '',
         createdAt: appointment.createdAt,
         updatedAt: appointment.updatedAt,

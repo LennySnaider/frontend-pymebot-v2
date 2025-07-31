@@ -559,13 +559,13 @@ const ChatList = () => {
                     <div className="flex items-center gap-2">
                         {/* Indicador de estado de sincronización */}
                         <div className="flex items-center">
-                            {connectionStatus === 'connected' && (
+                            {(connectionStatus as any) === 'connected' && (
                                 <div 
                                     className="w-2 h-2 bg-green-500 rounded-full animate-pulse" 
                                     title="Realtime conectado"
                                 />
                             )}
-                            {connectionStatus === 'fallback' && (
+                            {(connectionStatus as any) === 'fallback' && (
                                 <div 
                                     className="w-2 h-2 bg-yellow-500 rounded-full" 
                                     title="Modo polling (fallback)"

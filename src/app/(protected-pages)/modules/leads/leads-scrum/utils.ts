@@ -167,7 +167,7 @@ export const createLeadObject = (
             agentNotes: formData.notes,
             selectedProperties: formData.selectedProperties || ['no-property'],
             original_ui_id: id, // Guardar el ID original de la UI para referencias
-        },
+        } as any,
         contactCount: 0,
         createdAt: Date.now(),
         email: formData.email,

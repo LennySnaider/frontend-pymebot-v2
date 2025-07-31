@@ -199,8 +199,8 @@ const ChatBody = () => {
                 </div>,
                 {
                     duration: 3000,
-                    placement: 'top',
-                },
+                    placement: 'top-center',
+                } as any,
             )
 
             // Forzar actualización del activeTemplateId si es necesario
@@ -1117,7 +1117,7 @@ const ChatBody = () => {
                             }
 
                             const axiosResp =
-                                await apiGetConversation<GetConversationResponse>(
+                                await apiGetConversation(
                                     {
                                         id: selectedChat.id as string,
                                     },

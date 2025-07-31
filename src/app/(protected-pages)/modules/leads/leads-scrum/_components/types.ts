@@ -55,11 +55,16 @@ export interface LeadMetadata {
     bathroomsNeeded?: number
     featuresNeeded?: string
     source?: string
-    interest?: string
+    interest?: 'medio' | 'alto' | 'bajo' | string
     nextContactDate?: string
     leadStatus?: string
     agentId?: string
     property_ids?: string[]
+    lastContactDate?: number
+    db_id?: string
+    real_id?: string
+    original_lead_id?: string
+    selectedProperties?: string[]
 }
 
 export interface Lead {

@@ -30,8 +30,7 @@ import { HiCheck, HiX } from 'react-icons/hi'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import { formatBudget, leadFormOptions } from '../utils'
-import type { EntityData } from '@/app/(protected-pages)/modules/appointments/_components/AppointmentScheduler'
-import type { Appointment as AppSchedulerAppointment } from '@/app/(protected-pages)/modules/appointments/_components/AppointmentScheduler'
+import type { EntityData, Appointment as AppSchedulerAppointment } from '@/app/(protected-pages)/modules/appointments/_components/types'
 import {
     Droppable,
     DragDropContext,
@@ -104,7 +103,7 @@ const convertToSchedulerAppointment = (
         location: appointment.location,
         propertyType: appointment.propertyType,
         agentId: appointment.agentId,
-        status: appointment.status,
+        status: appointment.status === 'confirmed' ? 'scheduled' : appointment.status as "scheduled" | "completed" | "cancelled",
         notes: appointment.notes || '',
         createdAt: appointment.createdAt,
         updatedAt: appointment.updatedAt,
@@ -181,11 +180,6 @@ const SalesFunnel = (props: SalesFunnelProps) => {
                 Prospecting: 'Prospectando',
                 Qualification: 'Calificación',
                 Opportunity: 'Oportunidad',
-                // Añadir también las minúsculas para mejor mapeo
-                new: 'Nuevos',
-                prospecting: 'Prospectando',
-                qualification: 'Calificación',
-                opportunity: 'Oportunidad',
             }
 
             // Solo traducir si encontramos alguna columna en inglés
@@ -343,12 +337,13 @@ const SalesFunnel = (props: SalesFunnelProps) => {
             const leadIndex = columnLeads.findIndex((lead) => {
                 if (!lead) return false
 
+                const metadata = lead.metadata as any
                 const matches =
                     lead.id === leadId ||
                     getRealLeadId(lead) === leadId ||
-                    lead.metadata?.db_id === leadId ||
-                    lead.metadata?.real_id === leadId ||
-                    lead.metadata?.original_lead_id === leadId
+                    metadata?.db_id === leadId ||
+                    metadata?.real_id === leadId ||
+                    metadata?.original_lead_id === leadId
 
                 if (matches) {
                     console.log(
@@ -392,7 +387,7 @@ const SalesFunnel = (props: SalesFunnelProps) => {
 
         // Mostrar información de diagnóstico
         console.log(
-            `Cerrando lead: ${leadId}, nombre: ${leadInfo.lead.name || leadInfo.lead.full_name}`,
+            `Cerrando lead: ${leadId}, nombre: ${leadInfo.lead.name || (leadInfo.lead as any).full_name}`,
         )
         console.log('Usando ID real:', realLeadId)
 
@@ -441,7 +436,7 @@ const SalesFunnel = (props: SalesFunnelProps) => {
 
                 // Mostrar notificación toast
                 showToast(
-                    `Prospecto "${leadInfo.lead.name || leadInfo.lead.full_name}" marcado como cerrado`,
+                    `Prospecto "${leadInfo.lead.name || (leadInfo.lead as any).full_name}" marcado como cerrado`,
                     'success',
                 )
 
@@ -715,14 +710,15 @@ const SalesFunnel = (props: SalesFunnelProps) => {
                 )
 
                 // Preparar datos del lead para fallback
+                const leadSourceData = leadInSource as any
                 const leadDataForFallback = {
                     id: realLeadId,
-                    name: leadInSource.name || leadInSource.full_name,
-                    tenant_id: leadInSource.tenant_id,
+                    name: leadInSource.name || leadSourceData.full_name,
+                    tenant_id: leadSourceData.tenant_id,
                     metadata: leadInSource.metadata || {},
-                    email: leadInSource.email,
-                    phone: leadInSource.phone,
-                    source: leadInSource.source,
+                    email: leadSourceData.email,
+                    phone: leadSourceData.phone,
+                    source: leadSourceData.source,
                 }
 
                 // Enviar la actualización al backend con fallback
@@ -812,15 +808,15 @@ const SalesFunnel = (props: SalesFunnelProps) => {
               budget: currentLead.budget || currentLead.metadata?.budget,
               propertyType: currentLead.metadata?.propertyType,
               // Añadir propiedades asignadas para que hasAssignedProps funcione correctamente
-              interestedPropertyIds: currentLead.property_ids || [],
+              interestedPropertyIds: (currentLead as any).property_ids || [],
               // Incluir metadata completo para acceder a property_ids
               metadata: currentLead.metadata || {},
               // Incluir selected_property_id si existe
               selected_property_id:
-                  currentLead.selected_property_id ||
-                  (currentLead.property_ids &&
-                  currentLead.property_ids.length > 0
-                      ? currentLead.property_ids[0]
+                  (currentLead as any).selected_property_id ||
+                  ((currentLead as any).property_ids &&
+                  (currentLead as any).property_ids.length > 0
+                      ? (currentLead as any).property_ids[0]
                       : undefined),
           }
         : undefined
@@ -1174,7 +1170,7 @@ const SalesFunnel = (props: SalesFunnelProps) => {
                 currentAppointment={currentAppointmentForScheduler}
                 agentOptions={agentOptions}
                 propertyTypes={leadFormOptions.propertyTypes}
-                getRecommendedProperties={getRecommendedProperties}
+                getRecommendedProperties={getRecommendedProperties as any}
                 getAgentAvailability={getAgentAvailability}
                 formatBudget={formatBudget}
             />
