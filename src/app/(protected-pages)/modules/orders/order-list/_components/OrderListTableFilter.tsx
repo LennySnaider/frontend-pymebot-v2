@@ -16,6 +16,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { ControlProps, OptionProps } from 'react-select'
+import type { Filter } from '../types'
 import classNames from '@/utils/classNames'
 
 const validationSchema = z.object({
@@ -24,7 +25,7 @@ const validationSchema = z.object({
     paymentMethod: z.array(z.string()),
 })
 
-type FormSchema = z.infer<typeof validationSchema>
+type FormSchema = Filter
 
 type Option = {
     value: string
