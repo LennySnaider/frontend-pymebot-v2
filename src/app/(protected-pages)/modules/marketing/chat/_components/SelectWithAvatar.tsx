@@ -54,17 +54,6 @@ const SelectWithAvatar = ({
     }
   }
   
-  // Renderizar el label personalizado con avatar
-  const customOptionLabel = (data: any, label: string) => (
-    <div className="flex items-center gap-2">
-      <Avatar 
-        size={24} 
-        shape="circle" 
-        src={data.data?.avatarUrl || '/img/avatars/thumb-2.jpg'} 
-      />
-      <span>{label}</span>
-    </div>
-  )
 
   return (
     <Select 
@@ -74,7 +63,6 @@ const SelectWithAvatar = ({
       options={selectOptions}
       value={selectedOption}
       onChange={handleChange}
-      customLabel={customOptionLabel}
       components={{
         Option: ({ innerProps, label, isSelected, isDisabled, data }) => (
           <div
