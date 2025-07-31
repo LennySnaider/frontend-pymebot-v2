@@ -644,7 +644,7 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
             <h4 className="text-xl font-semibold mb-4">Configuración de Chatbot</h4>
             {loading ? (
                 <div className="flex justify-center py-8">
-                    <Spinner size={40} />
+                    <Spinner size="xl" />
                 </div>
             ) : (
                 <div>
@@ -714,7 +714,7 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                 >
                     {loading ? (
                         <>
-                            <Spinner size={16} className="mr-2" />
+                            <Spinner size="sm" className="mr-2" />
                             Guardando...
                         </>
                     ) : (
