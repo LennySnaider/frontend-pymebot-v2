@@ -509,7 +509,7 @@ ${isCannotGetError ? `6. Si ves "Cannot GET /api/text/chat", es normal porque es
               
               <div className="flex justify-between mt-4">
                 <Button
-                  variant="outline"
+                  variant="plain"
                   size="sm"
                   onClick={() => setOpen(false)}
                 >
