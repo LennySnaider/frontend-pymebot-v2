@@ -21,8 +21,8 @@ export default function ConversationPersistenceProvider({ children }: Conversati
     const loadConversationState = useChatStore((state) => state.loadConversationState)
     const updateLeadTemplateProgress = useChatStore((state) => state.updateLeadTemplateProgress)
     
-    const previousLeadRef = useRef<string>()
-    const previousTemplateRef = useRef<string>()
+    const previousLeadRef = useRef<string | undefined>(undefined)
+    const previousTemplateRef = useRef<string | undefined>(undefined)
     
     // Cargar estado de conversación cuando cambia el lead o la plantilla
     useEffect(() => {
