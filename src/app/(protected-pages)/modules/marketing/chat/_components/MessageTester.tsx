@@ -155,9 +155,9 @@ const MessageTester = () => {
       });
 
       // Como fallback, intentamos directamente con el backend
+      const backendUrl = 'http://localhost:3090/api/text/chatbot';
       try {
         console.log('↪️ FALLBACK ↪️ Intentando conexión directa con backend...');
-        const backendUrl = 'http://localhost:3090/api/text/chatbot';
 
         const response = await fetch(backendUrl, {
           method: 'POST',
