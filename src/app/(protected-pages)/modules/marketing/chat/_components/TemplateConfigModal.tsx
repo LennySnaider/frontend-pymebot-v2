@@ -572,7 +572,7 @@ const TemplateConfigModal = ({ isOpen, onClose }: TemplateConfigModalProps) => {
                             {template.tokenCost} tokens/mes
                         </span>
                         {template.isLoadingToggle ? (
-                            <Spinner size={16} />
+                            <Spinner size="sm" />
                         ) : (
                             <Switcher
                                 checked={template.isEnabled}
