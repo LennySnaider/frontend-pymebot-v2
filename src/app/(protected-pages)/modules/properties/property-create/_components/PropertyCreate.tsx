@@ -38,7 +38,6 @@ const PropertyCreate = () => {
                     </Notification>,
                     {
                         placement: 'top-center',
-                        duration: 3000,
                     },
                 )
 
@@ -65,7 +64,6 @@ const PropertyCreate = () => {
                     </Notification>,
                     {
                         placement: 'top-center',
-                        duration: 3000,
                     },
                 )
             }
@@ -76,7 +74,6 @@ const PropertyCreate = () => {
                 </Notification>,
                 {
                     placement: 'top-center',
-                    duration: 3000,
                 },
             )
             console.error('Error al crear propiedad:', error)
