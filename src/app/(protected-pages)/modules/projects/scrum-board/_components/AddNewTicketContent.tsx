@@ -11,11 +11,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import cloneDeep from 'lodash/cloneDeep'
 import { createCardObject } from '../utils'
-import type { ZodType } from 'zod'
 
-type FormSchema = {
-    title: string
-}
+const validationSchema = z.object({
+    title: z.string().min(1, 'Title is required'),
+})
+
+type FormSchema = z.infer<typeof validationSchema>
 
 /**
  * Componente para añadir una nueva tarjeta al tablero
@@ -26,8 +27,9 @@ type FormSchema = {
 const AddNewTicketContent = () => {
     const t = useTranslations('scrumboard')
     const tCommon = useTranslations('common')
-
-    const validationSchema: ZodType<FormSchema> = z.object({
+    
+    // Recrear el schema con las traducciones disponibles
+    const validationSchemaWithTranslations = z.object({
         title: z.string().min(1, t('tickets.validation.titleRequired')),
     })
 
@@ -42,7 +44,7 @@ const AddNewTicketContent = () => {
         defaultValues: {
             title: '',
         },
-        resolver: zodResolver(validationSchema),
+        resolver: zodResolver(validationSchemaWithTranslations),
     })
 
     const onFormSubmit = async ({ title }: FormSchema) => {
