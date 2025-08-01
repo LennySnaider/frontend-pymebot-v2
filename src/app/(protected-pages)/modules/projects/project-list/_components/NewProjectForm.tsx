@@ -31,7 +31,11 @@ const validationSchema = z.object({
     ),
 })
 
-type FormSchema = z.infer<typeof validationSchema>
+type FormSchema = {
+    title: string
+    content: string
+    assignees: MemberListOption[]
+}
 
 type TaskCount = {
     completedTask?: number
