@@ -10,12 +10,13 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import cloneDeep from 'lodash/cloneDeep'
-import type { ZodType } from 'zod'
 import type { Columns } from '../types'
 
-type FormSchema = {
-    title: string
-}
+const validationSchema = z.object({
+    title: z.string().min(1, 'Title is required'),
+})
+
+type FormSchema = z.infer<typeof validationSchema>
 
 /**
  * Componente para añadir una nueva columna al tablero
@@ -26,8 +27,9 @@ type FormSchema = {
 const AddNewColumnContent = () => {
     const t = useTranslations('scrumboard')
     const tCommon = useTranslations('common')
-
-    const validationSchema: ZodType<FormSchema> = z.object({
+    
+    // Recrear el schema con las traducciones disponibles
+    const validationSchemaWithTranslations = z.object({
         title: z.string().min(1, t('columns.validation.titleRequired')),
     })
 
@@ -48,7 +50,7 @@ const AddNewColumnContent = () => {
         defaultValues: {
             title: '',
         },
-        resolver: zodResolver(validationSchema),
+        resolver: zodResolver(validationSchemaWithTranslations),
     })
 
     const onFormSubmit = async ({ title }: FormSchema) => {
