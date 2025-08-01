@@ -17,18 +17,17 @@ import cloneDeep from 'lodash/cloneDeep'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MemberListOption, Member, Project } from '../types'
-import type { ZodType } from 'zod'
 import type { MultiValueGenericProps, OptionProps } from 'react-select'
 
-type FormSchema = {
-    title: string
-    content: string
-    assignees: {
-        img: string
-        value: string
-        label: string
-    }[]
-}
+const validationSchema = z.object({
+    title: z.string().min(1, { message: 'Title required' }),
+    content: z.string().min(1, { message: 'Content required' }),
+    assignees: z.array(
+        z.object({ value: z.string(), label: z.string(), img: z.string() }),
+    ),
+})
+
+type FormSchema = z.infer<typeof validationSchema>
 
 type TaskCount = {
     completedTask?: number
@@ -81,13 +80,6 @@ const CustomControlMulti = ({ children, ...props }: MultiValueGenericProps) => {
     )
 }
 
-const validationSchema: ZodType<FormSchema> = z.object({
-    title: z.string().min(1, { message: 'Title required' }),
-    content: z.string().min(1, { message: 'Content required' }),
-    assignees: z.array(
-        z.object({ value: z.string(), label: z.string(), img: z.string() }),
-    ),
-})
 
 const NewProjectForm = ({ onClose }: { onClose: () => void }) => {
     const { memberList, updateProjectList } = useProjectListStore()
