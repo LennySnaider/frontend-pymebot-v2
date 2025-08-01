@@ -198,7 +198,6 @@ const ChatBody = () => {
                     </span>
                 </div>,
                 {
-                    duration: 3000,
                     placement: 'top-center',
                 } as any,
             )
