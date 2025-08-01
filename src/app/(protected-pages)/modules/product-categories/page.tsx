@@ -376,7 +376,7 @@ const ProductCategoriesPage = () => {
                         label="Descripción"
                     >
                         <Input
-                            as="textarea"
+                            textArea={true}
                             value={formData.description}
                             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                             placeholder="Descripción opcional de la categoría"
