@@ -23,7 +23,11 @@ const validationSchema = z.object({
     title: z.string().min(1, { message: 'Title required' }),
     content: z.string().min(1, { message: 'Content required' }),
     assignees: z.array(
-        z.object({ value: z.string(), label: z.string(), img: z.string() }),
+        z.object({ 
+            value: z.string().min(1), 
+            label: z.string().min(1), 
+            img: z.string().min(1) 
+        }),
     ),
 })
 
