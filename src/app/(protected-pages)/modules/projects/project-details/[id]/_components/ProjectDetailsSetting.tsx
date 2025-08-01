@@ -10,20 +10,16 @@ import dayjs from 'dayjs'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import type { ZodType } from 'zod'
 
-type FormSchema = {
-    name: string
-    content: string
-    dueDate?: number
-    notification?: string[]
-    active?: boolean
-}
-
-const validationSchema: ZodType<FormSchema> = z.object({
-    name: z.string().min(1, { message: 'Email Required' }),
-    content: z.string().min(1, { message: 'Email Required' }),
+const validationSchema = z.object({
+    name: z.string().min(1, { message: 'Name Required' }),
+    content: z.string().min(1, { message: 'Content Required' }),
+    dueDate: z.number().optional(),
+    notification: z.array(z.string()).optional(),
+    active: z.boolean().optional(),
 })
+
+type FormSchema = z.infer<typeof validationSchema>
 
 type ProjectDetailBase = {
     name: string
