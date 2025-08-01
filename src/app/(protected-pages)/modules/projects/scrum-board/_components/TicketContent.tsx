@@ -133,7 +133,15 @@ const TicketContent = ({ onTicketClose }: { onTicketClose: () => void }) => {
                 const board = data[key]
                 board.forEach((ticket, index) => {
                     if (ticket.id === ticketId) {
-                        data[key][index] = ticketData as Ticket
+                        // Convertir TransformedComment[] a Comment[] (Date a number)
+                        const convertedTicketData = {
+                            ...ticketData,
+                            comments: ticketData.comments?.map(comment => ({
+                                ...comment,
+                                date: comment.date instanceof Date ? comment.date.getTime() : comment.date
+                            }))
+                        } as Ticket
+                        data[key][index] = convertedTicketData
                     }
                 })
             }
