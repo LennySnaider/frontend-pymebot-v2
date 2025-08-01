@@ -22,7 +22,7 @@ interface Project {
   attachmentCount: number;
   totalTask: number;
   completedTask: number;
-  progress: number;
+  progression: number;
   dueDate: number; // timestamp
   status: string;
   member: Member[];
@@ -53,7 +53,7 @@ export default async function getProjects(): Promise<Project[]> {
         attachmentCount: 12,
         totalTask: 36,
         completedTask: 28,
-        progress: 78,
+        progression: 78,
         dueDate: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 días en el futuro
         status: 'En Progreso',
         member: [
@@ -85,7 +85,7 @@ export default async function getProjects(): Promise<Project[]> {
         attachmentCount: 8,
         totalTask: 24,
         completedTask: 20,
-        progress: 83,
+        progression: 83,
         dueDate: Date.now() + 3 * 24 * 60 * 60 * 1000, // 3 días en el futuro
         status: 'En Progreso',
         member: [
@@ -111,7 +111,7 @@ export default async function getProjects(): Promise<Project[]> {
         attachmentCount: 5,
         totalTask: 18,
         completedTask: 6,
-        progress: 33,
+        progression: 33,
         dueDate: Date.now() + 14 * 24 * 60 * 60 * 1000, // 14 días en el futuro
         status: 'Pendiente',
         member: [
@@ -137,7 +137,7 @@ export default async function getProjects(): Promise<Project[]> {
         attachmentCount: 3,
         totalTask: 12,
         completedTask: 12,
-        progress: 100,
+        progression: 100,
         dueDate: Date.now() - 5 * 24 * 60 * 60 * 1000, // 5 días en el pasado
         status: 'Completado',
         member: [
@@ -169,7 +169,7 @@ export default async function getProjects(): Promise<Project[]> {
         attachmentCount: 7,
         totalTask: 28,
         completedTask: 14,
-        progress: 50,
+        progression: 50,
         dueDate: Date.now() + 10 * 24 * 60 * 60 * 1000, // 10 días en el futuro
         status: 'En Progreso',
         member: [
