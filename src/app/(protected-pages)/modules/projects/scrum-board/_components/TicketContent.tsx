@@ -169,7 +169,7 @@ const TicketContent = ({ onTicketClose }: { onTicketClose: () => void }) => {
         <>
             {loading ? (
                 <div className="flex justify-center items-center min-h-[300px]">
-                    <Spinner size={40} />
+                    <Spinner size="xl" />
                 </div>
             ) : (
                 <>
