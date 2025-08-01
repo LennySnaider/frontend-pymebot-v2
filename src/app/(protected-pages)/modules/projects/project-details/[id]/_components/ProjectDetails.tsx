@@ -98,7 +98,7 @@ const ProjectDetails = ({ id }: { id: string }) => {
                             <Suspense
                                 fallback={
                                     <div className="my-4 mx-auto text-center flex justify-center">
-                                        <Spinner size={40} />
+                                        <Spinner size="xl" />
                                     </div>
                                 }
                             >
